@@ -2,6 +2,7 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv").config();
 const http_errors_1 = __importDefault(require("http-errors"));
@@ -29,7 +30,7 @@ var app = (0, express_1.default)();
 // view engine setup
 app.set("views", path_1.default.join(__dirname, "views"));
 app.set("view engine", "ejs");
-app.use((0, cors_1.default)({ origin: "http://localhost:3001" }));
+app.use((0, cors_1.default)({ origin: process.env.ORIGIN }));
 app.use((0, morgan_1.default)("dev"));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
@@ -37,7 +38,7 @@ app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.static(path_1.default.join(__dirname, "public")));
 app.use("/images", express_1.default.static("public/images"));
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://localhost:3001");
+    res.header("Access-Control-Allow-Origin", process.env.ORIGIN);
     next();
 });
 //API Routes
@@ -60,7 +61,7 @@ app.use(function (err, req, res) {
     res.render("error");
 });
 mongoose_1.default
-    .connect(`mongodb://127.0.0.1:27017/shop`)
+    .connect((_a = process.env.DB_URI) !== null && _a !== void 0 ? _a : "")
     .then(() => {
     console.log("dbConnected");
     mongoose_1.default.model("Vendors", Vendors_1.VendorSchema);
