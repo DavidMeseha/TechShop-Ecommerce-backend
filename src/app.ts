@@ -31,7 +31,7 @@ var app: Application = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-app.use(cors({ origin: "http://localhost:3001" }));
+app.use(cors({ origin: process.env.ORIGIN }));
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -39,7 +39,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/images", express.static("public/images"));
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3001");
+  res.header("Access-Control-Allow-Origin", process.env.ORIGIN);
   next();
 });
 
@@ -67,7 +67,7 @@ app.use(function (err: HttpError, req: Request, res: Response) {
 });
 
 mongoose
-  .connect(`mongodb://127.0.0.1:27017/shop`)
+  .connect(process.env.DB_URI ?? "")
   .then(() => {
     console.log("dbConnected");
     mongoose.model("Vendors", VendorSchema);
