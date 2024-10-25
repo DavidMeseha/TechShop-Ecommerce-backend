@@ -10,6 +10,9 @@ import {
   getFollowingVendors,
   getLikedProducts,
   getLikesId,
+  getOrder,
+  getOrders,
+  getOrdersIds,
   getReviewIds,
   getReviews,
   getSavedProducts,
@@ -17,6 +20,7 @@ import {
   getUserInfo,
   likeProduct,
   newAdress,
+  paymentIntent,
   placeOrder,
   saveProduct,
   unfollowVendor,
@@ -52,5 +56,9 @@ router.get("/reviews", getReviews);
 router.get("/info", getUserInfo);
 router.get("/addresses", getAdresses);
 router.get("/checkout", getCheckoutDetails);
+router.get("/orders", getOrders);
+router.get("/ordersIds", getOrdersIds);
+router.get("/order/:id", getOrder);
+router.get("/preperPayment", paymentIntent);
 
 export default router;

@@ -9,7 +9,7 @@ import Vendors from "../models/Vendors";
 import bcrypt from "bcrypt-nodejs";
 import { IAddress } from "../models/supDocumentsSchema";
 import Orders from "../models/Orders";
-import { valid } from "joi";
+import Stripe from "stripe";
 
 type IUserInfoBody = {
   dateOfBirthDay: number;
@@ -22,6 +22,8 @@ type IUserInfoBody = {
   imageUrl: string;
   phone: string;
 };
+
+const STRIPE_SECRET = process.env.STRIPE_SECRET;
 
 export async function likeProduct(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
@@ -318,11 +320,14 @@ export async function getUserInfo(req: Request, res: Response) {
 
   try {
     const foundUser = await Users.findById(user._id)
-      .select("firstName lastName imageUrl dateOfBirth email gender phone")
+      .select(
+        "firstName lastName imageUrl dateOfBirth email gender phone orders"
+      )
       .lean()
       .exec();
 
     if (!foundUser) throw new Error("No user Found");
+
     const userProfile = {
       dateOfBirthDay: foundUser.dateOfBirth?.day,
       dateOfBirthMonth: foundUser.dateOfBirth?.month,
@@ -330,9 +335,10 @@ export async function getUserInfo(req: Request, res: Response) {
       email: foundUser.email,
       firstName: foundUser.firstName,
       lastName: foundUser.lastName,
-      gender: foundUser.gender ?? "",
+      gender: foundUser.gender,
       imageUrl: foundUser.imageUrl,
-      phone: foundUser.phone ?? "",
+      phone: foundUser.phone,
+      ordersCount: foundUser.orders.length,
     };
     res.status(200).json(userProfile);
   } catch (err: any) {
@@ -538,29 +544,15 @@ export async function getCheckoutDetails(req: Request, res: Response) {
       addresses: foundUser.addresses,
       cartItems: foundUser.cart,
       total,
+      // clientSecret: paymentIntent.client_secret,
     });
   } catch (err: any) {
     res.status(400).json(err.message);
   }
 }
 
-export async function placeOrder(req: Request, res: Response) {
+export async function paymentIntent(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
-  const order: {
-    billing: {
-      billingAddressId: string;
-      method: string;
-      cardInfo?: {
-        code: string;
-        exp: string;
-        holder: string;
-      };
-    };
-    shipping: {
-      shippingAddressId: string;
-      method: string;
-    };
-  } = req.body;
 
   try {
     const foundUser = await Users.findById(user._id)
@@ -570,36 +562,132 @@ export async function placeOrder(req: Request, res: Response) {
     if (!foundUser) throw new Error("No user Found");
 
     const cart = foundUser.cart ?? [];
-    const billingStatus = order.billing.method === "cod" ? "cod" : "prepaid";
+
+    let total = 25;
+    for (const item of cart) total += item.product.price.price * item.quantity;
+
+    if (!STRIPE_SECRET)
+      throw new Error("Env failed on server to confirm payment");
+
+    const stripe = new Stripe(STRIPE_SECRET);
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: total * 100,
+      currency: "usd",
+      payment_method_types: ["card"],
+    });
+
+    res.status(200).json({ paymentSecret: paymentIntent.client_secret });
+  } catch (err: any) {
+    res.status(400).json(err.message);
+  }
+}
+
+export async function placeOrder(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+  const order: {
+    billingMethod: string;
+    billingStatus: string;
+    shippingAddressId: string;
+  } = req.body;
+
+  try {
+    const foundUser = await Users.findById(user._id)
+      .populate("cart.product")
+      .lean()
+      .exec();
+    if (!foundUser) throw new Error("No user Found");
+
+    console.log(foundUser);
+
+    const cart = foundUser.cart ?? [];
     const userAddresses = foundUser.addresses as (IAddress & { _id: string })[];
-    const billingAddress = userAddresses.find(
-      (address) => address._id === order.billing.billingAddressId
-    );
-    console.log(billingAddress);
     const shippingAddress = userAddresses.find(
-      (address) => address._id === order.shipping.shippingAddressId
+      (address) => String(address._id) === order.shippingAddressId
     );
     console.log(shippingAddress);
 
     let total = 0;
     for (const item of cart) total += item.product.price.price * item.quantity;
 
-    const cratedOrder = await Orders.create({
+    const createdOrder = await Orders.create({
       customer: user._id,
-      billing: {
-        status: billingStatus,
-        value: total,
-        address: billingAddress,
-      },
-      shipping: {
-        method: order.shipping.method,
-        address: shippingAddress,
-      },
+      billingStatus: order.billingStatus || "cod",
+      billingMethod: order.billingMethod,
+      shippingAddress: shippingAddress,
       items: cart,
-      totalValue: total,
+      subTotal: total,
+      totalValue: total + 25,
+      shippingFees: 25,
     });
 
-    res.status(200).json(cratedOrder);
+    if (!createdOrder) throw new Error("Could not create Order");
+
+    const userUpdate = await Users.findByIdAndUpdate(user._id, {
+      $push: { orders: createdOrder._id },
+    });
+
+    if (!userUpdate) throw new Error();
+
+    res.status(200).json(createdOrder);
+  } catch (err: any) {
+    res.status(400).json(err.message);
+  }
+}
+
+export async function getOrders(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+
+  try {
+    const foundUser = await Users.findById(user._id)
+      .select("orders")
+      .populate(
+        // "orders orders.items.product orders.shippingAddress.country orders.shippingAddress.city"
+        {
+          path: "orders",
+          populate:
+            "items.product shippingAddress.country shippingAddress.city",
+        }
+      )
+      .lean()
+      .exec();
+    if (!foundUser?.orders) throw new Error("Could not find User Orders");
+
+    res.status(200).json(foundUser.orders);
+  } catch (err: any) {
+    res.status(400).json(err.message);
+  }
+}
+
+export async function getOrdersIds(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+
+  try {
+    const foundUser = await Users.findById(user._id)
+      .select("orders")
+      .lean()
+      .exec();
+    if (!foundUser?.orders) throw new Error("Could not find User Orders");
+
+    res.status(200).json(foundUser.orders);
+  } catch (err: any) {
+    res.status(400).json(err.message);
+  }
+}
+
+export async function getOrder(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+  let orderId = req.params.id;
+
+  try {
+    const order = await Orders.findOne({ customer: user._id, _id: orderId })
+      .populate(
+        "customer items.product shippingAddress.country shippingAddress.city"
+      )
+      .lean()
+      .exec();
+    if (!order) throw new Error("Could not find User Orders");
+
+    res.status(200).json(order);
   } catch (err: any) {
     res.status(400).json(err.message);
   }

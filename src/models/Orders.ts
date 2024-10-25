@@ -5,46 +5,30 @@ import { IFullProduct, IProductAttribute } from "../global-types";
 
 export interface IOrder {
   customer: IUser;
-  billing: {
-    status: string;
-    method: string;
-    value: number;
-    address: IAddress;
-  };
-  shipping: {
-    status: string;
-    method: string;
-    address: IAddress;
-  };
+  billingStatus: string;
+  billingMethod: string;
+  shippingAddress: IAddress;
+  shippingStatus: string;
   items: {
     product: IFullProduct;
     quantity: number;
     attributes: IProductAttribute[];
   }[];
+  subTotal: number;
   totalValue: number;
+  shippingFees: number;
 }
 
 export const orderSchema = new mongoose.Schema<IOrder>(
   {
     customer: { type: mongoose.Schema.ObjectId, ref: "Users" },
-    billing: {
-      status: { type: String, required: true },
-      value: { type: Number, required: true },
-      address: {
-        address: String,
-        country: { type: mongoose.Schema.ObjectId, ref: "Countries" },
-        city: { type: mongoose.Schema.ObjectId, ref: "Cities" },
-      },
-    },
-
-    shipping: {
-      status: { type: String, default: "processing" },
-      method: String,
-      address: {
-        address: String,
-        country: { type: mongoose.Schema.ObjectId, ref: "Countries" },
-        city: { type: mongoose.Schema.ObjectId, ref: "Cities" },
-      },
+    billingMethod: String,
+    billingStatus: String,
+    shippingStatus: { type: String, default: "Processing" },
+    shippingAddress: {
+      address: String,
+      country: { type: mongoose.Schema.ObjectId, ref: "Countries" },
+      city: { type: mongoose.Schema.ObjectId, ref: "Cities" },
     },
 
     items: [
@@ -55,6 +39,8 @@ export const orderSchema = new mongoose.Schema<IOrder>(
       },
     ],
 
+    shippingFees: Number,
+    subTotal: Number,
     totalValue: { type: Number, required: true },
   },
   { timestamps: true }
