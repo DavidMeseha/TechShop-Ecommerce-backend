@@ -51,7 +51,7 @@ app.use("/api/catalog", apiAuthMiddleware, catalogRouter);
 app.use("/api/product", apiAuthMiddleware, productRouter);
 
 // catch 404 and forward to error handler
-app.use(function (req: Request, res: Response, next: NextFunction) {
+app.use("*", function (req: Request, res: Response, next: NextFunction) {
   res.status(404).render("error", { to: process.env.ORIGIN });
 });
 
