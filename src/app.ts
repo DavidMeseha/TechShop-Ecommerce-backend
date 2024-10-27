@@ -1,6 +1,5 @@
 require("dotenv").config();
-import { NextFunction } from "express";
-import createHttpError, { HttpError } from "http-errors";
+import { HttpError } from "http-errors";
 import express, { Request, Response, Application } from "express";
 import mongoose from "mongoose";
 import path from "path";
@@ -51,8 +50,10 @@ app.use("/api/catalog", apiAuthMiddleware, catalogRouter);
 app.use("/api/product", apiAuthMiddleware, productRouter);
 
 // catch 404 and forward to error handler
-app.use("*", function (req: Request, res: Response, next: NextFunction) {
-  res.status(404).render("error", { to: process.env.ORIGIN });
+app.use(function (_req: Request, res: Response) {
+  if (!process.env.ORIGIN)
+    return res.status(404).render("error", { to: process.env.ORIGIN });
+  res.redirect(process.env.ORIGIN);
 });
 
 // error handler
