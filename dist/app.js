@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv").config();
-const http_errors_1 = __importDefault(require("http-errors"));
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const path_1 = __importDefault(require("path"));
@@ -48,8 +47,8 @@ app.use("/api/common", auth_middleware_1.apiAuthMiddleware, commonRouter_1.defau
 app.use("/api/catalog", auth_middleware_1.apiAuthMiddleware, catalogsRouter_1.default);
 app.use("/api/product", auth_middleware_1.apiAuthMiddleware, productRouter_1.default);
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
-    next((0, http_errors_1.default)(404));
+app.use("*", function (req, res, next) {
+    res.status(404).render("error", { to: process.env.ORIGIN });
 });
 // error handler
 app.use(function (err, req, res) {
@@ -57,8 +56,7 @@ app.use(function (err, req, res) {
     res.locals.message = err.message;
     res.locals.error = req.app.get("env") === "development" ? err : {};
     // render the error page
-    res.status(err.status || 500);
-    res.render("error");
+    res.status(err.status || 500).render("error");
 });
 mongoose_1.default
     .connect((_a = process.env.DB_URI) !== null && _a !== void 0 ? _a : "")
