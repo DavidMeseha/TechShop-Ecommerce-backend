@@ -10,7 +10,6 @@ import {
   removeProductFromCart,
 } from "../controllers/common.controller";
 const router = express.Router();
-const DOMAIN = process.env.DOMAIN;
 
 router.get("/cart", getCartProducts);
 router.get("/cart/ids", getCartProductsIds);
@@ -25,8 +24,11 @@ router.post(
   "/upload",
   upload.single("image"),
   (req: Request, res: Response) => {
-    if (!DOMAIN || !req.file?.path) return;
-    const imageUrl = DOMAIN + req.file.path.replace("public", "");
+    if (!req.file?.path) return;
+    const protocol = req.protocol; // 'http' or 'https'
+    const host = req.get("host"); // domain name and port
+    const fullUrl = `${protocol}://${host}`;
+    const imageUrl = fullUrl + req.file.path.replace("public", "");
     res.status(200).json({ imageUrl });
   }
 );

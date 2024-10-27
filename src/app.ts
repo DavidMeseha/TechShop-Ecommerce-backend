@@ -52,7 +52,7 @@ app.use("/api/product", apiAuthMiddleware, productRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req: Request, res: Response, next: NextFunction) {
-  next(createHttpError(404));
+  res.status(404).render("error", { to: process.env.ORIGIN });
 });
 
 // error handler
@@ -62,8 +62,7 @@ app.use(function (err: HttpError, req: Request, res: Response) {
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
   // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+  res.status(err.status || 500).render("error");
 });
 
 mongoose
