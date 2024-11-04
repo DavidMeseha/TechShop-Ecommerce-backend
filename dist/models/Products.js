@@ -21,7 +21,6 @@ const ProductSchema = new mongoose_1.default.Schema({
         price: { type: Number, required: true },
     },
     name: { type: String, required: true },
-    shortDescription: String,
     fullDescription: String,
     metaDescription: String,
     metaKeywords: String,
@@ -60,5 +59,6 @@ const ProductSchema = new mongoose_1.default.Schema({
     ],
     productAttributes: [supDocumentsSchema_1.AttributeSchema],
 }, { timestamps: true });
+ProductSchema.index({ name: "text" });
 exports.default = mongoose_1.default.models.Products ||
     mongoose_1.default.model("Products", ProductSchema);

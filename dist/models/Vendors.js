@@ -16,5 +16,6 @@ exports.VendorSchema = new mongoose_1.default.Schema({
     followersCount: { type: Number, default: 0 },
     user: { type: mongoose_1.default.Schema.ObjectId, required: true, ref: "Users" },
 });
+exports.VendorSchema.index({ name: "text" });
 exports.default = mongoose_1.default.models.Vendors ||
     mongoose_1.default.model("Vendors", exports.VendorSchema);

@@ -22,11 +22,16 @@ const Reviews_1 = __importDefault(require("../models/Reviews"));
 function getProductAtterputes(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const id = req.params.id;
-        const product = yield Products_1.default.findById(id)
-            .select("productAttributes name")
-            .lean()
-            .exec();
-        res.status(200).json(product);
+        try {
+            const product = yield Products_1.default.findById(id)
+                .select("productAttributes name")
+                .lean()
+                .exec();
+            res.status(200).json(product);
+        }
+        catch (err) {
+            res.status(400).json((0, utilities_1.responseDto)(err.message));
+        }
     });
 }
 function getProductDetails(req, res) {
@@ -43,7 +48,7 @@ function getProductDetails(req, res) {
             res.status(200).json(product);
         }
         catch (err) {
-            res.status(404).json((0, utilities_1.responseDto)(err.message));
+            res.status(400).json((0, utilities_1.responseDto)(err.message));
         }
     });
 }
@@ -62,7 +67,7 @@ function getReviews(req, res) {
             res.status(200).json(reviews);
         }
         catch (err) {
-            res.status(404).json((0, utilities_1.responseDto)(err.message));
+            res.status(400).json((0, utilities_1.responseDto)(err.message));
         }
     });
 }

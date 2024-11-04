@@ -10,5 +10,6 @@ exports.CategorySchema = new mongoose_1.default.Schema({
     seName: { type: String, required: true },
     productsCount: { type: Number, default: 0 },
 });
+exports.CategorySchema.index({ name: "text" });
 exports.default = mongoose_1.default.models.Categories ||
     mongoose_1.default.model("Categories", exports.CategorySchema);

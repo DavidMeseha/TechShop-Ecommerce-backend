@@ -73,9 +73,7 @@ mongoose_1.default
     mongoose_1.default.model("Cities", Cities_1.CitySchema);
     mongoose_1.default.model("Orders", Orders_1.orderSchema);
 })
-    .catch((err) => {
-    console.log(err);
-});
+    .catch((err) => console.log(err));
 app.listen(3000, () => {
     console.log("listen on 3000");
 });

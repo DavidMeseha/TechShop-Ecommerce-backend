@@ -10,5 +10,6 @@ exports.TagSchema = new mongoose_1.default.Schema({
     seName: { type: String, required: true, unique: true },
     productCount: { type: Number, default: 0 },
 });
+exports.TagSchema.index({ name: "text" });
 exports.default = mongoose_1.default.models.Tags ||
     mongoose_1.default.model("Tags", exports.TagSchema);

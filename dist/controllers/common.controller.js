@@ -19,11 +19,15 @@ exports.removeProductFromCart = removeProductFromCart;
 exports.changeLanguage = changeLanguage;
 exports.getCountries = getCountries;
 exports.getCities = getCities;
+exports.findInAll = findInAll;
 const Products_1 = __importDefault(require("../models/Products"));
 const utilities_1 = require("../utilities");
 const mongoose_1 = __importDefault(require("mongoose"));
 const Users_1 = __importDefault(require("../models/Users"));
 const Countries_1 = __importDefault(require("../models/Countries"));
+const Vendors_1 = __importDefault(require("../models/Vendors"));
+const Categories_1 = __importDefault(require("../models/Categories"));
+const Tags_1 = __importDefault(require("../models/Tags"));
 function addProductToCart(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
@@ -159,6 +163,72 @@ function getCities(req, res) {
             setTimeout(() => {
                 res.status(200).json(country === null || country === void 0 ? void 0 : country.cities);
             }, 2000);
+        }
+        catch (err) {
+            res.status(400).json(err.message);
+        }
+    });
+}
+function findInAll(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const options = req.body;
+        const items = [];
+        const regex = new RegExp(options.searchText, "i");
+        try {
+            let optionsCount = -1;
+            let key;
+            for (key in options)
+                if (options[key])
+                    optionsCount++;
+            if (options.products) {
+                const products = yield Products_1.default.find({
+                    $or: [{ name: regex }],
+                })
+                    .limit(Math.floor(8 / optionsCount))
+                    .lean();
+                const productItems = products.map((product) => ({
+                    item: product,
+                    type: "product",
+                }));
+                items.push(...productItems);
+            }
+            if (options.vendors) {
+                const vendors = yield Vendors_1.default.find({
+                    $or: [{ name: regex }],
+                })
+                    .limit(Math.floor(8 / optionsCount))
+                    .lean();
+                const vendorItems = vendors.map((vendor) => ({
+                    item: vendor,
+                    type: "vendor",
+                }));
+                items.push(...vendorItems);
+            }
+            if (options.categories) {
+                const categories = yield Categories_1.default.find({
+                    $or: [{ name: regex }],
+                })
+                    .limit(Math.floor(8 / optionsCount))
+                    .lean();
+                const categryItems = categories.map((category) => ({
+                    item: category,
+                    type: "category",
+                }));
+                items.push(...categryItems);
+            }
+            if (options.tags) {
+                const tags = yield Tags_1.default.find({
+                    $or: [{ name: regex }],
+                })
+                    .limit(Math.floor(8 / optionsCount))
+                    .lean();
+                const tagItems = tags.map((tag) => ({
+                    item: tag,
+                    type: "tag",
+                }));
+                items.push(...tagItems);
+            }
+            res.status(200).json(items);
         }
         catch (err) {
             res.status(400).json(err.message);

@@ -14,6 +14,7 @@ router.get("/cities/:id", common_controller_1.getCities);
 router.delete("/cart/remove/:id", common_controller_1.removeProductFromCart);
 router.post("/changeLanguage/:lang", common_controller_1.changeLanguage);
 router.post("/cart/add/:id", common_controller_1.addProductToCart);
+router.post("/find", common_controller_1.findInAll);
 router.post("/upload", upload_middleware_1.default.single("image"), (req, res) => {
     var _a;
     if (!((_a = req.file) === null || _a === void 0 ? void 0 : _a.path))

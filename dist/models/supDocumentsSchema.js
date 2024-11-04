@@ -10,8 +10,6 @@ exports.ImageSchema = new mongoose_1.default.Schema({
         type: String,
         default: process.env.DOMAIN + "/images/no_image_placeholder.jpg",
     },
-    title: { type: String, default: "" },
-    alternateText: { type: String, default: "" },
 });
 exports.AttributeValueSchema = new mongoose_1.default.Schema({
     name: String,
