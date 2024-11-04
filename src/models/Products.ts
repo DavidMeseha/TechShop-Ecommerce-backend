@@ -23,7 +23,6 @@ const ProductSchema = new mongoose.Schema<IFullProductDocument>(
       price: { type: Number, required: true },
     },
     name: { type: String, required: true },
-    shortDescription: String,
     fullDescription: String,
     metaDescription: String,
     metaKeywords: String,
@@ -64,6 +63,8 @@ const ProductSchema = new mongoose.Schema<IFullProductDocument>(
   },
   { timestamps: true }
 );
+
+ProductSchema.index({ name: "text" });
 
 export default (mongoose.models.Products as mongoose.Model<IFullProduct>) ||
   mongoose.model<IFullProduct>("Products", ProductSchema);

@@ -15,8 +15,6 @@ export const ImageSchema = new mongoose.Schema<IPictureDocument>({
     type: String,
     default: process.env.DOMAIN + "/images/no_image_placeholder.jpg",
   },
-  title: { type: String, default: "" },
-  alternateText: { type: String, default: "" },
 });
 
 interface IProductAttributeValueDocument

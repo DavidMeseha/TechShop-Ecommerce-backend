@@ -6,13 +6,15 @@ import Reviews from "../models/Reviews";
 
 export async function getProductAtterputes(req: Request, res: Response) {
   const id = req.params.id;
-
-  const product = await Products.findById(id)
-    .select("productAttributes name")
-    .lean()
-    .exec();
-
-  res.status(200).json(product);
+  try {
+    const product = await Products.findById(id)
+      .select("productAttributes name")
+      .lean()
+      .exec();
+    res.status(200).json(product);
+  } catch (err: any) {
+    res.status(400).json(responseDto(err.message));
+  }
 }
 
 export async function getProductDetails(req: Request, res: Response) {
@@ -28,7 +30,7 @@ export async function getProductDetails(req: Request, res: Response) {
     if (!product) return res.status(404).json(responseDto("No product found"));
     res.status(200).json(product);
   } catch (err: any) {
-    res.status(404).json(responseDto(err.message));
+    res.status(400).json(responseDto(err.message));
   }
 }
 
@@ -47,6 +49,6 @@ export async function getReviews(req: Request, res: Response) {
       return res.status(404).json(responseDto("No reviews found"));
     res.status(200).json(reviews);
   } catch (err: any) {
-    res.status(404).json(responseDto(err.message));
+    res.status(400).json(responseDto(err.message));
   }
 }

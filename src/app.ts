@@ -79,9 +79,7 @@ mongoose
     mongoose.model("Cities", CitySchema);
     mongoose.model("Orders", orderSchema);
   })
-  .catch((err) => {
-    console.log(err);
-  });
+  .catch((err) => console.log(err));
 
 app.listen(3000, () => {
   console.log("listen on 3000");

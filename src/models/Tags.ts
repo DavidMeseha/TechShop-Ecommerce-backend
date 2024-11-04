@@ -11,5 +11,7 @@ export const TagSchema = new mongoose.Schema<ITagDocument>({
   productCount: { type: Number, default: 0 },
 });
 
+TagSchema.index({ name: "text" });
+
 export default (mongoose.models.Tags as mongoose.Model<ITag>) ||
   mongoose.model<ITag>("Tags", TagSchema);

@@ -17,5 +17,7 @@ export const VendorSchema = new mongoose.Schema<IVendorwDocument>({
   user: { type: mongoose.Schema.ObjectId, required: true, ref: "Users" },
 });
 
+VendorSchema.index({ name: "text" });
+
 export default (mongoose.models.Vendors as mongoose.Model<IVendor>) ||
   mongoose.model<IVendor>("Vendors", VendorSchema);

@@ -3,6 +3,7 @@ import upload from "../middlewares/upload.middleware";
 import {
   addProductToCart,
   changeLanguage,
+  findInAll,
   getCartProducts,
   getCartProductsIds,
   getCities,
@@ -20,6 +21,7 @@ router.delete("/cart/remove/:id", removeProductFromCart);
 
 router.post("/changeLanguage/:lang", changeLanguage);
 router.post("/cart/add/:id", addProductToCart);
+router.post("/find", findInAll);
 router.post(
   "/upload",
   upload.single("image"),

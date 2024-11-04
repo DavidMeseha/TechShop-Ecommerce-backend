@@ -11,5 +11,7 @@ export const CategorySchema = new mongoose.Schema<ICategoryDocument>({
   productsCount: { type: Number, default: 0 },
 });
 
+CategorySchema.index({ name: "text" });
+
 export default (mongoose.models.Categories as mongoose.Model<ICategory>) ||
   mongoose.model<ICategory>("Categories", CategorySchema);

@@ -5,6 +5,9 @@ import { validateAttributes } from "../utilities";
 import mongoose from "mongoose";
 import Users from "../models/Users";
 import Countries from "../models/Countries";
+import Vendors from "../models/Vendors";
+import Categories from "../models/Categories";
+import Tags from "../models/Tags";
 
 export async function addProductToCart(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
@@ -157,6 +160,89 @@ export async function getCities(req: Request, res: Response) {
     setTimeout(() => {
       res.status(200).json(country?.cities);
     }, 2000);
+  } catch (err: any) {
+    res.status(400).json(err.message);
+  }
+}
+
+export async function findInAll(req: Request, res: Response) {
+  const options: {
+    searchText: string;
+    categories: boolean;
+    vendors: boolean;
+    tags: boolean;
+    products: boolean;
+  } = req.body;
+
+  const items: {
+    item: any;
+    type: string;
+  }[] = [];
+
+  const regex = new RegExp(options.searchText, "i");
+
+  try {
+    let optionsCount = -1;
+    let key: keyof typeof options;
+    for (key in options) if (options[key]) optionsCount++;
+
+    if (options.products) {
+      const products = await Products.find({
+        $or: [{ name: regex }],
+      })
+        .limit(Math.floor(8 / optionsCount))
+        .lean();
+
+      const productItems = products.map((product) => ({
+        item: product,
+        type: "product",
+      }));
+      items.push(...productItems);
+    }
+
+    if (options.vendors) {
+      const vendors = await Vendors.find({
+        $or: [{ name: regex }],
+      })
+        .limit(Math.floor(8 / optionsCount))
+        .lean();
+
+      const vendorItems = vendors.map((vendor) => ({
+        item: vendor,
+        type: "vendor",
+      }));
+      items.push(...vendorItems);
+    }
+
+    if (options.categories) {
+      const categories = await Categories.find({
+        $or: [{ name: regex }],
+      })
+        .limit(Math.floor(8 / optionsCount))
+        .lean();
+
+      const categryItems = categories.map((category) => ({
+        item: category,
+        type: "category",
+      }));
+      items.push(...categryItems);
+    }
+
+    if (options.tags) {
+      const tags = await Tags.find({
+        $or: [{ name: regex }],
+      })
+        .limit(Math.floor(8 / optionsCount))
+        .lean();
+
+      const tagItems = tags.map((tag) => ({
+        item: tag,
+        type: "tag",
+      }));
+      items.push(...tagItems);
+    }
+
+    res.status(200).json(items);
   } catch (err: any) {
     res.status(400).json(err.message);
   }
