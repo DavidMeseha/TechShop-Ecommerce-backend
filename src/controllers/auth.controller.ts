@@ -54,7 +54,7 @@ export async function checkToken(req: Request, res: Response) {
 
       const foundUser = await Users.findById(userToken._id)
         .select(
-          "firstName lastName email isRegistered isLogin isVendor language"
+          "firstName lastName imageUrl email isRegistered isLogin isVendor language"
         )
         .then((result) => result?.toJSON());
 
@@ -89,10 +89,7 @@ export async function guestToken(req: Request, res: Response) {
 
         return userJson;
       })
-      .catch((err) => {
-        console.log(err.message);
-        return null;
-      });
+      .catch((err) => null);
 
     if (!newUser)
       return res
@@ -141,7 +138,7 @@ export async function login(req: Request, res: Response) {
   const { email, password }: LoginRequestBody = req.body;
   const user = await Users.findOne({ email: email })
     .select(
-      "_id firstName lastName email isRegistered isVendor language password"
+      "_id firstName lastName email imageUrl isRegistered isVendor language password"
     )
     .then((result) => result?.toJSON());
 

@@ -136,28 +136,6 @@ export async function unsaveProduct(req: Request, res: Response) {
   }
 }
 
-export async function getLikesId(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
-  try {
-    const found = await Users.findById(user._id).select("likes").lean().exec();
-    res.status(200).json(found?.likes);
-  } catch (err) {
-    res.status(500).json(responseDto("error getting user lieks", false));
-  }
-}
-
-export async function getSavesId(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
-  try {
-    const found = await Users.findById(user._id).select("saves").lean().exec();
-    res.status(200).json(found?.saves);
-  } catch (err) {
-    res
-      .status(500)
-      .json(responseDto("error getting user saved products", false));
-  }
-}
-
 export async function getLikedProducts(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
   try {
@@ -281,22 +259,6 @@ export async function unfollowVendor(req: Request, res: Response) {
   }
 }
 
-export async function getFollowingIds(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
-  if (!user) return;
-
-  try {
-    const foundUser = await Users.findById(user._id)
-      .select("following")
-      .lean()
-      .exec();
-    if (!foundUser) throw new Error("No user Found");
-    res.status(200).json(foundUser.following);
-  } catch (err: any) {
-    res.status(400).json(responseDto(err.message));
-  }
-}
-
 export async function getFollowingVendors(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
   if (!user) return;
@@ -384,23 +346,6 @@ export async function updateInfo(req: Request, res: Response) {
     res.status(200).json(userProfile);
   } catch (err: any) {
     res.status(400).json(responseDto(err.message));
-  }
-}
-
-export async function getReviewIds(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
-
-  try {
-    const reviews = await Reviews.find({
-      customer: new mongoose.Types.ObjectId(user._id),
-    })
-      .select("product")
-      .lean()
-      .exec();
-
-    res.status(200).json(reviews.map((review) => review.product));
-  } catch (err: any) {
-    res.status(400).json(err.message);
   }
 }
 

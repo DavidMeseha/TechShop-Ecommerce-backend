@@ -8,10 +8,18 @@ import {
   getCartProductsIds,
   getCities,
   getCountries,
+  getFollowingIds,
+  getLikesId,
+  getReviewIds,
+  getSavesId,
   removeProductFromCart,
 } from "../controllers/common.controller";
 const router = express.Router();
 
+router.get("/reviewedIds", getReviewIds);
+router.get("/followingIds", getFollowingIds);
+router.get("/savesId", getSavesId);
+router.get("/likesId", getLikesId);
 router.get("/cart", getCartProducts);
 router.get("/cart/ids", getCartProductsIds);
 router.get("/countries", getCountries);

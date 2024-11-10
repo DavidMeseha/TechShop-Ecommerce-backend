@@ -32,7 +32,7 @@ export async function getSingleProduct(req: Request, res: Response) {
 }
 
 export async function homeFeed(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
+  // const user: IUserTokenPayload = res.locals.user;
 
   // const userInfo = await Users.findById(user._id)
   //   .populate("recentProducts")

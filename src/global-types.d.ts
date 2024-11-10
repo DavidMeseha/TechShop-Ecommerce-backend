@@ -17,6 +17,7 @@ export interface IUserTokenPayload {
   _id: string;
   createdAt: string;
   updatedAt: string;
+  imageUrl: string;
   __v: number;
   iat: number;
 }

@@ -1,13 +1,69 @@
 import { Request, Response } from "express";
 import { IUserTokenPayload, IProductAttribute } from "../global-types";
 import Products from "../models/Products";
-import { validateAttributes } from "../utilities";
+import { responseDto, validateAttributes } from "../utilities";
 import mongoose from "mongoose";
 import Users from "../models/Users";
 import Countries from "../models/Countries";
 import Vendors from "../models/Vendors";
 import Categories from "../models/Categories";
 import Tags from "../models/Tags";
+import Reviews from "../models/Reviews";
+
+export async function getReviewIds(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+
+  try {
+    const reviews = await Reviews.find({
+      customer: new mongoose.Types.ObjectId(user._id),
+    })
+      .select("product")
+      .lean()
+      .exec();
+
+    res.status(200).json(reviews.map((review) => review.product));
+  } catch (err: any) {
+    res.status(400).json(err.message);
+  }
+}
+
+export async function getLikesId(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+  try {
+    const found = await Users.findById(user._id).select("likes").lean().exec();
+    res.status(200).json(found?.likes ?? []);
+  } catch (err) {
+    res.status(500).json(responseDto("error getting user lieks", false));
+  }
+}
+
+export async function getSavesId(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+  try {
+    const found = await Users.findById(user._id).select("saves").lean().exec();
+    res.status(200).json(found?.saves ?? []);
+  } catch (err) {
+    res
+      .status(500)
+      .json(responseDto("error getting user saved products", false));
+  }
+}
+
+export async function getFollowingIds(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+  if (!user) return;
+
+  try {
+    const foundUser = await Users.findById(user._id)
+      .select("following")
+      .lean()
+      .exec();
+    if (!foundUser) throw new Error("No user Found");
+    res.status(200).json(foundUser.following);
+  } catch (err: any) {
+    res.status(400).json(responseDto(err.message));
+  }
+}
 
 export async function addProductToCart(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
