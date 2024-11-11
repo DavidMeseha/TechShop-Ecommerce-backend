@@ -12,6 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getCheckoutDetails = getCheckoutDetails;
+exports.getReviewIds = getReviewIds;
+exports.getLikesId = getLikesId;
+exports.getSavesId = getSavesId;
+exports.getFollowingIds = getFollowingIds;
 exports.addProductToCart = addProductToCart;
 exports.getCartProductsIds = getCartProductsIds;
 exports.getCartProducts = getCartProducts;
@@ -28,6 +33,97 @@ const Countries_1 = __importDefault(require("../models/Countries"));
 const Vendors_1 = __importDefault(require("../models/Vendors"));
 const Categories_1 = __importDefault(require("../models/Categories"));
 const Tags_1 = __importDefault(require("../models/Tags"));
+const Reviews_1 = __importDefault(require("../models/Reviews"));
+function getCheckoutDetails(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const user = res.locals.user;
+        try {
+            const foundUser = yield Users_1.default.findById(user._id)
+                .select("cart addresses")
+                .populate("cart.product")
+                .lean()
+                .exec();
+            if (!foundUser || !foundUser.cart)
+                throw new Error("No User found");
+            let total = 0;
+            for (const item of foundUser.cart)
+                total += item.product.price.price * item.quantity;
+            res.status(200).json({
+                addresses: foundUser.addresses,
+                cartItems: foundUser.cart,
+                total,
+                // clientSecret: paymentIntent.client_secret,
+            });
+        }
+        catch (err) {
+            res.status(400).json(err.message);
+        }
+    });
+}
+function getReviewIds(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const user = res.locals.user;
+        try {
+            const reviews = yield Reviews_1.default.find({
+                customer: new mongoose_1.default.Types.ObjectId(user._id),
+            })
+                .select("product")
+                .lean()
+                .exec();
+            res.status(200).json(reviews.map((review) => review.product));
+        }
+        catch (err) {
+            res.status(400).json(err.message);
+        }
+    });
+}
+function getLikesId(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const user = res.locals.user;
+        try {
+            const found = yield Users_1.default.findById(user._id).select("likes").lean().exec();
+            res.status(200).json((_a = found === null || found === void 0 ? void 0 : found.likes) !== null && _a !== void 0 ? _a : []);
+        }
+        catch (err) {
+            res.status(500).json((0, utilities_1.responseDto)("error getting user lieks", false));
+        }
+    });
+}
+function getSavesId(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const user = res.locals.user;
+        try {
+            const found = yield Users_1.default.findById(user._id).select("saves").lean().exec();
+            res.status(200).json((_a = found === null || found === void 0 ? void 0 : found.saves) !== null && _a !== void 0 ? _a : []);
+        }
+        catch (err) {
+            res
+                .status(500)
+                .json((0, utilities_1.responseDto)("error getting user saved products", false));
+        }
+    });
+}
+function getFollowingIds(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const user = res.locals.user;
+        if (!user)
+            return;
+        try {
+            const foundUser = yield Users_1.default.findById(user._id)
+                .select("following")
+                .lean()
+                .exec();
+            if (!foundUser)
+                throw new Error("No user Found");
+            res.status(200).json(foundUser.following);
+        }
+        catch (err) {
+            res.status(400).json((0, utilities_1.responseDto)(err.message));
+        }
+    });
+}
 function addProductToCart(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;

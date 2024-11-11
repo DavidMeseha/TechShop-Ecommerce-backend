@@ -53,8 +53,8 @@ function getSingleProduct(req, res) {
 }
 function homeFeed(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
+        // const user: IUserTokenPayload = res.locals.user;
         var _a, _b;
-        const user = res.locals.user;
         // const userInfo = await Users.findById(user._id)
         //   .populate("recentProducts")
         //   .lean()

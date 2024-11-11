@@ -16,24 +16,19 @@ exports.likeProduct = likeProduct;
 exports.unlikeProduct = unlikeProduct;
 exports.saveProduct = saveProduct;
 exports.unsaveProduct = unsaveProduct;
-exports.getLikesId = getLikesId;
-exports.getSavesId = getSavesId;
 exports.getLikedProducts = getLikedProducts;
 exports.getSavedProducts = getSavedProducts;
 exports.addReview = addReview;
 exports.followVendor = followVendor;
 exports.unfollowVendor = unfollowVendor;
-exports.getFollowingIds = getFollowingIds;
 exports.getFollowingVendors = getFollowingVendors;
 exports.getUserInfo = getUserInfo;
 exports.updateInfo = updateInfo;
-exports.getReviewIds = getReviewIds;
 exports.getReviews = getReviews;
 exports.newAdress = newAdress;
 exports.editAdress = editAdress;
 exports.getAdresses = getAdresses;
 exports.changePassword = changePassword;
-exports.getCheckoutDetails = getCheckoutDetails;
 exports.paymentIntent = paymentIntent;
 exports.placeOrder = placeOrder;
 exports.getOrders = getOrders;
@@ -132,32 +127,6 @@ function unsaveProduct(req, res) {
         }
         catch (err) {
             res.status(400).json((0, utilities_1.responseDto)(err.message, false));
-        }
-    });
-}
-function getLikesId(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const user = res.locals.user;
-        try {
-            const found = yield Users_1.default.findById(user._id).select("likes").lean().exec();
-            res.status(200).json(found === null || found === void 0 ? void 0 : found.likes);
-        }
-        catch (err) {
-            res.status(500).json((0, utilities_1.responseDto)("error getting user lieks", false));
-        }
-    });
-}
-function getSavesId(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const user = res.locals.user;
-        try {
-            const found = yield Users_1.default.findById(user._id).select("saves").lean().exec();
-            res.status(200).json(found === null || found === void 0 ? void 0 : found.saves);
-        }
-        catch (err) {
-            res
-                .status(500)
-                .json((0, utilities_1.responseDto)("error getting user saved products", false));
         }
     });
 }
@@ -262,25 +231,6 @@ function unfollowVendor(req, res) {
         }
     });
 }
-function getFollowingIds(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const user = res.locals.user;
-        if (!user)
-            return;
-        try {
-            const foundUser = yield Users_1.default.findById(user._id)
-                .select("following")
-                .lean()
-                .exec();
-            if (!foundUser)
-                throw new Error("No user Found");
-            res.status(200).json(foundUser.following);
-        }
-        catch (err) {
-            res.status(400).json((0, utilities_1.responseDto)(err.message));
-        }
-    });
-}
 function getFollowingVendors(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
@@ -373,23 +323,6 @@ function updateInfo(req, res) {
         }
         catch (err) {
             res.status(400).json((0, utilities_1.responseDto)(err.message));
-        }
-    });
-}
-function getReviewIds(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const user = res.locals.user;
-        try {
-            const reviews = yield Reviews_1.default.find({
-                customer: new mongoose_1.default.Types.ObjectId(user._id),
-            })
-                .select("product")
-                .lean()
-                .exec();
-            res.status(200).json(reviews.map((review) => review.product));
-        }
-        catch (err) {
-            res.status(400).json(err.message);
         }
     });
 }
@@ -500,32 +433,6 @@ function changePassword(req, res) {
         }
         catch (err) {
             res.status(200).json(err.message);
-        }
-    });
-}
-function getCheckoutDetails(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const user = res.locals.user;
-        try {
-            const foundUser = yield Users_1.default.findById(user._id)
-                .select("cart addresses")
-                .populate("cart.product")
-                .lean()
-                .exec();
-            if (!foundUser || !foundUser.cart)
-                throw new Error("No User found");
-            let total = 0;
-            for (const item of foundUser.cart)
-                total += item.product.price.price * item.quantity;
-            res.status(200).json({
-                addresses: foundUser.addresses,
-                cartItems: foundUser.cart,
-                total,
-                // clientSecret: paymentIntent.client_secret,
-            });
-        }
-        catch (err) {
-            res.status(400).json(err.message);
         }
     });
 }

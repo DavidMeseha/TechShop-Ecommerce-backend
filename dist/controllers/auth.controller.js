@@ -49,7 +49,7 @@ function checkToken(req, res) {
                 if (!userToken)
                     return res.status(400).json((0, utilities_1.responseDto)("Token not valid"));
                 const foundUser = yield Users_1.default.findById(userToken._id)
-                    .select("firstName lastName email isRegistered isLogin isVendor language")
+                    .select("firstName lastName imageUrl email isRegistered isLogin isVendor language")
                     .then((result) => result === null || result === void 0 ? void 0 : result.toJSON());
                 if (foundUser &&
                     ((foundUser.isLogin && foundUser.isRegistered) ||
@@ -83,10 +83,7 @@ function guestToken(req, res) {
                 delete userJson.cart;
                 return userJson;
             })
-                .catch((err) => {
-                console.log(err.message);
-                return null;
-            });
+                .catch((err) => null);
             if (!newUser)
                 return res
                     .status(500)
@@ -117,7 +114,7 @@ function login(req, res) {
         var _a;
         const { email, password } = req.body;
         const user = yield Users_1.default.findOne({ email: email })
-            .select("_id firstName lastName email isRegistered isVendor language password")
+            .select("_id firstName lastName email imageUrl isRegistered isVendor language password")
             .then((result) => result === null || result === void 0 ? void 0 : result.toJSON());
         if (!user)
             return res.status(401).json((0, utilities_1.responseDto)("Email Not Found"));
