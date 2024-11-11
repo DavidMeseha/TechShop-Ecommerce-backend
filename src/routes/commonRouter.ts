@@ -6,6 +6,7 @@ import {
   findInAll,
   getCartProducts,
   getCartProductsIds,
+  getCheckoutDetails,
   getCities,
   getCountries,
   getFollowingIds,
@@ -24,6 +25,7 @@ router.get("/cart", getCartProducts);
 router.get("/cart/ids", getCartProductsIds);
 router.get("/countries", getCountries);
 router.get("/cities/:id", getCities);
+router.get("/checkout", getCheckoutDetails);
 
 router.delete("/cart/remove/:id", removeProductFromCart);
 

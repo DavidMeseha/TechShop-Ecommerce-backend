@@ -5,7 +5,6 @@ import {
   editAdress,
   followVendor,
   getAdresses,
-  getCheckoutDetails,
   getFollowingVendors,
   getLikedProducts,
   getOrder,
@@ -47,7 +46,6 @@ router.get("/followingVendors", getFollowingVendors);
 router.get("/reviews", getReviews);
 router.get("/info", getUserInfo);
 router.get("/addresses", getAdresses);
-router.get("/checkout", getCheckoutDetails);
 router.get("/orders", getOrders);
 router.get("/ordersIds", getOrdersIds);
 router.get("/order/:id", getOrder);

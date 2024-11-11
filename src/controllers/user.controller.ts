@@ -469,33 +469,6 @@ export async function changePassword(req: Request, res: Response) {
   }
 }
 
-export async function getCheckoutDetails(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
-
-  try {
-    const foundUser = await Users.findById(user._id)
-      .select("cart addresses")
-      .populate("cart.product")
-      .lean()
-      .exec();
-
-    if (!foundUser || !foundUser.cart) throw new Error("No User found");
-
-    let total = 0;
-    for (const item of foundUser.cart)
-      total += item.product.price.price * item.quantity;
-
-    res.status(200).json({
-      addresses: foundUser.addresses,
-      cartItems: foundUser.cart,
-      total,
-      // clientSecret: paymentIntent.client_secret,
-    });
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
-}
-
 export async function paymentIntent(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
 
