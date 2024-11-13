@@ -49,11 +49,14 @@ app.use("/api/common", apiAuthMiddleware, commonRouter);
 app.use("/api/catalog", apiAuthMiddleware, catalogRouter);
 app.use("/api/product", apiAuthMiddleware, productRouter);
 
+app.use("/", (req: Request, res: Response) =>
+  res.redirect(process.env.ORIGIN ?? "")
+);
+
 // catch 404 and forward to error handler
 app.use(function (_req: Request, res: Response) {
   if (!process.env.ORIGIN)
     return res.status(404).render("error", { to: process.env.ORIGIN });
-  res.redirect(process.env.ORIGIN);
 });
 
 // error handler
