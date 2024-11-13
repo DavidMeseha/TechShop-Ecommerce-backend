@@ -92,6 +92,7 @@ function getVendorProducts(req, res) {
         const limit = 5;
         try {
             const products = yield Products_1.default.find({ vendor: vendorId })
+                .populate("vendor productTags")
                 .limit(limit + 1)
                 .skip((page - 1) * limit)
                 .lean()
@@ -168,6 +169,7 @@ function getTagProducts(req, res) {
         const limit = 5;
         try {
             const products = yield Products_1.default.find({ productTags: tagId })
+                .populate("productTags vendor")
                 .limit(limit + 1)
                 .skip((page - 1) * limit)
                 .lean()
@@ -223,6 +225,7 @@ function getCategoryProducts(req, res) {
         const limit = 5;
         try {
             const products = yield Products_1.default.find({ category: categoryId })
+                .populate("productTags vendor")
                 .limit(limit + 1)
                 .skip((page - 1) * limit)
                 .lean()

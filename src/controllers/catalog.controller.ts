@@ -73,6 +73,7 @@ export async function getVendorProducts(req: Request, res: Response) {
 
   try {
     const products = await Products.find({ vendor: vendorId })
+      .populate("vendor productTags")
       .limit(limit + 1)
       .skip((page - 1) * limit)
       .lean()
@@ -148,6 +149,7 @@ export async function getTagProducts(req: Request, res: Response) {
 
   try {
     const products = await Products.find({ productTags: tagId })
+      .populate("productTags vendor")
       .limit(limit + 1)
       .skip((page - 1) * limit)
       .lean()
@@ -202,6 +204,7 @@ export async function getCategoryProducts(req: Request, res: Response) {
 
   try {
     const products = await Products.find({ category: categoryId })
+      .populate("productTags vendor")
       .limit(limit + 1)
       .skip((page - 1) * limit)
       .lean()
