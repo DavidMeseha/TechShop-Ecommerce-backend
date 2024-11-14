@@ -44,8 +44,8 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRouter_1.default);
 app.use("/api/user", auth_middleware_1.userAuthMiddleware, userRouter_1.default);
 app.use("/api/common", auth_middleware_1.apiAuthMiddleware, commonRouter_1.default);
-app.use("/api/catalog", auth_middleware_1.apiAuthMiddleware, catalogsRouter_1.default);
-app.use("/api/product", auth_middleware_1.apiAuthMiddleware, productRouter_1.default);
+app.use("/api/catalog", catalogsRouter_1.default);
+app.use("/api/product", productRouter_1.default);
 app.use("/", (req, res) => { var _a; return res.redirect((_a = process.env.ORIGIN) !== null && _a !== void 0 ? _a : ""); });
 // catch 404 and forward to error handler
 app.use(function (_req, res) {

@@ -1,5 +1,8 @@
 import express, { Router } from "express";
-import { apiAuthMiddleware } from "../middlewares/auth.middleware";
+import {
+  apiAuthMiddleware,
+  userAuthMiddleware,
+} from "../middlewares/auth.middleware";
 import {
   login,
   register,
@@ -12,7 +15,7 @@ const router: Router = express.Router();
 router.get("/check", checkToken);
 router.get("/guest", guestToken);
 router.post("/login", apiAuthMiddleware, login);
-router.post("/logout", apiAuthMiddleware, logout);
+router.post("/logout", userAuthMiddleware, logout);
 router.post("/register", apiAuthMiddleware, register);
 
 export default router;

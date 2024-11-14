@@ -46,8 +46,8 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRouter);
 app.use("/api/user", userAuthMiddleware, userRouter);
 app.use("/api/common", apiAuthMiddleware, commonRouter);
-app.use("/api/catalog", apiAuthMiddleware, catalogRouter);
-app.use("/api/product", apiAuthMiddleware, productRouter);
+app.use("/api/catalog", catalogRouter);
+app.use("/api/product", productRouter);
 
 app.use("/", (req: Request, res: Response) =>
   res.redirect(process.env.ORIGIN ?? "")
