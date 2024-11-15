@@ -54,13 +54,13 @@ function getSingleProduct(req, res) {
 function homeFeed(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         // const user: IUserTokenPayload = res.locals.user;
-        var _a, _b;
+        var _a, _b, _c, _d;
         // const userInfo = await Users.findById(user._id)
         //   .populate("recentProducts")
         //   .lean()
         //   .exec();
         const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "1");
-        const limit = 2;
+        const limit = parseInt((_d = (_c = req.query.limit) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : "2");
         let products = yield Products_1.default.find({})
             .populate("vendor productTags")
             .limit(limit + 1)

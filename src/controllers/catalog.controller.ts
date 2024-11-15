@@ -40,7 +40,7 @@ export async function homeFeed(req: Request, res: Response) {
   //   .exec();
 
   const page = parseInt(req.query.page?.toString() ?? "1");
-  const limit = 2;
+  const limit = parseInt(req.query.limit?.toString() ?? "2");
 
   let products = await Products.find({})
     .populate("vendor productTags")
