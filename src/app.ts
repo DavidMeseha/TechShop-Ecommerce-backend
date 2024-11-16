@@ -49,6 +49,9 @@ app.use("/api/common", apiAuthMiddleware, commonRouter);
 app.use("/api/catalog", catalogRouter);
 app.use("/api/product", productRouter);
 
+app.use("/api/status", (_req: Request, res: Response) =>
+  res.status(200).json("Connected")
+);
 app.use("/", (req: Request, res: Response) =>
   res.redirect(process.env.ORIGIN ?? "")
 );

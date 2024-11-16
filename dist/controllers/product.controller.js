@@ -62,9 +62,7 @@ function getReviews(req, res) {
                 .populate({ path: "customer", select: "firstName lastName imageUrl" })
                 .lean()
                 .exec();
-            if (reviews.length < 1)
-                return res.status(404).json((0, utilities_1.responseDto)("No reviews found"));
-            res.status(200).json(reviews);
+            res.status(200).json(reviews !== null && reviews !== void 0 ? reviews : []);
         }
         catch (err) {
             res.status(400).json((0, utilities_1.responseDto)(err.message));

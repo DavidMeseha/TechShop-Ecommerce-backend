@@ -45,9 +45,7 @@ export async function getReviews(req: Request, res: Response) {
       .lean()
       .exec();
 
-    if (reviews.length < 1)
-      return res.status(404).json(responseDto("No reviews found"));
-    res.status(200).json(reviews);
+    res.status(200).json(reviews ?? []);
   } catch (err: any) {
     res.status(400).json(responseDto(err.message));
   }
