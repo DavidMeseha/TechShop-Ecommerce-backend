@@ -18,11 +18,11 @@ export async function getProductAtterputes(req: Request, res: Response) {
 }
 
 export async function getProductDetails(req: Request, res: Response) {
-  const id = req.params.id;
+  const seName = req.params.seName;
 
   try {
-    const product = await Products.findById(id)
-      .populate("vendor")
+    const product = await Products.findOne({ seName: seName })
+      .populate("vendor category productTags")
       .select("-productReviews")
       .lean()
       .exec();

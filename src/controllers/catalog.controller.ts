@@ -1,14 +1,10 @@
 import { Request, Response } from "express";
 import Products from "../models/Products";
-import { ITag, IUserTokenPayload } from "../global-types";
-import Reviews from "../models/Reviews";
 import { responseDto } from "../utilities";
 import Vendors from "../models/Vendors";
 import Tags from "../models/Tags";
 import Categories from "../models/Categories";
 import * as countries from "../Countries-cities-data/data";
-import Cities from "../models/Cities";
-import Counties from "../models/Countries";
 
 export async function getProducts(_req: Request, res: Response) {
   const products = await Products.find({}).exec();
@@ -56,10 +52,10 @@ export async function homeFeed(req: Request, res: Response) {
 }
 
 export async function getVendorInfo(req: Request, res: Response) {
-  const vendorId = req.params.id;
+  const seName = req.params.seName;
 
   try {
-    const vendor = await Vendors.findById(vendorId).lean().exec();
+    const vendor = await Vendors.findOne({ seName: seName }).lean().exec();
     res.status(200).json(vendor);
   } catch (err: any) {
     res.status(400).json(err.message);
@@ -187,10 +183,10 @@ export async function getCategories(req: Request, res: Response) {
 }
 
 export async function getCategoryInfo(req: Request, res: Response) {
-  const categoryId = req.params.id;
+  const seName = req.params.seName;
 
   try {
-    const category = await Categories.findById(categoryId).lean().exec();
+    const category = await Categories.findOne({ seName: seName }).lean().exec();
     res.status(200).json(category);
   } catch (err: any) {
     res.status(400).json(err.message);
@@ -218,6 +214,19 @@ export async function getCategoryProducts(req: Request, res: Response) {
   } catch (err: any) {
     res.status(400).json(err.message);
   }
+}
+
+export async function getAllVendorsIds(_req: Request, res: Response) {
+  const vendors = await Vendors.find({}).select("seName").lean().exec();
+  res.status(200).json(vendors);
+}
+export async function getAllCategoriesSeNames(_req: Request, res: Response) {
+  const tags = await Tags.find({}).select("seName").lean().exec();
+  res.status(200).json(tags);
+}
+export async function getAllTagsIds(_req: Request, res: Response) {
+  const categories = await Categories.find({}).select("_id").lean().exec();
+  res.status(200).json(categories);
 }
 
 export async function test(req: Request, res: Response) {

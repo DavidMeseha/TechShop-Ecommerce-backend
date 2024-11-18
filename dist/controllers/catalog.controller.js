@@ -24,6 +24,9 @@ exports.getTagProducts = getTagProducts;
 exports.getCategories = getCategories;
 exports.getCategoryInfo = getCategoryInfo;
 exports.getCategoryProducts = getCategoryProducts;
+exports.getAllVendorsIds = getAllVendorsIds;
+exports.getAllCategoriesSeNames = getAllCategoriesSeNames;
+exports.getAllTagsIds = getAllTagsIds;
 exports.test = test;
 const Products_1 = __importDefault(require("../models/Products"));
 const utilities_1 = require("../utilities");
@@ -74,9 +77,9 @@ function homeFeed(req, res) {
 }
 function getVendorInfo(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const vendorId = req.params.id;
+        const seName = req.params.seName;
         try {
-            const vendor = yield Vendors_1.default.findById(vendorId).lean().exec();
+            const vendor = yield Vendors_1.default.findOne({ seName: seName }).lean().exec();
             res.status(200).json(vendor);
         }
         catch (err) {
@@ -207,9 +210,9 @@ function getCategories(req, res) {
 }
 function getCategoryInfo(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const categoryId = req.params.id;
+        const seName = req.params.seName;
         try {
-            const category = yield Categories_1.default.findById(categoryId).lean().exec();
+            const category = yield Categories_1.default.findOne({ seName: seName }).lean().exec();
             res.status(200).json(category);
         }
         catch (err) {
@@ -238,6 +241,24 @@ function getCategoryProducts(req, res) {
         catch (err) {
             res.status(400).json(err.message);
         }
+    });
+}
+function getAllVendorsIds(_req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const vendors = yield Vendors_1.default.find({}).select("seName").lean().exec();
+        res.status(200).json(vendors);
+    });
+}
+function getAllCategoriesSeNames(_req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const tags = yield Tags_1.default.find({}).select("seName").lean().exec();
+        res.status(200).json(tags);
+    });
+}
+function getAllTagsIds(_req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const categories = yield Categories_1.default.find({}).select("_id").lean().exec();
+        res.status(200).json(categories);
     });
 }
 function test(req, res) {

@@ -1,4 +1,6 @@
 import {
+  getAllCategoriesSeNames,
+  getAllVendorsIds,
   getCategories,
   getCategoryInfo,
   getCategoryProducts,
@@ -21,12 +23,15 @@ router.get("/homefeed", homeFeed);
 router.get("/discover/vendors", getVendors);
 router.get("/discover/tags", getTags);
 router.get("/discover/categories", getCategories);
-router.get("/vendor/:id", getVendorInfo);
+router.get("/vendor/:seName", getVendorInfo);
 router.get("/vendorProducts/:id", getVendorProducts);
 router.get("/tag/:id", getTagInfo);
 router.get("/tagProducts/:id", getTagProducts);
-router.get("/category/:id", getCategoryInfo);
+router.get("/category/:seName", getCategoryInfo);
 router.get("/categoryProducts/:id", getCategoryProducts);
+router.get("/allVendors", getAllVendorsIds);
+router.get("/allCategories", getAllCategoriesSeNames);
+router.get("/allTags", getAllVendorsIds);
 
 //just test
 router.get("/test", test);

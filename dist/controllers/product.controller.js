@@ -36,10 +36,10 @@ function getProductAtterputes(req, res) {
 }
 function getProductDetails(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const id = req.params.id;
+        const seName = req.params.seName;
         try {
-            const product = yield Products_1.default.findById(id)
-                .populate("vendor")
+            const product = yield Products_1.default.findOne({ seName: seName })
+                .populate("vendor category productTags")
                 .select("-productReviews")
                 .lean()
                 .exec();
