@@ -248,6 +248,27 @@ export async function getCities(req: Request, res: Response) {
   }
 }
 
+export async function getAllUserActions(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+
+  try {
+    const foundUser = await Users.findById(user._id).lean().exec();
+    const reviews = await Reviews.find({ customer: foundUser?._id })
+      .select("_id")
+      .lean()
+      .exec();
+    res.status(200).json({
+      reviews: reviews ?? [],
+      cart: foundUser?.cart ?? [],
+      likes: foundUser?.likes ?? [],
+      saves: foundUser?.saves ?? [],
+      follows: foundUser?.following ?? [],
+    });
+  } catch (err: any) {
+    res.status(400).json(err.message);
+  }
+}
+
 export async function findInAll(req: Request, res: Response) {
   const options: {
     searchText: string;
