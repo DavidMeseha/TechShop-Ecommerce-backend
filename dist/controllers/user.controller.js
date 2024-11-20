@@ -25,6 +25,7 @@ exports.getFollowingVendors = getFollowingVendors;
 exports.getUserInfo = getUserInfo;
 exports.updateInfo = updateInfo;
 exports.getReviews = getReviews;
+exports.deleteAdress = deleteAdress;
 exports.newAdress = newAdress;
 exports.editAdress = editAdress;
 exports.getAdresses = getAdresses;
@@ -349,6 +350,22 @@ function getReviews(req, res) {
             res
                 .status(200)
                 .json((0, utilities_1.responseDto)(reviews, true, { hasNext, limit, current: page }));
+        }
+        catch (err) {
+            res.status(400).json(err.message);
+        }
+    });
+}
+function deleteAdress(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const user = res.locals.user;
+        let addressId = req.params.id;
+        console.log(addressId);
+        try {
+            const x = yield Users_1.default.findByIdAndUpdate(user._id, {
+                $pull: { addresses: { _id: addressId } },
+            });
+            res.status(200).json({ message: "deleted" });
         }
         catch (err) {
             res.status(400).json(err.message);

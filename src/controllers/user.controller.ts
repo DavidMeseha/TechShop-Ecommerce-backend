@@ -378,6 +378,21 @@ export async function getReviews(req: Request, res: Response) {
   }
 }
 
+export async function deleteAdress(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+  let addressId = req.params.id;
+  console.log(addressId);
+
+  try {
+    const x = await Users.findByIdAndUpdate(user._id, {
+      $pull: { addresses: { _id: addressId } },
+    });
+    res.status(200).json({ message: "deleted" });
+  } catch (err: any) {
+    res.status(400).json(err.message);
+  }
+}
+
 export async function newAdress(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
   let address: IAddress = req.body;

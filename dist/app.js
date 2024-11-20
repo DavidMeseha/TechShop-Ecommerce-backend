@@ -25,6 +25,7 @@ const Tags_1 = require("./models/Tags");
 const Countries_1 = require("./models/Countries");
 const Cities_1 = require("./models/Cities");
 const Orders_1 = require("./models/Orders");
+const common_controller_1 = require("./controllers/common.controller");
 var app = (0, express_1.default)();
 // view engine setup
 app.set("views", path_1.default.join(__dirname, "views"));
@@ -46,6 +47,8 @@ app.use("/api/user", auth_middleware_1.userAuthMiddleware, userRouter_1.default)
 app.use("/api/common", auth_middleware_1.apiAuthMiddleware, commonRouter_1.default);
 app.use("/api/catalog", catalogsRouter_1.default);
 app.use("/api/product", productRouter_1.default);
+app.use("/api/common/countries", common_controller_1.getCountries);
+app.use("/api/common/cities/:id", common_controller_1.getCities);
 app.use("/api/status", (_req, res) => res.status(200).json("Connected"));
 app.use("/", (req, res) => { var _a; return res.redirect((_a = process.env.ORIGIN) !== null && _a !== void 0 ? _a : ""); });
 // catch 404 and forward to error handler

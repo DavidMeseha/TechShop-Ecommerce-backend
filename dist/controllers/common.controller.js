@@ -24,6 +24,7 @@ exports.removeProductFromCart = removeProductFromCart;
 exports.changeLanguage = changeLanguage;
 exports.getCountries = getCountries;
 exports.getCities = getCities;
+exports.getAllUserActions = getAllUserActions;
 exports.findInAll = findInAll;
 const Products_1 = __importDefault(require("../models/Products"));
 const utilities_1 = require("../utilities");
@@ -259,6 +260,29 @@ function getCities(req, res) {
             setTimeout(() => {
                 res.status(200).json(country === null || country === void 0 ? void 0 : country.cities);
             }, 2000);
+        }
+        catch (err) {
+            res.status(400).json(err.message);
+        }
+    });
+}
+function getAllUserActions(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b, _c, _d;
+        const user = res.locals.user;
+        try {
+            const foundUser = yield Users_1.default.findById(user._id).lean().exec();
+            const reviews = yield Reviews_1.default.find({ customer: foundUser === null || foundUser === void 0 ? void 0 : foundUser._id })
+                .select("_id")
+                .lean()
+                .exec();
+            res.status(200).json({
+                reviews: reviews !== null && reviews !== void 0 ? reviews : [],
+                cart: (_a = foundUser === null || foundUser === void 0 ? void 0 : foundUser.cart) !== null && _a !== void 0 ? _a : [],
+                likes: (_b = foundUser === null || foundUser === void 0 ? void 0 : foundUser.likes) !== null && _b !== void 0 ? _b : [],
+                saves: (_c = foundUser === null || foundUser === void 0 ? void 0 : foundUser.saves) !== null && _c !== void 0 ? _c : [],
+                follows: (_d = foundUser === null || foundUser === void 0 ? void 0 : foundUser.following) !== null && _d !== void 0 ? _d : [],
+            });
         }
         catch (err) {
             res.status(400).json(err.message);

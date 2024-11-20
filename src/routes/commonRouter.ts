@@ -25,8 +25,6 @@ router.get("/likesId", getLikesId);
 router.get("/cart", getCartProducts);
 router.get("/cart/ids", getCartProductsIds);
 router.get("/allActions", getAllUserActions);
-router.get("/countries", getCountries);
-router.get("/cities/:id", getCities);
 router.get("/checkout", getCheckoutDetails);
 
 router.delete("/cart/remove/:id", removeProductFromCart);

@@ -16,6 +16,7 @@ router.post("/addReview/:id", user_controller_1.addReview);
 router.post("/addresses/add", user_controller_1.newAdress);
 router.post("/changePassword", user_controller_1.changePassword);
 router.post("/order/submit", user_controller_1.placeOrder);
+router.delete("/address/delete/:id", user_controller_1.deleteAdress);
 router.put("/addresses/edit/:id", user_controller_1.editAdress);
 router.put("/info", user_controller_1.updateInfo);
 router.get("/likedProducts", user_controller_1.getLikedProducts);
