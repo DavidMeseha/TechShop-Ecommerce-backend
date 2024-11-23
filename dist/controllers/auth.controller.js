@@ -53,8 +53,12 @@ function checkToken(req, res) {
                     .then((result) => result === null || result === void 0 ? void 0 : result.toJSON());
                 if (foundUser &&
                     ((foundUser.isLogin && foundUser.isRegistered) ||
-                        !foundUser.isRegistered))
+                        !foundUser.isRegistered)) {
+                    res.cookie("language", foundUser.language, {
+                        httpOnly: true,
+                    });
                     return res.status(200).json(foundUser);
+                }
                 else
                     res.status(400).json((0, utilities_1.responseDto)("Token not valid"));
             }
@@ -117,10 +121,12 @@ function login(req, res) {
             .select("_id firstName lastName email imageUrl isRegistered isVendor language password")
             .then((result) => result === null || result === void 0 ? void 0 : result.toJSON());
         if (!user)
-            return res.status(401).json((0, utilities_1.responseDto)("Email Not Found"));
+            return res.status(401).json({ message: res.locals.t("emailNotFound") });
         const passwordMatching = bcrypt_nodejs_1.default.compareSync(password, (_a = user.password) !== null && _a !== void 0 ? _a : "");
         if (!passwordMatching)
-            return res.status(401).json((0, utilities_1.responseDto)("Wrong Email or Password"));
+            return res
+                .status(401)
+                .json({ message: res.locals.t("wrongEmailPassword") });
         if (!ACCESS_TOKEN_SECRET)
             return res
                 .status(500)
@@ -129,6 +135,7 @@ function login(req, res) {
         jsonwebtoken_1.default.sign(Object.assign({}, user), ACCESS_TOKEN_SECRET, { expiresIn: "1d" }, (err, token) => __awaiter(this, void 0, void 0, function* () {
             if (err)
                 return res.status(500).json((0, utilities_1.responseDto)("could not create token"));
+            res.cookie("language", user.language);
             res.status(200).json({ user, token });
             yield Users_1.default.updateOne({ _id: user._id }, { isLogin: true });
         }));
@@ -136,22 +143,32 @@ function login(req, res) {
 }
 function register(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
         const registerForm = req.body;
         const { error, value } = RegisterSchema.validate(Object.assign({}, registerForm));
-        if (error)
-            return res.status(400).json(error.message);
+        console.log(error === null || error === void 0 ? void 0 : error.details[0]);
+        if (error) {
+            let message;
+            if (((_a = error === null || error === void 0 ? void 0 : error.details[0].context) === null || _a === void 0 ? void 0 : _a.label) === "password")
+                message = res.locals.t("passwordError");
+            else if (((_b = error === null || error === void 0 ? void 0 : error.details[0].context) === null || _b === void 0 ? void 0 : _b.label) === "email")
+                message = res.locals.t("emailError");
+            return res.status(400).json({
+                message: message,
+            });
+        }
         const emailDublicate = !!(yield Users_1.default.findOne({ email: value.email }));
         if (emailDublicate)
-            return res.status(400).json((0, utilities_1.responseDto)("Email is already in use"));
+            return res.status(400).json({ message: res.locals.t("emailAlreadyUsed") });
         let newUser = yield Users_1.default.create(Object.assign(Object.assign({}, value), { isRegistered: true, isLogin: false, dateOfBirth: {
                 day: value.dayOfBirth,
                 month: value.monthOfBirth,
                 year: value.yearOfBirth,
             } }))
             .then((user) => user.toJSON())
-            .catch(() => res.status(500).json((0, utilities_1.responseDto)("Server Error Creating user")));
+            .catch(() => res.status(500).json({ message: res.locals.t("serverError") }));
         if (newUser)
-            res.status(201).json((0, utilities_1.responseDto)("Registerd Successfully", true));
+            res.status(200).json((0, utilities_1.responseDto)("Registerd Successfully", true));
         else
             res.status(500).json((0, utilities_1.responseDto)("Failed to create user in databse"));
     });

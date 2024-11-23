@@ -10,7 +10,7 @@ router.get("/discover/tags", catalog_controller_1.getTags);
 router.get("/discover/categories", catalog_controller_1.getCategories);
 router.get("/vendor/:seName", catalog_controller_1.getVendorInfo);
 router.get("/vendorProducts/:id", catalog_controller_1.getVendorProducts);
-router.get("/tag/:id", catalog_controller_1.getTagInfo);
+router.get("/tag/:seName", catalog_controller_1.getTagInfo);
 router.get("/tagProducts/:id", catalog_controller_1.getTagProducts);
 router.get("/category/:seName", catalog_controller_1.getCategoryInfo);
 router.get("/categoryProducts/:id", catalog_controller_1.getCategoryProducts);

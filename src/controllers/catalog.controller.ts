@@ -128,10 +128,10 @@ export async function getTags(req: Request, res: Response) {
 }
 
 export async function getTagInfo(req: Request, res: Response) {
-  const tagId = req.params.id;
+  const seName = req.params.seName;
 
   try {
-    const tag = await Tags.findById(tagId).lean().exec();
+    const tag = await Tags.findOne({ seName }).lean().exec();
     res.status(200).json(tag);
   } catch (err: any) {
     res.status(400).json(err.message);
@@ -225,7 +225,7 @@ export async function getAllCategoriesSeNames(_req: Request, res: Response) {
   res.status(200).json(tags);
 }
 export async function getAllTagsIds(_req: Request, res: Response) {
-  const categories = await Categories.find({}).select("_id").lean().exec();
+  const categories = await Categories.find({}).select("seName").lean().exec();
   res.status(200).json(categories);
 }
 

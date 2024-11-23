@@ -24,6 +24,7 @@ import { CountrySchema } from "./models/Countries";
 import { CitySchema } from "./models/Cities";
 import { orderSchema } from "./models/Orders";
 import { getCities, getCountries } from "./controllers/common.controller";
+import useT, { Languages } from "./locales/useT";
 
 var app: Application = express();
 
@@ -42,16 +43,19 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", process.env.ORIGIN);
   next();
 });
+app.use((req, res, next) => {
+  res.locals.t = useT(req.headers["accept-language"] as Languages ?? "en");
+  next();
+});
 
 //API Routes
+app.use("/api/common/countries", getCountries);
+app.use("/api/common/cities/:id", getCities);
 app.use("/api/auth", authRouter);
 app.use("/api/user", userAuthMiddleware, userRouter);
 app.use("/api/common", apiAuthMiddleware, commonRouter);
 app.use("/api/catalog", catalogRouter);
 app.use("/api/product", productRouter);
-
-app.use("/api/common/countries", getCountries);
-app.use("/api/common/cities/:id", getCities);
 
 app.use("/api/status", (_req: Request, res: Response) =>
   res.status(200).json("Connected")

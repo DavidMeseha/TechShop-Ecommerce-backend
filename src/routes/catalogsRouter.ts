@@ -25,7 +25,7 @@ router.get("/discover/tags", getTags);
 router.get("/discover/categories", getCategories);
 router.get("/vendor/:seName", getVendorInfo);
 router.get("/vendorProducts/:id", getVendorProducts);
-router.get("/tag/:id", getTagInfo);
+router.get("/tag/:seName", getTagInfo);
 router.get("/tagProducts/:id", getTagProducts);
 router.get("/category/:seName", getCategoryInfo);
 router.get("/categoryProducts/:id", getCategoryProducts);

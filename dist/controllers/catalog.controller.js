@@ -154,9 +154,9 @@ function getTags(req, res) {
 }
 function getTagInfo(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const tagId = req.params.id;
+        const seName = req.params.seName;
         try {
-            const tag = yield Tags_1.default.findById(tagId).lean().exec();
+            const tag = yield Tags_1.default.findOne({ seName }).lean().exec();
             res.status(200).json(tag);
         }
         catch (err) {
@@ -257,7 +257,7 @@ function getAllCategoriesSeNames(_req, res) {
 }
 function getAllTagsIds(_req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const categories = yield Categories_1.default.find({}).select("_id").lean().exec();
+        const categories = yield Categories_1.default.find({}).select("seName").lean().exec();
         res.status(200).json(categories);
     });
 }

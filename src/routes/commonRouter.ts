@@ -8,8 +8,6 @@ import {
   getCartProducts,
   getCartProductsIds,
   getCheckoutDetails,
-  getCities,
-  getCountries,
   getFollowingIds,
   getLikesId,
   getReviewIds,

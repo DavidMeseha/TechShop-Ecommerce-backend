@@ -1,0 +1,8 @@
+{
+  "passwordError": "كلمة المرور يجب ان تكون بطول 8 احرف او اكثر",
+  "emailError": "البريد الالكتروني غير صالح",
+  "EmailAlreadyUsed": "البريد الاكتروني مستخدم",
+  "serverError": "فشل الخادم",
+  "emailNotFound": "البريد غير مسجل",
+  "wrongEmailPassword": "البريد او كلمة السر خطاء"
+}
