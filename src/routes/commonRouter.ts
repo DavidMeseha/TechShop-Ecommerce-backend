@@ -14,6 +14,7 @@ import {
   getSavesId,
   removeProductFromCart,
 } from "../controllers/common.controller";
+import { put } from "@vercel/blob";
 const router = express.Router();
 
 router.get("/reviewedIds", getReviewIds);
@@ -33,13 +34,21 @@ router.post("/find", findInAll);
 router.post(
   "/upload",
   upload.single("image"),
-  (req: Request, res: Response) => {
-    if (!req.file?.path) return;
-    const protocol = req.protocol; // 'http' or 'https'
-    const host = req.get("host"); // domain name and port
-    const fullUrl = `${protocol}://${host}`;
-    const imageUrl = fullUrl + req.file.path.replace("public", "");
-    res.status(200).json({ imageUrl });
+  async (req: Request, res: Response) => {
+    if (!req.file) return res.status(400).json({ message: "error" });
+    console.log(req.file)
+    const file = req.file;
+
+    try {
+      const blob = await put(file.originalname, file.buffer, {
+        access: "public",
+        token: process.env.FILES_READ_WRITE_TOKEN
+      });
+      return res.status(200).json({ imageUrl: blob.url });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "" });
+    }
   }
 );
 
