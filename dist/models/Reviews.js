@@ -10,6 +10,8 @@ exports.ProductReviewSchema = new mongoose_1.default.Schema({
     customer: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Users" },
     reviewText: String,
     rating: Number,
+}, {
+    timestamps: true,
 });
 exports.default = mongoose_1.default.models.Reviews ||
     mongoose_1.default.model("Reviews", exports.ProductReviewSchema);
