@@ -16,6 +16,7 @@ export async function getSingleProduct(req: Request, res: Response) {
 
   const product = await Products.findById(id)
     .populate({ path: "vendor", select: "_id name imageUrl seName" })
+    .populate("productTags")
     .populate({
       path: "productReviews",
       select: "product customer reviewText rating",

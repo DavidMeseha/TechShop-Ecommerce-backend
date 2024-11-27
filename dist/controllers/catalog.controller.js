@@ -44,6 +44,7 @@ function getSingleProduct(req, res) {
         const id = req.params.id;
         const product = yield Products_1.default.findById(id)
             .populate({ path: "vendor", select: "_id name imageUrl seName" })
+            .populate("productTags")
             .populate({
             path: "productReviews",
             select: "product customer reviewText rating",
