@@ -1,4 +1,36 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -19,7 +51,7 @@ const auth_middleware_1 = require("./middlewares/auth.middleware");
 const cors_1 = __importDefault(require("cors"));
 const Vendors_1 = require("./models/Vendors");
 const Categories_1 = require("./models/Categories");
-const Users_1 = require("./models/Users");
+const Users_1 = __importStar(require("./models/Users"));
 const Reviews_1 = require("./models/Reviews");
 const Tags_1 = require("./models/Tags");
 const Countries_1 = require("./models/Countries");
@@ -27,6 +59,7 @@ const Cities_1 = require("./models/Cities");
 const Orders_1 = require("./models/Orders");
 const common_controller_1 = require("./controllers/common.controller");
 const useT_1 = __importDefault(require("./locales/useT"));
+const node_cron_1 = __importDefault(require("node-cron"));
 var app = (0, express_1.default)();
 // view engine setup
 app.set("views", path_1.default.join(__dirname, "views"));
@@ -84,6 +117,13 @@ mongoose_1.default
     mongoose_1.default.model("Orders", Orders_1.orderSchema);
 })
     .catch((err) => console.log(err));
+// Schedule a task to run every day (removing every user without password)
+node_cron_1.default.schedule("0 0 * * *", () => __awaiter(void 0, void 0, void 0, function* () {
+    const del = yield Users_1.default.deleteMany({
+        password: null,
+    });
+    console.log("Expired records deleted " + del);
+}));
 app.listen(3000, () => {
     console.log("listen on 3000");
 });
