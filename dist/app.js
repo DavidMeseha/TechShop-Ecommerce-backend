@@ -117,14 +117,14 @@ mongoose_1.default
     mongoose_1.default.model("Orders", Orders_1.orderSchema);
 })
     .catch((err) => console.log(err));
-// Schedule a task to run every day (removing every user without password)
-node_cron_1.default.schedule("0 0 * * *", () => __awaiter(void 0, void 0, void 0, function* () {
-    const del = yield Users_1.default.deleteMany({
-        password: null,
-    });
-    console.log("Expired records deleted " + del);
-}));
 app.listen(3000, () => {
+    // Schedule a task to run every day (removing every user without password)
+    node_cron_1.default.schedule("0 * * * *", () => __awaiter(void 0, void 0, void 0, function* () {
+        const del = yield Users_1.default.deleteMany({
+            password: null,
+        });
+        console.log("Expired records deleted " + del);
+    }));
     console.log("listen on 3000");
 });
 module.exports = app;

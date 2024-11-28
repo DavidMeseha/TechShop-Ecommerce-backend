@@ -35,6 +35,7 @@ const Vendors_1 = __importDefault(require("../models/Vendors"));
 const Categories_1 = __importDefault(require("../models/Categories"));
 const Tags_1 = __importDefault(require("../models/Tags"));
 const Reviews_1 = __importDefault(require("../models/Reviews"));
+const useT_1 = require("../locales/useT");
 function getCheckoutDetails(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
@@ -227,7 +228,8 @@ function changeLanguage(req, res) {
         const user = res.locals.user;
         const language = req.params.lang;
         try {
-            if (language !== "en" && language !== "ar")
+            const isSupported = !!useT_1.languages.find((lang) => lang === language);
+            if (!isSupported)
                 throw new Error("language is not supported");
             yield Users_1.default.updateOne({ _id: new mongoose_1.default.Types.ObjectId(user._id) }, { language: language });
             res.status(200).json("language changed");

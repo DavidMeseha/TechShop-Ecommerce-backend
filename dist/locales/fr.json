@@ -1,0 +1,8 @@
+{
+    "passwordError": "Le mot de passe doit comporter 8 caractères ou plus",
+    "emailError": "L'e-mail fourni n'est pas un e-mail valide",
+    "emailAlreadyUsed": "E-mail déjà utilisé",
+    "serverError": "Erreur du serveur",
+    "emailNotFound": "E-mail non trouvé",
+    "wrongEmailPassword": "E-mail ou mot de passe incorrect"
+}

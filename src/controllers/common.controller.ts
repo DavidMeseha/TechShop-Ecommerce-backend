@@ -9,6 +9,7 @@ import Vendors from "../models/Vendors";
 import Categories from "../models/Categories";
 import Tags from "../models/Tags";
 import Reviews from "../models/Reviews";
+import { languages } from "../locales/useT";
 
 export async function getCheckoutDetails(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
@@ -207,8 +208,8 @@ export async function changeLanguage(req: Request, res: Response) {
   const language: string = req.params.lang;
 
   try {
-    if (language !== "en" && language !== "ar")
-      throw new Error("language is not supported");
+    const isSupported = !!languages.find((lang) => lang === language);
+    if (!isSupported) throw new Error("language is not supported");
 
     await Users.updateOne(
       { _id: new mongoose.Types.ObjectId(user._id) },

@@ -24,7 +24,7 @@ import { CountrySchema } from "./models/Countries";
 import { CitySchema } from "./models/Cities";
 import { orderSchema } from "./models/Orders";
 import { getCities, getCountries } from "./controllers/common.controller";
-import useT, { Languages } from "./locales/useT";
+import useT, { Language } from "./locales/useT";
 import cron from "node-cron";
 
 var app: Application = express();
@@ -45,7 +45,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use((req, res, next) => {
-  res.locals.t = useT((req.headers["accept-language"] as Languages) ?? "en");
+  res.locals.t = useT((req.headers["accept-language"] as Language) ?? "en");
   next();
 });
 
@@ -97,16 +97,16 @@ mongoose
   })
   .catch((err) => console.log(err));
 
-// Schedule a task to run every day (removing every user without password)
-cron.schedule("0 0 * * *", async () => {
-  const del = await Users.deleteMany({
-    password: null,
+app.listen(3000, () => {
+  // Schedule a task to run every day (removing every user without password)
+  cron.schedule("0 * * * *", async () => {
+    const del = await Users.deleteMany({
+      password: null,
+    });
+
+    console.log("Expired records deleted " + del);
   });
 
-  console.log("Expired records deleted " + del);
-});
-
-app.listen(3000, () => {
   console.log("listen on 3000");
 });
 
