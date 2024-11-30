@@ -50,20 +50,28 @@ function likeProduct(req, res) {
         const user = res.locals.user;
         const productId = req.params.id;
         try {
-            const isUpdated = (yield Products_1.default.updateOne({ _id: productId }, { $inc: { likes: 1 } })).matchedCount;
-            if (!isUpdated)
-                throw new Error("wrong Product Id");
-            yield Users_1.default.updateOne({
+            const updateUser = yield Users_1.default.updateOne({
                 _id: user._id,
                 likes: { $ne: new mongoose_1.default.Types.ObjectId(productId) },
             }, {
                 $push: { likes: new mongoose_1.default.Types.ObjectId(productId) },
             });
+            if (updateUser.modifiedCount < 1)
+                throw new Error("product is already liked");
+            const updated = (yield Products_1.default.updateOne({ _id: productId }, { $inc: { likes: 1 } })).matchedCount;
+            if (updated < 1) {
+                Users_1.default.updateOne({
+                    _id: user._id,
+                }, {
+                    $pull: { likes: new mongoose_1.default.Types.ObjectId(productId) },
+                });
+                throw new Error("wrong Product Id");
+            }
             res.status(200).json((0, utilities_1.responseDto)("Product Liked"));
         }
         catch (err) {
             res
-                .status(500)
+                .status(400)
                 .json((0, utilities_1.responseDto)("could not complete the Like Action", false));
         }
     });

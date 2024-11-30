@@ -30,13 +30,7 @@ export async function likeProduct(req: Request, res: Response) {
   const productId = req.params.id;
 
   try {
-    const isUpdated = (
-      await Products.updateOne({ _id: productId }, { $inc: { likes: 1 } })
-    ).matchedCount;
-
-    if (!isUpdated) throw new Error("wrong Product Id");
-
-    await Users.updateOne(
+    const updateUser = await Users.updateOne(
       {
         _id: user._id,
         likes: { $ne: new mongoose.Types.ObjectId(productId) },
@@ -46,10 +40,29 @@ export async function likeProduct(req: Request, res: Response) {
       }
     );
 
+    if (updateUser.modifiedCount < 1)
+      throw new Error("product is already liked");
+
+    const updated = (
+      await Products.updateOne({ _id: productId }, { $inc: { likes: 1 } })
+    ).matchedCount;
+
+    if (updated < 1) {
+      Users.updateOne(
+        {
+          _id: user._id,
+        },
+        {
+          $pull: { likes: new mongoose.Types.ObjectId(productId) },
+        }
+      );
+      throw new Error("wrong Product Id");
+    }
+
     res.status(200).json(responseDto("Product Liked"));
   } catch (err) {
     res
-      .status(500)
+      .status(400)
       .json(responseDto("could not complete the Like Action", false));
   }
 }
