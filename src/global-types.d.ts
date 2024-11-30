@@ -19,7 +19,8 @@ export interface IUserTokenPayload {
   updatedAt: string;
   imageUrl: string;
   __v: number;
-  iat: number;
+  iat?: number;
+  exp?: number;
 }
 
 export interface IPicture {

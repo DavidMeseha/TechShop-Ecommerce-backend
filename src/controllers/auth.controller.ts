@@ -36,6 +36,26 @@ const RegisterSchema = Joi.object<RegisterRequestBody>({
     .min(new Date().getFullYear() - 100),
 });
 
+export async function refreshToken(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+  delete user.exp;
+  delete user.iat;
+
+  if (!ACCESS_TOKEN_SECRET)
+    return res.status(500).json(responseDto("ENV Server Error"));
+
+  try {
+    if (!user) return res.status(400).json(responseDto("Token not valid"));
+
+    const newToken = jwt.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "90s" });
+
+    return res.status(200).json({ token: newToken });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json("Token not valid");
+  }
+}
+
 export async function checkToken(req: Request, res: Response) {
   const token = req.headers.authorization?.split(" ")[1];
 
@@ -92,7 +112,7 @@ export async function guestToken(req: Request, res: Response) {
 
         return userJson;
       })
-      .catch((err) => null);
+      .catch(() => null);
 
     if (!newUser)
       return res
@@ -163,7 +183,7 @@ export async function login(req: Request, res: Response) {
   jwt.sign(
     { ...user },
     ACCESS_TOKEN_SECRET,
-    { expiresIn: "1d" },
+    { expiresIn: "90s" },
     async (err, token) => {
       if (err)
         return res.status(500).json(responseDto("could not create token"));

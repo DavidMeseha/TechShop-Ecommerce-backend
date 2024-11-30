@@ -12,4 +12,5 @@ router.get("/guest", auth_controller_1.guestToken);
 router.post("/login", auth_middleware_1.apiAuthMiddleware, auth_controller_1.login);
 router.post("/logout", auth_middleware_1.userAuthMiddleware, auth_controller_1.logout);
 router.post("/register", auth_middleware_1.apiAuthMiddleware, auth_controller_1.register);
+router.get("/refreshToken", auth_middleware_1.userAuthMiddleware, auth_controller_1.refreshToken);
 exports.default = router;

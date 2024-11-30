@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.refreshToken = refreshToken;
 exports.checkToken = checkToken;
 exports.guestToken = guestToken;
 exports.login = login;
@@ -37,6 +38,25 @@ const RegisterSchema = joi_1.default.object({
         .max(new Date().getFullYear())
         .min(new Date().getFullYear() - 100),
 });
+function refreshToken(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const user = res.locals.user;
+        delete user.exp;
+        delete user.iat;
+        if (!ACCESS_TOKEN_SECRET)
+            return res.status(500).json((0, utilities_1.responseDto)("ENV Server Error"));
+        try {
+            if (!user)
+                return res.status(400).json((0, utilities_1.responseDto)("Token not valid"));
+            const newToken = jsonwebtoken_1.default.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "90s" });
+            return res.status(200).json({ token: newToken });
+        }
+        catch (err) {
+            console.log(err);
+            return res.status(400).json("Token not valid");
+        }
+    });
+}
 function checkToken(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
@@ -87,7 +107,7 @@ function guestToken(req, res) {
                 delete userJson.cart;
                 return userJson;
             })
-                .catch((err) => null);
+                .catch(() => null);
             if (!newUser)
                 return res
                     .status(500)
@@ -132,7 +152,7 @@ function login(req, res) {
                 .status(500)
                 .json((0, utilities_1.responseDto)("user created but ENV Server Error"));
         delete user.password;
-        jsonwebtoken_1.default.sign(Object.assign({}, user), ACCESS_TOKEN_SECRET, { expiresIn: "1d" }, (err, token) => __awaiter(this, void 0, void 0, function* () {
+        jsonwebtoken_1.default.sign(Object.assign({}, user), ACCESS_TOKEN_SECRET, { expiresIn: "90s" }, (err, token) => __awaiter(this, void 0, void 0, function* () {
             if (err)
                 return res.status(500).json((0, utilities_1.responseDto)("could not create token"));
             res.cookie("language", user.language);

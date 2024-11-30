@@ -242,7 +242,7 @@ function changeLanguage(req, res) {
 function getCountries(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const countries = yield Countries_1.default.find({}).lean().exec();
+            const countries = yield Countries_1.default.find({}).select("-cities").lean().exec();
             res.status(200).json(countries);
         }
         catch (err) {

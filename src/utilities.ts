@@ -50,3 +50,7 @@ export function validateAttributes(
 
   return true;
 }
+
+export const delay = () => {
+  return new Promise((resolve) => setTimeout(resolve, 2000));
+};

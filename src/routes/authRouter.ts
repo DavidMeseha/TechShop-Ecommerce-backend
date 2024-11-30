@@ -9,6 +9,7 @@ import {
   checkToken,
   guestToken,
   logout,
+  refreshToken,
 } from "../controllers/auth.controller";
 const router: Router = express.Router();
 
@@ -17,5 +18,6 @@ router.get("/guest", guestToken);
 router.post("/login", apiAuthMiddleware, login);
 router.post("/logout", userAuthMiddleware, logout);
 router.post("/register", apiAuthMiddleware, register);
+router.get("/refreshToken", userAuthMiddleware, refreshToken);
 
 export default router;

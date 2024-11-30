@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.delay = void 0;
 exports.responseDto = responseDto;
 exports.validateAttributes = validateAttributes;
 function responseDto(response, success = false, page) {
@@ -30,3 +31,7 @@ function validateAttributes(selected, product) {
     }
     return true;
 }
+const delay = () => {
+    return new Promise((resolve) => setTimeout(resolve, 2000));
+};
+exports.delay = delay;

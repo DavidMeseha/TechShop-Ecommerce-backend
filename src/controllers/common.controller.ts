@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { IUserTokenPayload, IProductAttribute } from "../global-types";
 import Products from "../models/Products";
-import { responseDto, validateAttributes } from "../utilities";
+import { delay, responseDto, validateAttributes } from "../utilities";
 import mongoose from "mongoose";
 import Users from "../models/Users";
 import Countries from "../models/Countries";
@@ -67,6 +67,7 @@ export async function getLikesId(req: Request, res: Response) {
 
 export async function getSavesId(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
+
   try {
     const found = await Users.findById(user._id).select("saves").lean().exec();
     res.status(200).json(found?.saves ?? []);
@@ -224,7 +225,7 @@ export async function changeLanguage(req: Request, res: Response) {
 
 export async function getCountries(req: Request, res: Response) {
   try {
-    const countries = await Countries.find({}).lean().exec();
+    const countries = await Countries.find({}).select("-cities").lean().exec();
     res.status(200).json(countries);
   } catch (err: any) {
     res.status(400).json(err.message);
