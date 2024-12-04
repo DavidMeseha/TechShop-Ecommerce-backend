@@ -49,6 +49,7 @@ function likeProduct(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
         const productId = req.params.id;
+        yield (0, utilities_1.delay)();
         try {
             const updateUser = yield Users_1.default.updateOne({
                 _id: user._id,
@@ -80,6 +81,7 @@ function unlikeProduct(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
         const productId = req.params.id;
+        yield (0, utilities_1.delay)();
         try {
             const isUpdated = (yield Users_1.default.updateOne({
                 _id: user._id,
