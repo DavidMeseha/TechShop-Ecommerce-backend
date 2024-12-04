@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { IProductReview, IUserTokenPayload } from "../global-types";
-import { responseDto } from "../utilities";
+import { delay, responseDto } from "../utilities";
 import mongoose from "mongoose";
 import Users from "../models/Users";
 import Products from "../models/Products";
@@ -28,6 +28,8 @@ const STRIPE_SECRET = process.env.STRIPE_SECRET;
 export async function likeProduct(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
   const productId = req.params.id;
+
+  await delay();
 
   try {
     const updateUser = await Users.updateOne(
@@ -71,6 +73,7 @@ export async function unlikeProduct(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
   const productId = req.params.id;
 
+  await delay();
   try {
     const isUpdated = (
       await Users.updateOne(
