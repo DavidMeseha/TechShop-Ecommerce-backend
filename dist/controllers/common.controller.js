@@ -295,7 +295,19 @@ function findInAll(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const options = req.body;
         const items = [];
-        const regex = new RegExp(options.searchText, "i");
+        const query = options.searchText;
+        let queryRegex = "";
+        for (let i = 0; i < 2; i++) {
+            for (let l = 0; l < query.length; l++) {
+                for (let j = l + 1; j < query.length; j++) {
+                    let variant = query.replace(query[l], ".");
+                    variant = variant.replace(variant[j], ".");
+                    queryRegex += variant + "|";
+                }
+            }
+        }
+        queryRegex += query + "..";
+        const regex = new RegExp(queryRegex, "i");
         try {
             let optionsCount = -1;
             let key;
