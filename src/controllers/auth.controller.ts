@@ -47,7 +47,7 @@ export async function refreshToken(req: Request, res: Response) {
   try {
     if (!user) return res.status(400).json(responseDto("Token not valid"));
 
-    const newToken = jwt.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "90s" });
+    const newToken = jwt.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "30m" });
 
     return res.status(200).json({ token: newToken });
   } catch (err) {
@@ -183,7 +183,7 @@ export async function login(req: Request, res: Response) {
   jwt.sign(
     { ...user },
     ACCESS_TOKEN_SECRET,
-    { expiresIn: "90s" },
+    { expiresIn: "30m" },
     async (err, token) => {
       if (err)
         return res.status(500).json(responseDto("could not create token"));

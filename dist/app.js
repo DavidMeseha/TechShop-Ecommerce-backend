@@ -119,7 +119,7 @@ mongoose_1.default
     .catch((err) => console.log(err));
 app.listen(3000, () => {
     // Schedule a task to run every day (removing every user without password)
-    node_cron_1.default.schedule("0 * * * *", () => __awaiter(void 0, void 0, void 0, function* () {
+    node_cron_1.default.schedule("0 0 * * *", () => __awaiter(void 0, void 0, void 0, function* () {
         const del = yield Users_1.default.deleteMany({
             password: null,
         });

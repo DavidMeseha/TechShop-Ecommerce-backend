@@ -99,7 +99,7 @@ mongoose
 
 app.listen(3000, () => {
   // Schedule a task to run every day (removing every user without password)
-  cron.schedule("0 * * * *", async () => {
+  cron.schedule("0 0 * * *", async () => {
     const del = await Users.deleteMany({
       password: null,
     });

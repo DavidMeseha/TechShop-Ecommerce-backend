@@ -1,7 +1,12 @@
 import { Request, Response } from "express";
 import { IUserTokenPayload, IProductAttribute } from "../global-types";
 import Products from "../models/Products";
-import { delay, responseDto, validateAttributes } from "../utilities";
+import {
+  delay,
+  generateVariants,
+  responseDto,
+  validateAttributes,
+} from "../utilities";
 import mongoose from "mongoose";
 import Users from "../models/Users";
 import Countries from "../models/Countries";
@@ -286,19 +291,25 @@ export async function findInAll(req: Request, res: Response) {
   }[] = [];
 
   const query = options.searchText;
+  const toleranceCount = Math.ceil(query.length * 0.2);
 
-  let queryRegex = "";
-  for (let i = 0; i < 2; i++) {
-    for (let l = 0; l < query.length; l++) {
-      for (let j = l + 1; j < query.length; j++) {
-        let variant = query.replace(query[l], ".");
-        variant = variant.replace(variant[j], ".");
+  // let queryRegex = "";
+  // for (let i = 0; i < 2; i++) {
+  //   for (let l = 0; l < query.length; l++) {
+  //     for (let j = l + 1; j < query.length; j++) {
+  //       let variant = query.replace(query[l], ".");
+  //       variant = variant.replace(variant[j], ".");
 
-        queryRegex += variant + "|";
-      }
-    }
-  }
-  queryRegex += query + "..";
+  //       queryRegex += variant + "|";
+  //     }
+  //   }
+  // }
+
+  let queryRegex = generateVariants(query, toleranceCount);
+  queryRegex += "|" + query + "..";
+
+  console.log(queryRegex);
+
   const regex = new RegExp(queryRegex, "i");
 
   try {

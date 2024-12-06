@@ -48,7 +48,7 @@ function refreshToken(req, res) {
         try {
             if (!user)
                 return res.status(400).json((0, utilities_1.responseDto)("Token not valid"));
-            const newToken = jsonwebtoken_1.default.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "90s" });
+            const newToken = jsonwebtoken_1.default.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "30m" });
             return res.status(200).json({ token: newToken });
         }
         catch (err) {
@@ -152,7 +152,7 @@ function login(req, res) {
                 .status(500)
                 .json((0, utilities_1.responseDto)("user created but ENV Server Error"));
         delete user.password;
-        jsonwebtoken_1.default.sign(Object.assign({}, user), ACCESS_TOKEN_SECRET, { expiresIn: "90s" }, (err, token) => __awaiter(this, void 0, void 0, function* () {
+        jsonwebtoken_1.default.sign(Object.assign({}, user), ACCESS_TOKEN_SECRET, { expiresIn: "30m" }, (err, token) => __awaiter(this, void 0, void 0, function* () {
             if (err)
                 return res.status(500).json((0, utilities_1.responseDto)("could not create token"));
             res.cookie("language", user.language);
