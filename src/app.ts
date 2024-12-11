@@ -14,7 +14,7 @@ import {
   apiAuthMiddleware,
   userAuthMiddleware,
 } from "./middlewares/auth.middleware";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
 import { VendorSchema } from "./models/Vendors";
 import { CategorySchema } from "./models/Categories";
 import Users, { UserSchema } from "./models/Users";
@@ -27,13 +27,26 @@ import { getCities, getCountries } from "./controllers/common.controller";
 import useT, { Language } from "./locales/useT";
 import cron from "node-cron";
 
+const origins = process.env.ORIGIN?.split(",") || [];
 var app: Application = express();
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-app.use(cors({ origin: process.env.ORIGIN }));
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (origins.indexOf(origin) !== -1) {
+      callback(null, true); // Allow the request
+    } else {
+      callback(new Error("Not allowed by CORS")); // Reject the request
+    }
+  },
+};
+
+app.use(cors(corsOptions));
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -41,7 +54,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "../public")));
 app.use("/images", express.static("../public/images"));
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", process.env.ORIGIN);
+  const origin = req.headers.origin;
+  if (origins.includes(origin ?? "")) {
+    res.setHeader("Access-Control-Allow-Origin", origin ?? "");
+  }
   next();
 });
 app.use((req, res, next) => {

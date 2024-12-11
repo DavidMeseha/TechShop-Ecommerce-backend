@@ -34,7 +34,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a;
+var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv").config();
 const express_1 = __importDefault(require("express"));
@@ -60,11 +60,25 @@ const Orders_1 = require("./models/Orders");
 const common_controller_1 = require("./controllers/common.controller");
 const useT_1 = __importDefault(require("./locales/useT"));
 const node_cron_1 = __importDefault(require("node-cron"));
+const origins = ((_a = process.env.ORIGIN) === null || _a === void 0 ? void 0 : _a.split(",")) || [];
 var app = (0, express_1.default)();
 // view engine setup
 app.set("views", path_1.default.join(__dirname, "views"));
 app.set("view engine", "ejs");
-app.use((0, cors_1.default)({ origin: process.env.ORIGIN }));
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin)
+            return callback(null, true);
+        if (origins.indexOf(origin) !== -1) {
+            callback(null, true); // Allow the request
+        }
+        else {
+            callback(new Error("Not allowed by CORS")); // Reject the request
+        }
+    },
+};
+app.use((0, cors_1.default)(corsOptions));
 app.use((0, morgan_1.default)("dev"));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
@@ -72,7 +86,10 @@ app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.static(path_1.default.join(__dirname, "../public")));
 app.use("/images", express_1.default.static("../public/images"));
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", process.env.ORIGIN);
+    const origin = req.headers.origin;
+    if (origins.includes(origin !== null && origin !== void 0 ? origin : "")) {
+        res.setHeader("Access-Control-Allow-Origin", origin !== null && origin !== void 0 ? origin : "");
+    }
     next();
 });
 app.use((req, res, next) => {
@@ -104,7 +121,7 @@ app.use(function (err, req, res) {
     res.status(err.status || 500).render("error");
 });
 mongoose_1.default
-    .connect((_a = process.env.DB_URI) !== null && _a !== void 0 ? _a : "")
+    .connect((_b = process.env.DB_URI) !== null && _b !== void 0 ? _b : "")
     .then(() => {
     console.log("dbConnected");
     mongoose_1.default.model("Vendors", Vendors_1.VendorSchema);
