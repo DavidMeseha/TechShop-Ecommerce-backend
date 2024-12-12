@@ -83,7 +83,7 @@ app.use("/", (req: Request, res: Response) =>
 
 // catch 404 and forward to error handler
 app.use(function (_req: Request, res: Response) {
-  if (!process.env.ORIGIN)
+  if (!process.env.ORIGIN?.split(",")[0])
     return res.status(404).render("error", { to: process.env.ORIGIN });
 });
 

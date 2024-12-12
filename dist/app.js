@@ -109,7 +109,8 @@ app.use("/api/status", (_req, res) => res.status(200).json("Connected"));
 app.use("/", (req, res) => { var _a; return res.redirect((_a = process.env.ORIGIN) !== null && _a !== void 0 ? _a : ""); });
 // catch 404 and forward to error handler
 app.use(function (_req, res) {
-    if (!process.env.ORIGIN)
+    var _a;
+    if (!((_a = process.env.ORIGIN) === null || _a === void 0 ? void 0 : _a.split(",")[0]))
         return res.status(404).render("error", { to: process.env.ORIGIN });
 });
 // error handler
