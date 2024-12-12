@@ -106,7 +106,7 @@ app.use("/api/common", auth_middleware_1.apiAuthMiddleware, commonRouter_1.defau
 app.use("/api/catalog", catalogsRouter_1.default);
 app.use("/api/product", productRouter_1.default);
 app.use("/api/status", (_req, res) => res.status(200).json("Connected"));
-app.use("/", (req, res) => { var _a; return res.redirect((_a = process.env.ORIGIN) !== null && _a !== void 0 ? _a : ""); });
+app.use("/", (req, res) => { var _a, _b; return res.redirect((_b = (_a = process.env.ORIGIN) === null || _a === void 0 ? void 0 : _a.split(",")[0]) !== null && _b !== void 0 ? _b : ""); });
 // catch 404 and forward to error handler
 app.use(function (_req, res) {
     var _a;

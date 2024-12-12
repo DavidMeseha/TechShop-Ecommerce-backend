@@ -78,7 +78,7 @@ app.use("/api/status", (_req: Request, res: Response) =>
 );
 
 app.use("/", (req: Request, res: Response) =>
-  res.redirect(process.env.ORIGIN ?? "")
+  res.redirect(process.env.ORIGIN?.split(",")[0] ?? "")
 );
 
 // catch 404 and forward to error handler
