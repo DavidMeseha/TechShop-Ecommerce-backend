@@ -188,8 +188,11 @@ export async function login(req: Request, res: Response) {
       if (err)
         return res.status(500).json(responseDto("could not create token"));
 
-      res.cookie("language", user.language);
-      res.status(200).json({ user, token });
+      res.status(200).json({
+        user,
+        token,
+        expiry: new Date().setDate(new Date().getDate() + 30),
+      });
       await Users.updateOne({ _id: user._id }, { isLogin: true });
     }
   );
