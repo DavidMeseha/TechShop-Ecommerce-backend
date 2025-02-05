@@ -41,12 +41,6 @@ Backend service for TikShop e-commerce platform built with Node.js, Express, and
 - Wishlist & favorites
 - Order history
 
-### Vendor Features
-- Vendor profiles
-- Product management
-- Order tracking
-- Store analytics
-
 ### Order Processing
 - Cart management
 - Stripe payment integration
@@ -96,21 +90,14 @@ src/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v14+)
+- Node.js (v18+)
 - MongoDB
-- npm/yarn
+- npm
 
 ### Installation
 
 1. Clone the repository:
-bash
-git clone https://github.com/yourusername/tikshop-backend.git
-cd tikshop-backend
-
 2. Install dependencies:
-bash
-npm install
-
 3. Configure environment variables:
 bash
 cp .env
@@ -125,8 +112,7 @@ FILES_READ_WRITE_TOKEN=vercel_token
 STRIPE_SECRET=stripe_key
 
 4. Start development server:
-bash
-npm start
+npm run dev
 
 ## 🌐 Internationalization
 
@@ -150,5 +136,4 @@ Translation files are located in `src/locales/`
 - Proper error handling
 - Input validation
 - Type safety
-- Clean architecture
-- 
+- Clean & Simple architecture
