@@ -52,41 +52,6 @@ Backend service for TikShop e-commerce platform built with Node.js, Express, and
 - Localized content
 - RTL support
 
-## 📁 Project Structure
-src/
-├── controllers/ # Request handlers
-│ ├── auth.controller.ts
-│ ├── catalog.controller.ts
-│ ├── common.controller.ts
-│ ├── product.controller.ts
-│ ├── upload.controller.ts
-│ ├── user.controller.ts
-│ └── vendor.controller.ts
-│
-├── models/ # Database models
-│ ├── Categories.ts
-│ ├── Cities.ts
-│ ├── Countries.ts
-│ ├── Languages.ts
-│ ├── Orders.ts
-│ ├── Products.ts
-│ ├── Reviews.ts
-│ ├── Tags.ts
-│ ├── Users.ts
-│ └── Vendors.ts
-│
-├── middlewares/ # Custom middlewares
-│ ├── auth.middleware.ts
-│ └── upload.middleware.ts
-│
-├── routes/ # API routes
-├── locales/ # Translation files
-│ ├── en.json
-│ ├── ar.json
-│ └── fr.json
-│
-└── global-types.d.ts # Type definitions
-
 ## 🚀 Getting Started
 
 ### Prerequisites
