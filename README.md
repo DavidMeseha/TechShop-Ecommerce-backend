@@ -67,7 +67,6 @@ Backend service for TikShop e-commerce platform built with Node.js, Express, and
 bash
 cp .env
 
-env
 PORT=3000
 DB_URI=mongodb://localhost:27017/tikshop
 ACCESS_TOKEN_SECRET=your_secret
