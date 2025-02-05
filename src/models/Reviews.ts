@@ -3,19 +3,38 @@ import { IProductReview } from "../global-types";
 
 export interface IProductReviewDocument
   extends IProductReview,
-    mongoose.Document<unknown, any, IProductReview> {}
+    mongoose.Document {}
+
+const reviewFields = {
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Products",
+    required: true,
+  },
+  customer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Users",
+    required: true,
+  },
+  reviewText: {
+    type: String,
+    required: true,
+  },
+  rating: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 5,
+  },
+};
 
 export const ProductReviewSchema = new mongoose.Schema<IProductReviewDocument>(
-  {
-    product: { type: mongoose.Schema.Types.ObjectId, ref: "Products" },
-    customer: { type: mongoose.Schema.Types.ObjectId, ref: "Users" },
-    reviewText: String,
-    rating: Number,
-  },
-  {
-    timestamps: true,
-  }
+  reviewFields,
+  { timestamps: true }
 );
 
-export default (mongoose.models.Reviews as mongoose.Model<IProductReview>) ||
-  mongoose.model<IProductReview>("Reviews", ProductReviewSchema);
+const Reviews =
+  (mongoose.models.Reviews as mongoose.Model<IProductReviewDocument>) ||
+  mongoose.model<IProductReviewDocument>("Reviews", ProductReviewSchema);
+
+export default Reviews;

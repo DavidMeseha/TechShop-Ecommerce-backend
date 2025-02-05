@@ -12,7 +12,6 @@ import {
   getVendorProducts,
   getVendors,
   homeFeed,
-  test,
 } from "../controllers/catalog.controller";
 
 var express = require("express");
@@ -32,8 +31,5 @@ router.get("/categoryProducts/:id", getCategoryProducts);
 router.get("/allVendors", getAllVendorsIds);
 router.get("/allCategories", getAllCategoriesSeNames);
 router.get("/allTags", getAllVendorsIds);
-
-//just test
-router.get("/test", test);
 
 export default router;

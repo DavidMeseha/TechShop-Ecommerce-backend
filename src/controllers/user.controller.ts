@@ -11,7 +11,15 @@ import { IAddress } from "../models/supDocumentsSchema";
 import Orders from "../models/Orders";
 import Stripe from "stripe";
 
-type IUserInfoBody = {
+const STRIPE_SECRET = process.env.STRIPE_SECRET;
+
+interface UserControllerResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+}
+
+interface UserInfoBody {
   dateOfBirthDay: number;
   dateOfBirthMonth: number;
   dateOfBirthYear: number;
@@ -21,62 +29,69 @@ type IUserInfoBody = {
   gender: string;
   imageUrl: string;
   phone: string;
-};
+}
 
-const STRIPE_SECRET = process.env.STRIPE_SECRET;
-
-export async function likeProduct(req: Request, res: Response) {
+// Product Interaction Controllers
+/**
+ * Like a product
+ */
+export async function likeProduct(
+  req: Request,
+  res: Response
+): Promise<Response<UserControllerResponse>> {
   const user: IUserTokenPayload = res.locals.user;
-  const productId = req.params.id;
-
-  await delay();
+  const { id: productId } = req.params;
 
   try {
-    const updateUser = await Users.updateOne(
-      {
-        _id: user._id,
-        likes: { $ne: new mongoose.Types.ObjectId(productId) },
-      },
-      {
-        $push: { likes: new mongoose.Types.ObjectId(productId) },
-      }
-    );
-
-    if (updateUser.modifiedCount < 1)
-      throw new Error("product is already liked");
-
-    const updated = (
-      await Products.updateOne({ _id: productId }, { $inc: { likes: 1 } })
-    ).matchedCount;
-
-    if (updated < 1) {
+    const [userUpdate, productUpdate] = await Promise.all([
       Users.updateOne(
         {
           _id: user._id,
+          likes: { $ne: new mongoose.Types.ObjectId(productId) },
         },
         {
-          $pull: { likes: new mongoose.Types.ObjectId(productId) },
+          $push: { likes: new mongoose.Types.ObjectId(productId) },
         }
-      );
-      throw new Error("wrong Product Id");
+      ),
+      Products.updateOne(
+        { _id: productId },
+        { $inc: { likes: 1 } }
+      ),
+    ]);
+
+    if (!userUpdate.modifiedCount) {
+      return res.status(400).json(responseDto("Product is already liked"));
     }
 
-    res.status(200).json(responseDto("Product Liked"));
-  } catch (err) {
-    res
-      .status(400)
-      .json(responseDto("could not complete the Like Action", false));
+    if (!productUpdate.matchedCount) {
+      // Rollback user update if product update fails
+      await Users.updateOne(
+        { _id: user._id },
+        { $pull: { likes: new mongoose.Types.ObjectId(productId) } }
+      );
+      return res.status(404).json(responseDto("Product not found"));
+    }
+
+    return res.status(200).json(responseDto("Product liked successfully", true));
+  } catch (error) {
+    console.error("Error liking product:", error);
+    return res.status(500).json(responseDto("Failed to like product"));
   }
 }
 
-export async function unlikeProduct(req: Request, res: Response) {
+/**
+ * Unlike a product
+ */
+export async function unlikeProduct(
+  req: Request,
+  res: Response
+): Promise<Response<UserControllerResponse>> {
   const user: IUserTokenPayload = res.locals.user;
-  const productId = req.params.id;
+  const { id: productId } = req.params;
 
-  await delay();
   try {
-    const isUpdated = (
-      await Users.updateOne(
+    const [userUpdate, productUpdate] = await Promise.all([
+      Users.updateOne(
         {
           _id: user._id,
           likes: new mongoose.Types.ObjectId(productId),
@@ -84,16 +99,107 @@ export async function unlikeProduct(req: Request, res: Response) {
         {
           $pull: { likes: new mongoose.Types.ObjectId(productId) },
         }
-      )
-    ).matchedCount;
+      ),
+      Products.updateOne(
+        { _id: productId },
+        { $inc: { likes: -1 } }
+      ),
+    ]);
 
-    if (!isUpdated) throw new Error("Product is not liked");
+    if (!userUpdate.modifiedCount) {
+      return res.status(400).json(responseDto("Product is not liked"));
+    }
 
-    await Products.updateOne({ _id: productId }, { $inc: { likes: -1 } });
+    if (!productUpdate.matchedCount) {
+      return res.status(404).json(responseDto("Product not found"));
+    }
 
-    res.status(200).json(responseDto("Product Unliked"));
-  } catch (err: any) {
-    res.status(400).json(responseDto(err.message, false));
+    return res.status(200).json(responseDto("Product unliked successfully", true));
+  } catch (error) {
+    console.error("Error unliking product:", error);
+    return res.status(500).json(responseDto("Failed to unlike product"));
+  }
+}
+
+// User Profile Controllers
+/**
+ * Get user information
+ */
+export async function getUserInfo(
+  req: Request,
+  res: Response
+): Promise<Response<UserControllerResponse>> {
+  const user: IUserTokenPayload = res.locals.user;
+
+  try {
+    const foundUser = await Users.findById(user._id)
+      .select("firstName lastName imageUrl dateOfBirth email gender phone orders")
+      .lean()
+      .exec();
+
+    if (!foundUser) {
+      return res.status(404).json(responseDto("User not found"));
+    }
+
+    return res.status(200).json({
+      dateOfBirthDay: foundUser.dateOfBirth?.day,
+      dateOfBirthMonth: foundUser.dateOfBirth?.month,
+      dateOfBirthYear: foundUser.dateOfBirth?.year,
+      email: foundUser.email,
+      firstName: foundUser.firstName,
+      lastName: foundUser.lastName,
+      gender: foundUser.gender,
+      imageUrl: foundUser.imageUrl,
+      phone: foundUser.phone,
+      ordersCount: foundUser.orders.length,
+    });
+  } catch (error) {
+    console.error("Error getting user info:", error);
+    return res.status(500).json(responseDto("Failed to get user information"));
+  }
+}
+
+// Order Management Controllers
+/**
+ * Create payment intent for order
+ */
+export async function paymentIntent(
+  req: Request,
+  res: Response
+): Promise<Response<UserControllerResponse>> {
+  const user: IUserTokenPayload = res.locals.user;
+
+  try {
+    if (!STRIPE_SECRET) {
+      throw new Error("Stripe secret key not configured");
+    }
+
+    const foundUser = await Users.findById(user._id)
+      .populate("cart.product")
+      .lean()
+      .exec();
+
+    if (!foundUser) {
+      return res.status(404).json(responseDto("User not found"));
+    }
+
+    const cart = foundUser.cart ?? [];
+    const total = cart.reduce(
+      (sum, item) => sum + item.product.price.price * item.quantity,
+      25 // Base shipping fee
+    );
+
+    const stripe = new Stripe(STRIPE_SECRET);
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: total * 100, // Convert to cents
+      currency: "usd",
+      payment_method_types: ["card"],
+    });
+
+    return res.status(200).json({ paymentSecret: paymentIntent.client_secret });
+  } catch (error) {
+    console.error("Payment intent creation error:", error);
+    return res.status(500).json(responseDto("Failed to create payment intent"));
   }
 }
 
@@ -292,41 +398,9 @@ export async function getFollowingVendors(req: Request, res: Response) {
   }
 }
 
-export async function getUserInfo(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
-  if (!user) return;
-
-  try {
-    const foundUser = await Users.findById(user._id)
-      .select(
-        "firstName lastName imageUrl dateOfBirth email gender phone orders"
-      )
-      .lean()
-      .exec();
-
-    if (!foundUser) throw new Error("No user Found");
-
-    const userProfile = {
-      dateOfBirthDay: foundUser.dateOfBirth?.day,
-      dateOfBirthMonth: foundUser.dateOfBirth?.month,
-      dateOfBirthYear: foundUser.dateOfBirth?.year,
-      email: foundUser.email,
-      firstName: foundUser.firstName,
-      lastName: foundUser.lastName,
-      gender: foundUser.gender,
-      imageUrl: foundUser.imageUrl,
-      phone: foundUser.phone,
-      ordersCount: foundUser.orders.length,
-    };
-    res.status(200).json(userProfile);
-  } catch (err: any) {
-    res.status(400).json(responseDto(err.message));
-  }
-}
-
 export async function updateInfo(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
-  const form: IUserInfoBody = req.body;
+  const form: UserInfoBody = req.body;
 
   if (!user) return;
 
@@ -497,37 +571,6 @@ export async function changePassword(req: Request, res: Response) {
     res.status(200).json(foundUser?.addresses);
   } catch (err: any) {
     res.status(200).json(err.message);
-  }
-}
-
-export async function paymentIntent(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
-
-  try {
-    const foundUser = await Users.findById(user._id)
-      .populate("cart.product")
-      .lean()
-      .exec();
-    if (!foundUser) throw new Error("No user Found");
-
-    const cart = foundUser.cart ?? [];
-
-    let total = 25;
-    for (const item of cart) total += item.product.price.price * item.quantity;
-
-    if (!STRIPE_SECRET)
-      throw new Error("Env failed on server to confirm payment");
-
-    const stripe = new Stripe(STRIPE_SECRET);
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: total * 100,
-      currency: "usd",
-      payment_method_types: ["card"],
-    });
-
-    res.status(200).json({ paymentSecret: paymentIntent.client_secret });
-  } catch (err: any) {
-    res.status(400).json(err.message);
   }
 }
 

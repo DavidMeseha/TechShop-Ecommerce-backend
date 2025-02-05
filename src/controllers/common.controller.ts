@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import { IUserTokenPayload, IProductAttribute } from "../global-types";
-import Products from "../models/Products";
 import {
-  delay,
   generateVariants,
   responseDto,
   validateAttributes,
 } from "../utilities";
-import mongoose from "mongoose";
+import Products from "../models/Products";
 import Users from "../models/Users";
 import Countries from "../models/Countries";
 import Vendors from "../models/Vendors";
@@ -16,7 +15,20 @@ import Tags from "../models/Tags";
 import Reviews from "../models/Reviews";
 import { languages } from "../locales/useT";
 
-export async function getCheckoutDetails(req: Request, res: Response) {
+interface CommonControllerResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+}
+
+// Cart Related Controllers
+/**
+ * Get checkout details for the current user
+ */
+export async function getCheckoutDetails(
+  req: Request,
+  res: Response
+): Promise<Response<CommonControllerResponse>> {
   const user: IUserTokenPayload = res.locals.user;
 
   try {
@@ -26,20 +38,205 @@ export async function getCheckoutDetails(req: Request, res: Response) {
       .lean()
       .exec();
 
-    if (!foundUser || !foundUser.cart) throw new Error("No User found");
+    if (!foundUser || !foundUser.cart) {
+      return res.status(404).json(responseDto("User not found"));
+    }
 
-    let total = 0;
-    for (const item of foundUser.cart)
-      total += item.product.price.price * item.quantity;
+    const total = foundUser.cart.reduce(
+      (sum, item) => sum + item.product.price.price * item.quantity,
+      0
+    );
 
-    res.status(200).json({
+    return res.status(200).json({
       addresses: foundUser.addresses,
       cartItems: foundUser.cart,
       total,
-      // clientSecret: paymentIntent.client_secret,
     });
-  } catch (err: any) {
-    res.status(400).json(err.message);
+  } catch (error) {
+    console.error("Error getting checkout details:", error);
+    return res.status(500).json(responseDto("Failed to get checkout details"));
+  }
+}
+
+/**
+ * Add product to user's cart
+ */
+export async function addProductToCart(
+  req: Request,
+  res: Response
+): Promise<Response<CommonControllerResponse>> {
+  const user: IUserTokenPayload = res.locals.user;
+  const { id: productId } = req.params;
+  const { quantity, attributes } = req.body;
+
+  if (!productId) {
+    return res.status(400).json(responseDto("Product ID is required"));
+  }
+
+  try {
+    const product = await Products.findByIdAndUpdate(
+      productId,
+      { $inc: { carts: 1 } },
+      { new: true }
+    )
+      .select("productAttributes")
+      .lean()
+      .exec();
+
+    if (!product) {
+      return res.status(404).json(responseDto("Product not found"));
+    }
+
+    validateAttributes(attributes ?? [], product.productAttributes);
+
+    const updated = await Users.updateOne(
+      {
+        _id: user._id,
+        cart: {
+          $not: {
+            $elemMatch: { product: new mongoose.Types.ObjectId(productId) },
+          },
+        },
+      },
+      {
+        $push: {
+          cart: {
+            product: new mongoose.Types.ObjectId(productId),
+            quantity,
+            attributes,
+          },
+        },
+      }
+    );
+
+    if (!updated.matchedCount) {
+      return res.status(400).json(responseDto("Failed to add product to cart"));
+    }
+
+    return res.status(200).json(responseDto("Product added to cart", true));
+  } catch (error) {
+    console.error("Error adding product to cart:", error);
+    return res.status(500).json(responseDto("Failed to add product to cart"));
+  }
+}
+
+// User Actions Controllers
+/**
+ * Get all user actions (reviews, cart, likes, saves, follows)
+ */
+export async function getAllUserActions(
+  req: Request,
+  res: Response
+): Promise<Response<CommonControllerResponse>> {
+  const user: IUserTokenPayload = res.locals.user;
+
+  try {
+    const [foundUser, reviews] = await Promise.all([
+      Users.findById(user._id).lean().exec(),
+      Reviews.find({ customer: user._id }).select("_id").lean().exec(),
+    ]);
+
+    if (!foundUser) {
+      return res.status(404).json(responseDto("User not found"));
+    }
+
+    return res.status(200).json({
+      reviews: reviews ?? [],
+      cart: foundUser.cart ?? [],
+      likes: foundUser.likes ?? [],
+      saves: foundUser.saves ?? [],
+      follows: foundUser.following ?? [],
+    });
+  } catch (error) {
+    console.error("Error getting user actions:", error);
+    return res.status(500).json(responseDto("Failed to get user actions"));
+  }
+}
+
+// Search Controller
+/**
+ * Search across multiple collections
+ */
+export async function findInAll(
+  req: Request,
+  res: Response
+): Promise<Response<CommonControllerResponse>> {
+  const options = req.body as {
+    searchText: string;
+    categories: boolean;
+    vendors: boolean;
+    tags: boolean;
+    products: boolean;
+  };
+
+  if (!options.searchText) {
+    return res.status(400).json(responseDto("Search text is required"));
+  }
+
+  try {
+    const query = options.searchText;
+    const toleranceCount = Math.ceil(query.length * 0.4);
+    const queryRegex = `${
+      query.length >= 4 ? generateVariants(query, toleranceCount) : query
+    }|${query}..`;
+    const regex = new RegExp(queryRegex, "i");
+
+    const enabledOptions = Object.entries(options).filter(
+      ([key, value]) => key !== "searchText" && value
+    ).length;
+
+    const limit = Math.floor(8 / enabledOptions);
+
+    const searchPromises = [];
+    const items: { item: any; type: string }[] = [];
+
+    if (options.products) {
+      searchPromises.push(
+        Products.find({ name: regex })
+          .limit(limit)
+          .lean()
+          .then((products) =>
+            products.map((item) => ({ item, type: "product" }))
+          )
+      );
+    }
+
+    if (options.vendors) {
+      searchPromises.push(
+        Vendors.find({ name: regex })
+          .limit(limit)
+          .lean()
+          .then((vendors) => vendors.map((item) => ({ item, type: "vendor" })))
+      );
+    }
+
+    if (options.categories) {
+      searchPromises.push(
+        Categories.find({ name: regex })
+          .limit(limit)
+          .lean()
+          .then((category) =>
+            category.map((item) => ({ item, type: "category" }))
+          )
+      );
+    }
+
+    if (options.tags) {
+      searchPromises.push(
+        Tags.find({ name: regex })
+          .limit(limit)
+          .lean()
+          .then((tag) => tag.map((item) => ({ item, type: "tag" })))
+      );
+    }
+
+    const results = await Promise.all(searchPromises);
+    results.forEach((result) => items.push(...result));
+
+    return res.status(200).json(items);
+  } catch (error) {
+    console.error("Error searching:", error);
+    return res.status(500).json(responseDto("Search failed"));
   }
 }
 
@@ -96,54 +293,6 @@ export async function getFollowingIds(req: Request, res: Response) {
     res.status(200).json(foundUser.following);
   } catch (err: any) {
     res.status(400).json(responseDto(err.message));
-  }
-}
-
-export async function addProductToCart(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
-  const productId: string = req.params.id;
-  const quantity: number | undefined = req.body.quantity;
-  const attributes: (IProductAttribute & mongoose.Document)[] | undefined =
-    req.body.attributes;
-
-  if (!productId) res.status(400).json("missing product id");
-
-  try {
-    const product = await Products.findByIdAndUpdate(productId, {
-      $inc: { carts: 1 },
-    })
-      .select("productAttributes")
-      .lean()
-      .exec();
-
-    if (!product) throw new Error("wrong product Id");
-
-    validateAttributes(attributes ?? [], product.productAttributes);
-
-    const updated = await Users.updateOne(
-      {
-        _id: user._id,
-        cart: {
-          $not: {
-            $elemMatch: { product: new mongoose.Types.ObjectId(productId) },
-          },
-        },
-      },
-      {
-        $push: {
-          cart: {
-            product: new mongoose.Types.ObjectId(productId),
-            quantity,
-            attributes,
-          },
-        },
-      }
-    );
-
-    if (!updated.matchedCount) throw new Error("Could not add product to cart");
-    res.status(200).json("Product added to cart");
-  } catch (err: any) {
-    res.status(400).json(err.message);
   }
 }
 
@@ -250,130 +399,6 @@ export async function getCities(req: Request, res: Response) {
     setTimeout(() => {
       res.status(200).json(country?.cities);
     }, 2000);
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
-}
-
-export async function getAllUserActions(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
-
-  try {
-    const foundUser = await Users.findById(user._id).lean().exec();
-    const reviews = await Reviews.find({ customer: foundUser?._id })
-      .select("_id")
-      .lean()
-      .exec();
-    res.status(200).json({
-      reviews: reviews ?? [],
-      cart: foundUser?.cart ?? [],
-      likes: foundUser?.likes ?? [],
-      saves: foundUser?.saves ?? [],
-      follows: foundUser?.following ?? [],
-    });
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
-}
-
-export async function findInAll(req: Request, res: Response) {
-  const options: {
-    searchText: string;
-    categories: boolean;
-    vendors: boolean;
-    tags: boolean;
-    products: boolean;
-  } = req.body;
-
-  const items: {
-    item: any;
-    type: string;
-  }[] = [];
-
-  const query = options.searchText;
-  const toleranceCount = Math.ceil(query.length * 0.2);
-
-  // let queryRegex = "";
-  // for (let i = 0; i < 2; i++) {
-  //   for (let l = 0; l < query.length; l++) {
-  //     for (let j = l + 1; j < query.length; j++) {
-  //       let variant = query.replace(query[l], ".");
-  //       variant = variant.replace(variant[j], ".");
-
-  //       queryRegex += variant + "|";
-  //     }
-  //   }
-  // }
-
-  let queryRegex = generateVariants(query, toleranceCount);
-  queryRegex += "|" + query + "..";
-
-  console.log(queryRegex);
-
-  const regex = new RegExp(queryRegex, "i");
-
-  try {
-    let optionsCount = -1;
-    let key: keyof typeof options;
-    for (key in options) if (options[key]) optionsCount++;
-
-    if (options.products) {
-      const products = await Products.find({
-        $or: [{ name: regex }],
-      })
-        .limit(Math.floor(8 / optionsCount))
-        .lean();
-
-      const productItems = products.map((product) => ({
-        item: product,
-        type: "product",
-      }));
-      items.push(...productItems);
-    }
-
-    if (options.vendors) {
-      const vendors = await Vendors.find({
-        $or: [{ name: regex }],
-      })
-        .limit(Math.floor(8 / optionsCount))
-        .lean();
-
-      const vendorItems = vendors.map((vendor) => ({
-        item: vendor,
-        type: "vendor",
-      }));
-      items.push(...vendorItems);
-    }
-
-    if (options.categories) {
-      const categories = await Categories.find({
-        $or: [{ name: regex }],
-      })
-        .limit(Math.floor(8 / optionsCount))
-        .lean();
-
-      const categryItems = categories.map((category) => ({
-        item: category,
-        type: "category",
-      }));
-      items.push(...categryItems);
-    }
-
-    if (options.tags) {
-      const tags = await Tags.find({
-        $or: [{ name: regex }],
-      })
-        .limit(Math.floor(8 / optionsCount))
-        .lean();
-
-      const tagItems = tags.map((tag) => ({
-        item: tag,
-        type: "tag",
-      }));
-      items.push(...tagItems);
-    }
-
-    res.status(200).json(items);
   } catch (err: any) {
     res.status(400).json(err.message);
   }

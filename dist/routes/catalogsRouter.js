@@ -17,6 +17,4 @@ router.get("/categoryProducts/:id", catalog_controller_1.getCategoryProducts);
 router.get("/allVendors", catalog_controller_1.getAllVendorsIds);
 router.get("/allCategories", catalog_controller_1.getAllCategoriesSeNames);
 router.get("/allTags", catalog_controller_1.getAllVendorsIds);
-//just test
-router.get("/test", catalog_controller_1.test);
 exports.default = router;

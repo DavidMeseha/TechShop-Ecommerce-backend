@@ -155,8 +155,11 @@ function login(req, res) {
         jsonwebtoken_1.default.sign(Object.assign({}, user), ACCESS_TOKEN_SECRET, { expiresIn: "30m" }, (err, token) => __awaiter(this, void 0, void 0, function* () {
             if (err)
                 return res.status(500).json((0, utilities_1.responseDto)("could not create token"));
-            res.cookie("language", user.language);
-            res.status(200).json({ user, token });
+            res.status(200).json({
+                user,
+                token,
+                expiry: new Date().setDate(new Date().getDate() + 30),
+            });
             yield Users_1.default.updateOne({ _id: user._id }, { isLogin: true });
         }));
     });

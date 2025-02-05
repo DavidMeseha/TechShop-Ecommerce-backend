@@ -15,57 +15,89 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProductAtterputes = getProductAtterputes;
 exports.getProductDetails = getProductDetails;
 exports.getReviews = getReviews;
-const Products_1 = __importDefault(require("../models/Products"));
-const utilities_1 = require("../utilities");
 const mongoose_1 = __importDefault(require("mongoose"));
+const Products_1 = __importDefault(require("../models/Products"));
 const Reviews_1 = __importDefault(require("../models/Reviews"));
+const utilities_1 = require("../utilities");
+/**
+ * Get product attributes by product ID
+ */
 function getProductAtterputes(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const id = req.params.id;
+        const { id } = req.params;
+        if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+            return res.status(400).json((0, utilities_1.responseDto)("Invalid product ID"));
+        }
         try {
             const product = yield Products_1.default.findById(id)
                 .select("productAttributes name")
                 .lean()
                 .exec();
-            res.status(200).json(product);
+            if (!product) {
+                return res.status(404).json((0, utilities_1.responseDto)("Product not found"));
+            }
+            return res.status(200).json(product);
         }
-        catch (err) {
-            res.status(400).json((0, utilities_1.responseDto)(err.message));
+        catch (error) {
+            console.error("Error fetching product attributes:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Failed to fetch product attributes"));
         }
     });
 }
+/**
+ * Get product details by SEO name
+ */
 function getProductDetails(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const seName = req.params.seName;
+        const { seName } = req.params;
+        if (!seName) {
+            return res.status(400).json((0, utilities_1.responseDto)("SEO name is required"));
+        }
         try {
-            const product = yield Products_1.default.findOne({ seName: seName })
-                .populate("vendor category productTags")
+            const product = yield Products_1.default.findOne({ seName })
+                .populate([
+                { path: "vendor" },
+                { path: "category" },
+                { path: "productTags" }
+            ])
                 .select("-productReviews")
                 .lean()
                 .exec();
-            if (!product)
-                return res.status(404).json((0, utilities_1.responseDto)("No product found"));
-            res.status(200).json(product);
+            if (!product) {
+                return res.status(404).json((0, utilities_1.responseDto)("Product not found"));
+            }
+            return res.status(200).json(product);
         }
-        catch (err) {
-            res.status(400).json((0, utilities_1.responseDto)(err.message));
+        catch (error) {
+            console.error("Error fetching product details:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Failed to fetch product details"));
         }
     });
 }
+/**
+ * Get product reviews by product ID
+ */
 function getReviews(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const id = req.params.id;
+        const { id } = req.params;
+        if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+            return res.status(400).json((0, utilities_1.responseDto)("Invalid product ID"));
+        }
         try {
             const reviews = yield Reviews_1.default.find({
-                product: new mongoose_1.default.Types.ObjectId(id),
+                product: new mongoose_1.default.Types.ObjectId(id)
             })
-                .populate({ path: "customer", select: "firstName lastName imageUrl" })
+                .populate({
+                path: "customer",
+                select: "firstName lastName imageUrl"
+            })
                 .lean()
                 .exec();
-            res.status(200).json(reviews !== null && reviews !== void 0 ? reviews : []);
+            return res.status(200).json(reviews !== null && reviews !== void 0 ? reviews : []);
         }
-        catch (err) {
-            res.status(400).json((0, utilities_1.responseDto)(err.message));
+        catch (error) {
+            console.error("Error fetching product reviews:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Failed to fetch product reviews"));
         }
     });
 }

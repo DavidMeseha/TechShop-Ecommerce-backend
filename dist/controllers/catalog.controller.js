@@ -27,7 +27,6 @@ exports.getCategoryProducts = getCategoryProducts;
 exports.getAllVendorsIds = getAllVendorsIds;
 exports.getAllCategoriesSeNames = getAllCategoriesSeNames;
 exports.getAllTagsIds = getAllTagsIds;
-exports.test = test;
 const Products_1 = __importDefault(require("../models/Products"));
 const utilities_1 = require("../utilities");
 const Vendors_1 = __importDefault(require("../models/Vendors"));
@@ -260,31 +259,5 @@ function getAllTagsIds(_req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const categories = yield Categories_1.default.find({}).select("seName").lean().exec();
         res.status(200).json(categories);
-    });
-}
-function test(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let key;
-        let x;
-        try {
-            // for (key in countries) {
-            //   const cities = countries[key][2] as string[][];
-            //   const citiesMap = cities.map((city) => ({
-            //     name: city[0],
-            //     code: city[1],
-            //   }));
-            //   x = await Cities.insertMany([...citiesMap]);
-            //   const ids = x.map((anX) => anX._id);
-            //   const c = Counties.create({
-            //     name: countries[key][0],
-            //     code: countries[key][1],
-            //     cities: ids,
-            //   });
-            // }
-            res.status(200).json(x);
-        }
-        catch (err) {
-            res.status(400).json(err.message);
-        }
     });
 }

@@ -7,10 +7,11 @@ exports.UserSchema = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const bcrypt_nodejs_1 = __importDefault(require("bcrypt-nodejs"));
 const supDocumentsSchema_1 = require("./supDocumentsSchema");
-exports.UserSchema = new mongoose_1.default.Schema({
+const DEFAULT_PROFILE_IMAGE = process.env.DOMAIN + "/images/profile_placeholder.jpg";
+const userProfileFields = {
     imageUrl: {
         type: String,
-        default: process.env.DOMAIN + "/images/profile_placeholder.jpg",
+        default: DEFAULT_PROFILE_IMAGE,
     },
     firstName: {
         type: String,
@@ -30,6 +31,35 @@ exports.UserSchema = new mongoose_1.default.Schema({
         type: String,
         default: null,
     },
+    phone: String,
+    gender: String,
+    dateOfBirth: {
+        day: Number,
+        month: Number,
+        year: Number,
+    },
+};
+const userPreferences = {
+    language: {
+        type: String,
+        default: "en",
+    },
+};
+const userStatusFlags = {
+    isLogin: {
+        type: Boolean,
+        default: false,
+    },
+    isVendor: {
+        type: Boolean,
+        default: false,
+    },
+    isRegistered: {
+        type: Boolean,
+        default: false,
+    },
+};
+const userCollections = {
     cart: [
         {
             product: {
@@ -70,24 +100,19 @@ exports.UserSchema = new mongoose_1.default.Schema({
             ref: "Orders",
         },
     ],
-    dateOfBirth: {
-        day: Number,
-        month: Number,
-        year: Number,
-    },
-    language: { type: String, default: "en" },
-    isLogin: { type: Boolean, default: false },
-    isVendor: { type: Boolean, default: false },
-    isRegistered: { type: Boolean, default: false },
-    phone: String,
-    gender: String,
     addresses: [supDocumentsSchema_1.AddressSchema],
-}, { timestamps: true });
+};
+exports.UserSchema = new mongoose_1.default.Schema(Object.assign(Object.assign(Object.assign(Object.assign({}, userProfileFields), userPreferences), userStatusFlags), userCollections), { timestamps: true });
 exports.UserSchema.pre("save", function (next) {
-    this.password = this.password
-        ? bcrypt_nodejs_1.default.hashSync(this.password, bcrypt_nodejs_1.default.genSaltSync(8))
-        : null;
+    if (this.password) {
+        const salt = bcrypt_nodejs_1.default.genSaltSync(8);
+        this.password = bcrypt_nodejs_1.default.hashSync(this.password, salt);
+    }
     next();
 });
-exports.default = mongoose_1.default.models.Users ||
+exports.UserSchema.methods.comparePassword = function (candidatePassword) {
+    return bcrypt_nodejs_1.default.compareSync(candidatePassword, this.password || "");
+};
+const Users = mongoose_1.default.models.Users ||
     mongoose_1.default.model("Users", exports.UserSchema);
+exports.default = Users;

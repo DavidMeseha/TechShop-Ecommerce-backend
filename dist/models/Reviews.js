@@ -5,13 +5,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductReviewSchema = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-exports.ProductReviewSchema = new mongoose_1.default.Schema({
-    product: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Products" },
-    customer: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Users" },
-    reviewText: String,
-    rating: Number,
-}, {
-    timestamps: true,
-});
-exports.default = mongoose_1.default.models.Reviews ||
+const reviewFields = {
+    product: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Products",
+        required: true,
+    },
+    customer: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Users",
+        required: true,
+    },
+    reviewText: {
+        type: String,
+        required: true,
+    },
+    rating: {
+        type: Number,
+        required: true,
+        min: 1,
+        max: 5,
+    },
+};
+exports.ProductReviewSchema = new mongoose_1.default.Schema(reviewFields, { timestamps: true });
+const Reviews = mongoose_1.default.models.Reviews ||
     mongoose_1.default.model("Reviews", exports.ProductReviewSchema);
+exports.default = Reviews;

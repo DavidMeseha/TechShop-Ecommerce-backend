@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.likeProduct = likeProduct;
 exports.unlikeProduct = unlikeProduct;
+exports.getUserInfo = getUserInfo;
+exports.paymentIntent = paymentIntent;
 exports.saveProduct = saveProduct;
 exports.unsaveProduct = unsaveProduct;
 exports.getLikedProducts = getLikedProducts;
@@ -22,7 +24,6 @@ exports.addReview = addReview;
 exports.followVendor = followVendor;
 exports.unfollowVendor = unfollowVendor;
 exports.getFollowingVendors = getFollowingVendors;
-exports.getUserInfo = getUserInfo;
 exports.updateInfo = updateInfo;
 exports.getReviews = getReviews;
 exports.deleteAdress = deleteAdress;
@@ -30,7 +31,6 @@ exports.newAdress = newAdress;
 exports.editAdress = editAdress;
 exports.getAdresses = getAdresses;
 exports.changePassword = changePassword;
-exports.paymentIntent = paymentIntent;
 exports.placeOrder = placeOrder;
 exports.getOrders = getOrders;
 exports.getOrdersIds = getOrdersIds;
@@ -45,57 +45,139 @@ const bcrypt_nodejs_1 = __importDefault(require("bcrypt-nodejs"));
 const Orders_1 = __importDefault(require("../models/Orders"));
 const stripe_1 = __importDefault(require("stripe"));
 const STRIPE_SECRET = process.env.STRIPE_SECRET;
+// Product Interaction Controllers
+/**
+ * Like a product
+ */
 function likeProduct(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
-        const productId = req.params.id;
-        yield (0, utilities_1.delay)();
+        const { id: productId } = req.params;
         try {
-            const updateUser = yield Users_1.default.updateOne({
-                _id: user._id,
-                likes: { $ne: new mongoose_1.default.Types.ObjectId(productId) },
-            }, {
-                $push: { likes: new mongoose_1.default.Types.ObjectId(productId) },
-            });
-            if (updateUser.modifiedCount < 1)
-                throw new Error("product is already liked");
-            const updated = (yield Products_1.default.updateOne({ _id: productId }, { $inc: { likes: 1 } })).matchedCount;
-            if (updated < 1) {
+            const [userUpdate, productUpdate] = yield Promise.all([
                 Users_1.default.updateOne({
                     _id: user._id,
+                    likes: { $ne: new mongoose_1.default.Types.ObjectId(productId) },
                 }, {
-                    $pull: { likes: new mongoose_1.default.Types.ObjectId(productId) },
-                });
-                throw new Error("wrong Product Id");
+                    $push: { likes: new mongoose_1.default.Types.ObjectId(productId) },
+                }),
+                Products_1.default.updateOne({ _id: productId }, { $inc: { likes: 1 } }),
+            ]);
+            if (!userUpdate.modifiedCount) {
+                return res.status(400).json((0, utilities_1.responseDto)("Product is already liked"));
             }
-            res.status(200).json((0, utilities_1.responseDto)("Product Liked"));
+            if (!productUpdate.matchedCount) {
+                // Rollback user update if product update fails
+                yield Users_1.default.updateOne({ _id: user._id }, { $pull: { likes: new mongoose_1.default.Types.ObjectId(productId) } });
+                return res.status(404).json((0, utilities_1.responseDto)("Product not found"));
+            }
+            return res.status(200).json((0, utilities_1.responseDto)("Product liked successfully", true));
         }
-        catch (err) {
-            res
-                .status(400)
-                .json((0, utilities_1.responseDto)("could not complete the Like Action", false));
+        catch (error) {
+            console.error("Error liking product:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Failed to like product"));
         }
     });
 }
+/**
+ * Unlike a product
+ */
 function unlikeProduct(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
-        const productId = req.params.id;
-        yield (0, utilities_1.delay)();
+        const { id: productId } = req.params;
         try {
-            const isUpdated = (yield Users_1.default.updateOne({
-                _id: user._id,
-                likes: new mongoose_1.default.Types.ObjectId(productId),
-            }, {
-                $pull: { likes: new mongoose_1.default.Types.ObjectId(productId) },
-            })).matchedCount;
-            if (!isUpdated)
-                throw new Error("Product is not liked");
-            yield Products_1.default.updateOne({ _id: productId }, { $inc: { likes: -1 } });
-            res.status(200).json((0, utilities_1.responseDto)("Product Unliked"));
+            const [userUpdate, productUpdate] = yield Promise.all([
+                Users_1.default.updateOne({
+                    _id: user._id,
+                    likes: new mongoose_1.default.Types.ObjectId(productId),
+                }, {
+                    $pull: { likes: new mongoose_1.default.Types.ObjectId(productId) },
+                }),
+                Products_1.default.updateOne({ _id: productId }, { $inc: { likes: -1 } }),
+            ]);
+            if (!userUpdate.modifiedCount) {
+                return res.status(400).json((0, utilities_1.responseDto)("Product is not liked"));
+            }
+            if (!productUpdate.matchedCount) {
+                return res.status(404).json((0, utilities_1.responseDto)("Product not found"));
+            }
+            return res.status(200).json((0, utilities_1.responseDto)("Product unliked successfully", true));
         }
-        catch (err) {
-            res.status(400).json((0, utilities_1.responseDto)(err.message, false));
+        catch (error) {
+            console.error("Error unliking product:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Failed to unlike product"));
+        }
+    });
+}
+// User Profile Controllers
+/**
+ * Get user information
+ */
+function getUserInfo(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b, _c;
+        const user = res.locals.user;
+        try {
+            const foundUser = yield Users_1.default.findById(user._id)
+                .select("firstName lastName imageUrl dateOfBirth email gender phone orders")
+                .lean()
+                .exec();
+            if (!foundUser) {
+                return res.status(404).json((0, utilities_1.responseDto)("User not found"));
+            }
+            return res.status(200).json({
+                dateOfBirthDay: (_a = foundUser.dateOfBirth) === null || _a === void 0 ? void 0 : _a.day,
+                dateOfBirthMonth: (_b = foundUser.dateOfBirth) === null || _b === void 0 ? void 0 : _b.month,
+                dateOfBirthYear: (_c = foundUser.dateOfBirth) === null || _c === void 0 ? void 0 : _c.year,
+                email: foundUser.email,
+                firstName: foundUser.firstName,
+                lastName: foundUser.lastName,
+                gender: foundUser.gender,
+                imageUrl: foundUser.imageUrl,
+                phone: foundUser.phone,
+                ordersCount: foundUser.orders.length,
+            });
+        }
+        catch (error) {
+            console.error("Error getting user info:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Failed to get user information"));
+        }
+    });
+}
+// Order Management Controllers
+/**
+ * Create payment intent for order
+ */
+function paymentIntent(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const user = res.locals.user;
+        try {
+            if (!STRIPE_SECRET) {
+                throw new Error("Stripe secret key not configured");
+            }
+            const foundUser = yield Users_1.default.findById(user._id)
+                .populate("cart.product")
+                .lean()
+                .exec();
+            if (!foundUser) {
+                return res.status(404).json((0, utilities_1.responseDto)("User not found"));
+            }
+            const cart = (_a = foundUser.cart) !== null && _a !== void 0 ? _a : [];
+            const total = cart.reduce((sum, item) => sum + item.product.price.price * item.quantity, 25 // Base shipping fee
+            );
+            const stripe = new stripe_1.default(STRIPE_SECRET);
+            const paymentIntent = yield stripe.paymentIntents.create({
+                amount: total * 100, // Convert to cents
+                currency: "usd",
+                payment_method_types: ["card"],
+            });
+            return res.status(200).json({ paymentSecret: paymentIntent.client_secret });
+        }
+        catch (error) {
+            console.error("Payment intent creation error:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Failed to create payment intent"));
         }
     });
 }
@@ -256,38 +338,6 @@ function getFollowingVendors(req, res) {
             if (!foundUser)
                 throw new Error("No user Found");
             res.status(200).json(foundUser.following);
-        }
-        catch (err) {
-            res.status(400).json((0, utilities_1.responseDto)(err.message));
-        }
-    });
-}
-function getUserInfo(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c;
-        const user = res.locals.user;
-        if (!user)
-            return;
-        try {
-            const foundUser = yield Users_1.default.findById(user._id)
-                .select("firstName lastName imageUrl dateOfBirth email gender phone orders")
-                .lean()
-                .exec();
-            if (!foundUser)
-                throw new Error("No user Found");
-            const userProfile = {
-                dateOfBirthDay: (_a = foundUser.dateOfBirth) === null || _a === void 0 ? void 0 : _a.day,
-                dateOfBirthMonth: (_b = foundUser.dateOfBirth) === null || _b === void 0 ? void 0 : _b.month,
-                dateOfBirthYear: (_c = foundUser.dateOfBirth) === null || _c === void 0 ? void 0 : _c.year,
-                email: foundUser.email,
-                firstName: foundUser.firstName,
-                lastName: foundUser.lastName,
-                gender: foundUser.gender,
-                imageUrl: foundUser.imageUrl,
-                phone: foundUser.phone,
-                ordersCount: foundUser.orders.length,
-            };
-            res.status(200).json(userProfile);
         }
         catch (err) {
             res.status(400).json((0, utilities_1.responseDto)(err.message));
@@ -460,36 +510,6 @@ function changePassword(req, res) {
         }
         catch (err) {
             res.status(200).json(err.message);
-        }
-    });
-}
-function paymentIntent(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        const user = res.locals.user;
-        try {
-            const foundUser = yield Users_1.default.findById(user._id)
-                .populate("cart.product")
-                .lean()
-                .exec();
-            if (!foundUser)
-                throw new Error("No user Found");
-            const cart = (_a = foundUser.cart) !== null && _a !== void 0 ? _a : [];
-            let total = 25;
-            for (const item of cart)
-                total += item.product.price.price * item.quantity;
-            if (!STRIPE_SECRET)
-                throw new Error("Env failed on server to confirm payment");
-            const stripe = new stripe_1.default(STRIPE_SECRET);
-            const paymentIntent = yield stripe.paymentIntents.create({
-                amount: total * 100,
-                currency: "usd",
-                payment_method_types: ["card"],
-            });
-            res.status(200).json({ paymentSecret: paymentIntent.client_secret });
-        }
-        catch (err) {
-            res.status(400).json(err.message);
         }
     });
 }

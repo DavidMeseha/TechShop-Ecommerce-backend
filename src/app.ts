@@ -5,16 +5,20 @@ import mongoose from "mongoose";
 import path from "path";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
+import cors, { CorsOptions } from "cors";
+import cron from "node-cron";
+
+// Routers
 import authRouter from "./routes/authRouter";
 import userRouter from "./routes/userRouter";
 import commonRouter from "./routes/commonRouter";
 import catalogRouter from "./routes/catalogsRouter";
 import productRouter from "./routes/productRouter";
-import {
-  apiAuthMiddleware,
-  userAuthMiddleware,
-} from "./middlewares/auth.middleware";
-import cors, { CorsOptions } from "cors";
+
+// Middlewares
+import { apiAuthMiddleware, userAuthMiddleware } from "./middlewares/auth.middleware";
+
+// Models
 import { VendorSchema } from "./models/Vendors";
 import { CategorySchema } from "./models/Categories";
 import Users, { UserSchema } from "./models/Users";
@@ -22,85 +26,99 @@ import { ProductReviewSchema } from "./models/Reviews";
 import { TagSchema } from "./models/Tags";
 import { CountrySchema } from "./models/Countries";
 import { CitySchema } from "./models/Cities";
-import { orderSchema } from "./models/Orders";
+import { OrderSchema } from "./models/Orders";
+
+// Controllers
 import { getCities, getCountries } from "./controllers/common.controller";
+
+// Utils
 import useT, { Language } from "./locales/useT";
-import cron from "node-cron";
 
+// Constants
+const PORT = process.env.PORT || 3000;
 const origins = process.env.ORIGIN?.split(",") || [];
-var app: Application = express();
-// view engine setup
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "ejs");
+const DEFAULT_ORIGIN = process.env.ORIGIN?.split(",")[0] ?? "";
 
-const corsOptions: CorsOptions = {
+const configureCors = (): CorsOptions => ({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (origins.indexOf(origin) !== -1) {
-      callback(null, true); // Allow the request
+    if (!origin || origins.indexOf(origin) !== -1) {
+      callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS")); // Reject the request
+      callback(new Error("Not allowed by CORS"));
     }
   },
+});
+
+const configureMiddlewares = (app: Application) => {
+  app.use(cors(configureCors()));
+  app.use(logger("dev"));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+  app.use(cookieParser());
+  app.use(express.static(path.join(__dirname, "../public")));
+  app.use("/images", express.static("../public/images"));
 };
 
-app.use(cors(corsOptions));
-app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "../public")));
-app.use("/images", express.static("../public/images"));
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origins.includes(origin ?? "")) {
-    res.setHeader("Access-Control-Allow-Origin", origin ?? "");
-  }
-  next();
-});
-app.use((req, res, next) => {
-  res.locals.t = useT((req.headers["accept-language"] as Language) ?? "en");
-  next();
-});
+const configureHeaders = (app: Application) => {
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origins.includes(origin ?? "")) {
+      res.setHeader("Access-Control-Allow-Origin", origin ?? "");
+    }
+    next();
+  });
+};
 
-//API Routes
-app.use("/api/common/countries", getCountries);
-app.use("/api/common/cities/:id", getCities);
-app.use("/api/auth", authRouter);
-app.use("/api/user", userAuthMiddleware, userRouter);
-app.use("/api/common", apiAuthMiddleware, commonRouter);
-app.use("/api/catalog", catalogRouter);
-app.use("/api/product", productRouter);
+const configureLocalization = (app: Application) => {
+  app.use((req, res, next) => {
+    res.locals.t = useT((req.headers["accept-language"] as Language) ?? "en");
+    next();
+  });
+};
 
-app.use("/api/status", (_req: Request, res: Response) =>
-  res.status(200).json("Connected")
-);
+const configureRoutes = (app: Application) => {
+  app.use("/api/common/countries", getCountries);
+  app.use("/api/common/cities/:id", getCities);
+  app.use("/api/auth", authRouter);
+  app.use("/api/user", userAuthMiddleware, userRouter);
+  app.use("/api/common", apiAuthMiddleware, commonRouter);
+  app.use("/api/catalog", catalogRouter);
+  app.use("/api/product", productRouter);
 
-app.use("/", (req: Request, res: Response) =>
-  res.redirect(process.env.ORIGIN?.split(",")[0] ?? "")
-);
+  app.use("/api/status", (_req, res) => res.status(200).json("Connected"));
+  app.use("/", (_req, res) => res.redirect(DEFAULT_ORIGIN));
+};
 
-// catch 404 and forward to error handler
-app.use(function (_req: Request, res: Response) {
-  if (!process.env.ORIGIN?.split(",")[0])
-    return res.status(404).render("error", { to: process.env.ORIGIN });
-});
+const configureErrorHandling = (app: Application) => {
+  // 404 handler
+  app.use((_req: Request, res: Response) => {
+    if (!DEFAULT_ORIGIN) {
+      return res.status(404).render("error", { to: process.env.ORIGIN });
+    }
+  });
 
-// error handler
-app.use(function (err: HttpError, req: Request, res: Response) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
+  // Error handler
+  app.use((err: HttpError, req: Request, res: Response) => {
+    res.locals.message = err.message;
+    res.locals.error = req.app.get("env") === "development" ? err : {};
+    res.status(err.status || 500).render("error");
+  });
+};
 
-  // render the error page
-  res.status(err.status || 500).render("error");
-});
+const configureCronJobs = () => {
+  // Remove users without passwords daily
+  cron.schedule("0 0 * * *", async () => {
+    const deleted = await Users.deleteMany({ password: null });
+    console.log("Expired records deleted:", deleted);
+  });
+};
 
-mongoose
-  .connect(process.env.DB_URI ?? "")
-  .then(() => {
-    console.log("dbConnected");
+const initializeDatabase = async () => {
+  try {
+    await mongoose.connect(process.env.DB_URI ?? "");
+    console.log("Database connected");
+
+    // Initialize models
     mongoose.model("Vendors", VendorSchema);
     mongoose.model("Categories", CategorySchema);
     mongoose.model("Users", UserSchema);
@@ -108,21 +126,34 @@ mongoose
     mongoose.model("Tags", TagSchema);
     mongoose.model("Countries", CountrySchema);
     mongoose.model("Cities", CitySchema);
-    mongoose.model("Orders", orderSchema);
-  })
-  .catch((err) => console.log(err));
+    mongoose.model("Orders", OrderSchema);
+  } catch (err) {
+    console.error("Database connection error:", err);
+    process.exit(1);
+  }
+};
 
-app.listen(3000, () => {
-  // Schedule a task to run every day (removing every user without password)
-  cron.schedule("0 0 * * *", async () => {
-    const del = await Users.deleteMany({
-      password: null,
-    });
+const initializeApp = async () => {
+  const app: Application = express();
 
-    console.log("Expired records deleted " + del);
+  // View engine setup
+  app.set("views", path.join(__dirname, "views"));
+  app.set("view engine", "ejs");
+
+  configureMiddlewares(app);
+  configureHeaders(app);
+  configureLocalization(app);
+  configureRoutes(app);
+  configureErrorHandling(app);
+
+  await initializeDatabase();
+
+  app.listen(PORT, () => {
+    configureCronJobs();
+    console.log(`Server listening on port ${PORT}`);
   });
 
-  console.log("listen on 3000");
-});
+  return app;
+};
 
-module.exports = app;
+initializeApp();

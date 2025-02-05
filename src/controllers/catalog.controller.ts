@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
 import Products from "../models/Products";
-import { responseDto } from "../utilities";
+import { delay, responseDto } from "../utilities";
 import Vendors from "../models/Vendors";
 import Tags from "../models/Tags";
 import Categories from "../models/Categories";
-import * as countries from "../Countries-cities-data/data";
 
 export async function getProducts(_req: Request, res: Response) {
   const products = await Products.find({}).exec();
@@ -228,30 +227,4 @@ export async function getAllCategoriesSeNames(_req: Request, res: Response) {
 export async function getAllTagsIds(_req: Request, res: Response) {
   const categories = await Categories.find({}).select("seName").lean().exec();
   res.status(200).json(categories);
-}
-
-export async function test(req: Request, res: Response) {
-  let key: keyof typeof countries;
-  let x;
-  try {
-    // for (key in countries) {
-    //   const cities = countries[key][2] as string[][];
-    //   const citiesMap = cities.map((city) => ({
-    //     name: city[0],
-    //     code: city[1],
-    //   }));
-    //   x = await Cities.insertMany([...citiesMap]);
-
-    //   const ids = x.map((anX) => anX._id);
-
-    //   const c = Counties.create({
-    //     name: countries[key][0],
-    //     code: countries[key][1],
-    //     cities: ids,
-    //   });
-    // }
-    res.status(200).json(x);
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
 }

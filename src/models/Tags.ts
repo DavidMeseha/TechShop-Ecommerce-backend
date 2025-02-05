@@ -1,17 +1,31 @@
 import mongoose from "mongoose";
 import { ITag } from "../global-types";
 
-export interface ITagDocument
-  extends ITag,
-    mongoose.Document<unknown, any, ITag> {}
+export interface ITagDocument extends ITag, mongoose.Document {}
 
-export const TagSchema = new mongoose.Schema<ITagDocument>({
-  name: { type: String, required: true, unique: true },
-  seName: { type: String, required: true, unique: true },
-  productCount: { type: Number, default: 0 },
-});
+const tagFields = {
+  name: { 
+    type: String, 
+    required: true, 
+    unique: true 
+  },
+  seName: { 
+    type: String, 
+    required: true, 
+    unique: true 
+  },
+  productCount: { 
+    type: Number, 
+    default: 0 
+  },
+};
+
+export const TagSchema = new mongoose.Schema<ITagDocument>(tagFields);
 
 TagSchema.index({ name: "text" });
 
-export default (mongoose.models.Tags as mongoose.Model<ITag>) ||
-  mongoose.model<ITag>("Tags", TagSchema);
+const Tags = 
+  (mongoose.models.Tags as mongoose.Model<ITagDocument>) ||
+  mongoose.model<ITagDocument>("Tags", TagSchema);
+
+export default Tags;

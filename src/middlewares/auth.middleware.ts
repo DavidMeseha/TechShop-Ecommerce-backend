@@ -4,44 +4,72 @@ import { responseDto } from "../utilities";
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
-export function userAuthMiddleware(
+const verifyToken = (token: string) => {
+  if (!ACCESS_SECRET) {
+    throw new Error("ENV server Error");
+  }
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, ACCESS_SECRET, (err, payload) => {
+      if (err || !payload) {
+        reject(err);
+      }
+      resolve(payload);
+    });
+  });
+};
+
+const extractToken = (req: Request) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    throw new Error("Not Authorized");
+  }
+  return token;
+};
+
+export async function userAuthMiddleware(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  const token = req.headers.authorization?.split(" ")[1];
+  try {
+    const token = extractToken(req);
+    const payload = await verifyToken(token);
 
-  if (!ACCESS_SECRET)
-    return res.status(500).json(responseDto("ENV server Error", false));
-  if (!token) return res.status(403).json(responseDto("Not Authorized"));
+    const user = JSON.parse(JSON.stringify(payload));
 
-  jwt.verify(token, ACCESS_SECRET, (err, payload) => {
-    if (err || !payload) return res.status(403).json(responseDto(err, false));
-    const user: { isRegistered: boolean } = JSON.parse(JSON.stringify(payload));
-
-    if (!user.isRegistered)
+    if (!user.isRegistered) {
       return res.status(401).json(responseDto("You Need to Signup", false));
+    }
 
-    res.locals.user = JSON.parse(JSON.stringify(payload));
+    res.locals.user = user;
     next();
-  });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Authentication Error";
+    if (message === "ENV server Error") {
+      return res.status(500).json(responseDto(message, false));
+    }
+    return res.status(403).json(responseDto(message, false));
+  }
 }
 
-export function apiAuthMiddleware(
+export async function apiAuthMiddleware(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (!ACCESS_SECRET)
-    return res.status(500).json(responseDto("ENV server Error", false));
-  if (!token) return res.status(403).json(responseDto("Not Authorized", false));
-
-  jwt.verify(token, ACCESS_SECRET, (err, payload) => {
-    if (err || !payload) return res.status(403).json(responseDto(err, false));
+  try {
+    const token = extractToken(req);
+    const payload = await verifyToken(token);
 
     res.locals.user = JSON.parse(JSON.stringify(payload));
     next();
-  });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Authentication Error";
+    if (message === "ENV server Error") {
+      return res.status(500).json(responseDto(message, false));
+    }
+    return res.status(403).json(responseDto(message, false));
+  }
 }

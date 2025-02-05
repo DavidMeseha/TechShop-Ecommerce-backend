@@ -3,29 +3,86 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.orderSchema = void 0;
+exports.OrderSchema = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const supDocumentsSchema_1 = require("./supDocumentsSchema");
-exports.orderSchema = new mongoose_1.default.Schema({
-    customer: { type: mongoose_1.default.Schema.ObjectId, ref: "Users" },
-    billingMethod: String,
-    billingStatus: String,
-    shippingStatus: { type: String, default: "Processing" },
-    shippingAddress: {
-        address: String,
-        country: { type: mongoose_1.default.Schema.ObjectId, ref: "Countries" },
-        city: { type: mongoose_1.default.Schema.ObjectId, ref: "Cities" },
+const orderItemFields = {
+    product: {
+        type: mongoose_1.default.Schema.ObjectId,
+        ref: "Products",
+        required: true,
     },
-    items: [
-        {
-            product: { type: mongoose_1.default.Schema.ObjectId, ref: "Products" },
-            quantity: Number,
-            attributes: [supDocumentsSchema_1.AttributeSchema],
+    quantity: {
+        type: Number,
+        required: true,
+        min: 1,
+    },
+    attributes: [supDocumentsSchema_1.AttributeSchema],
+};
+const shippingFields = {
+    shippingStatus: {
+        type: String,
+        default: "Processing",
+        enum: ["Processing", "Shipped", "Delivered", "Cancelled"],
+    },
+    shippingAddress: {
+        address: {
+            type: String,
+            required: true,
         },
-    ],
-    shippingFees: Number,
-    subTotal: Number,
-    totalValue: { type: Number, required: true },
-}, { timestamps: true });
-exports.default = mongoose_1.default.models.Orders ||
-    mongoose_1.default.model("Orders", exports.orderSchema);
+        country: {
+            type: mongoose_1.default.Schema.ObjectId,
+            ref: "Countries",
+            required: true,
+        },
+        city: {
+            type: mongoose_1.default.Schema.ObjectId,
+            ref: "Cities",
+            required: true,
+        },
+    },
+    shippingFees: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+};
+const billingFields = {
+    billingMethod: {
+        type: String,
+        required: true,
+        enum: ["card", "cod", "paypal"],
+    },
+    billingStatus: {
+        type: String,
+        required: true,
+        enum: ["pending", "paid", "failed"],
+    },
+};
+const priceFields = {
+    subTotal: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+    totalValue: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+};
+const orderFields = Object.assign(Object.assign(Object.assign({ customer: {
+        type: mongoose_1.default.Schema.ObjectId,
+        ref: "Users",
+        required: true,
+        index: true,
+    }, items: [orderItemFields] }, shippingFields), billingFields), priceFields);
+exports.OrderSchema = new mongoose_1.default.Schema(orderFields, {
+    timestamps: true,
+});
+exports.OrderSchema.index({ shippingStatus: 1 });
+exports.OrderSchema.index({ billingStatus: 1 });
+exports.OrderSchema.index({ createdAt: -1 });
+const Orders = mongoose_1.default.models.Orders ||
+    mongoose_1.default.model("Orders", exports.OrderSchema);
+exports.default = Orders;

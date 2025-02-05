@@ -5,10 +5,32 @@ export interface ICity {
   code: string;
 }
 
-export const CitySchema = new mongoose.Schema<ICity>({
-  code: String,
-  name: String,
+export interface ICityDocument extends ICity, mongoose.Document {}
+
+const cityFields = {
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  code: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    uppercase: true,
+  },
+};
+
+export const CitySchema = new mongoose.Schema<ICityDocument>(cityFields, {
+  timestamps: true,
 });
 
-export default (mongoose.models.Cities as mongoose.Model<ICity>) ||
-  mongoose.model<ICity>("Cities", CitySchema);
+CitySchema.index({ code: 1 });
+CitySchema.index({ name: "text" });
+
+const Cities =
+  (mongoose.models.Cities as mongoose.Model<ICityDocument>) ||
+  mongoose.model<ICityDocument>("Cities", CitySchema);
+
+export default Cities;

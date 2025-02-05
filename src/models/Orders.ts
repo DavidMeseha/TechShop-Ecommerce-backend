@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import { IUser } from "./Users";
-import { AttributeSchema, IAddress } from "./supDocumentsSchema";
 import { IFullProduct, IProductAttribute } from "../global-types";
+import { AttributeSchema, IAddress } from "./supDocumentsSchema";
+import { IUser } from "./Users";
 
 export interface IOrder {
   customer: IUser;
@@ -9,42 +9,112 @@ export interface IOrder {
   billingMethod: string;
   shippingAddress: IAddress;
   shippingStatus: string;
-  items: {
-    product: IFullProduct;
-    quantity: number;
-    attributes: IProductAttribute[];
-  }[];
+  items: OrderItem[];
   subTotal: number;
   totalValue: number;
   shippingFees: number;
 }
 
-export const orderSchema = new mongoose.Schema<IOrder>(
-  {
-    customer: { type: mongoose.Schema.ObjectId, ref: "Users" },
-    billingMethod: String,
-    billingStatus: String,
-    shippingStatus: { type: String, default: "Processing" },
-    shippingAddress: {
-      address: String,
-      country: { type: mongoose.Schema.ObjectId, ref: "Countries" },
-      city: { type: mongoose.Schema.ObjectId, ref: "Cities" },
-    },
+interface OrderItem {
+  product: IFullProduct;
+  quantity: number;
+  attributes: IProductAttribute[];
+}
 
-    items: [
-      {
-        product: { type: mongoose.Schema.ObjectId, ref: "Products" },
-        quantity: Number,
-        attributes: [AttributeSchema],
-      },
-    ],
+export interface IOrderDocument extends IOrder, mongoose.Document {}
 
-    shippingFees: Number,
-    subTotal: Number,
-    totalValue: { type: Number, required: true },
+const orderItemFields = {
+  product: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Products",
+    required: true,
   },
-  { timestamps: true }
-);
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  attributes: [AttributeSchema],
+};
 
-export default (mongoose.models.Orders as mongoose.Model<IOrder>) ||
-  mongoose.model<IOrder>("Orders", orderSchema);
+const shippingFields = {
+  shippingStatus: {
+    type: String,
+    default: "Processing",
+    enum: ["Processing", "Shipped", "Delivered", "Cancelled"],
+  },
+  shippingAddress: {
+    address: {
+      type: String,
+      required: true,
+    },
+    country: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Countries",
+      required: true,
+    },
+    city: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Cities",
+      required: true,
+    },
+  },
+  shippingFees: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+};
+
+const billingFields = {
+  billingMethod: {
+    type: String,
+    required: true,
+    enum: ["card", "cod", "paypal"],
+  },
+  billingStatus: {
+    type: String,
+    required: true,
+    enum: ["pending", "paid", "failed"],
+  },
+};
+
+const priceFields = {
+  subTotal: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  totalValue: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+};
+
+const orderFields = {
+  customer: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Users",
+    required: true,
+    index: true,
+  },
+  items: [orderItemFields],
+  ...shippingFields,
+  ...billingFields,
+  ...priceFields,
+};
+
+export const OrderSchema = new mongoose.Schema<IOrderDocument>(orderFields, {
+  timestamps: true,
+});
+
+OrderSchema.index({ shippingStatus: 1 });
+OrderSchema.index({ billingStatus: 1 });
+OrderSchema.index({ createdAt: -1 });
+
+const Orders =
+  (mongoose.models.Orders as mongoose.Model<IOrderDocument>) ||
+  mongoose.model<IOrderDocument>("Orders", OrderSchema);
+
+export default Orders;

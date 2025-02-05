@@ -13,22 +13,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCheckoutDetails = getCheckoutDetails;
+exports.addProductToCart = addProductToCart;
+exports.getAllUserActions = getAllUserActions;
+exports.findInAll = findInAll;
 exports.getReviewIds = getReviewIds;
 exports.getLikesId = getLikesId;
 exports.getSavesId = getSavesId;
 exports.getFollowingIds = getFollowingIds;
-exports.addProductToCart = addProductToCart;
 exports.getCartProductsIds = getCartProductsIds;
 exports.getCartProducts = getCartProducts;
 exports.removeProductFromCart = removeProductFromCart;
 exports.changeLanguage = changeLanguage;
 exports.getCountries = getCountries;
 exports.getCities = getCities;
-exports.getAllUserActions = getAllUserActions;
-exports.findInAll = findInAll;
-const Products_1 = __importDefault(require("../models/Products"));
-const utilities_1 = require("../utilities");
 const mongoose_1 = __importDefault(require("mongoose"));
+const utilities_1 = require("../utilities");
+const Products_1 = __importDefault(require("../models/Products"));
 const Users_1 = __importDefault(require("../models/Users"));
 const Countries_1 = __importDefault(require("../models/Countries"));
 const Vendors_1 = __importDefault(require("../models/Vendors"));
@@ -36,6 +36,10 @@ const Categories_1 = __importDefault(require("../models/Categories"));
 const Tags_1 = __importDefault(require("../models/Tags"));
 const Reviews_1 = __importDefault(require("../models/Reviews"));
 const useT_1 = require("../locales/useT");
+// Cart Related Controllers
+/**
+ * Get checkout details for the current user
+ */
 function getCheckoutDetails(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
@@ -45,20 +49,149 @@ function getCheckoutDetails(req, res) {
                 .populate("cart.product")
                 .lean()
                 .exec();
-            if (!foundUser || !foundUser.cart)
-                throw new Error("No User found");
-            let total = 0;
-            for (const item of foundUser.cart)
-                total += item.product.price.price * item.quantity;
-            res.status(200).json({
+            if (!foundUser || !foundUser.cart) {
+                return res.status(404).json((0, utilities_1.responseDto)("User not found"));
+            }
+            const total = foundUser.cart.reduce((sum, item) => sum + item.product.price.price * item.quantity, 0);
+            return res.status(200).json({
                 addresses: foundUser.addresses,
                 cartItems: foundUser.cart,
                 total,
-                // clientSecret: paymentIntent.client_secret,
             });
         }
-        catch (err) {
-            res.status(400).json(err.message);
+        catch (error) {
+            console.error("Error getting checkout details:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Failed to get checkout details"));
+        }
+    });
+}
+/**
+ * Add product to user's cart
+ */
+function addProductToCart(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const user = res.locals.user;
+        const { id: productId } = req.params;
+        const { quantity, attributes } = req.body;
+        if (!productId) {
+            return res.status(400).json((0, utilities_1.responseDto)("Product ID is required"));
+        }
+        try {
+            const product = yield Products_1.default.findByIdAndUpdate(productId, { $inc: { carts: 1 } }, { new: true })
+                .select("productAttributes")
+                .lean()
+                .exec();
+            if (!product) {
+                return res.status(404).json((0, utilities_1.responseDto)("Product not found"));
+            }
+            (0, utilities_1.validateAttributes)(attributes !== null && attributes !== void 0 ? attributes : [], product.productAttributes);
+            const updated = yield Users_1.default.updateOne({
+                _id: user._id,
+                cart: {
+                    $not: {
+                        $elemMatch: { product: new mongoose_1.default.Types.ObjectId(productId) },
+                    },
+                },
+            }, {
+                $push: {
+                    cart: {
+                        product: new mongoose_1.default.Types.ObjectId(productId),
+                        quantity,
+                        attributes,
+                    },
+                },
+            });
+            if (!updated.matchedCount) {
+                return res.status(400).json((0, utilities_1.responseDto)("Failed to add product to cart"));
+            }
+            return res.status(200).json((0, utilities_1.responseDto)("Product added to cart", true));
+        }
+        catch (error) {
+            console.error("Error adding product to cart:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Failed to add product to cart"));
+        }
+    });
+}
+// User Actions Controllers
+/**
+ * Get all user actions (reviews, cart, likes, saves, follows)
+ */
+function getAllUserActions(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b, _c, _d;
+        const user = res.locals.user;
+        try {
+            const [foundUser, reviews] = yield Promise.all([
+                Users_1.default.findById(user._id).lean().exec(),
+                Reviews_1.default.find({ customer: user._id }).select("_id").lean().exec(),
+            ]);
+            if (!foundUser) {
+                return res.status(404).json((0, utilities_1.responseDto)("User not found"));
+            }
+            return res.status(200).json({
+                reviews: reviews !== null && reviews !== void 0 ? reviews : [],
+                cart: (_a = foundUser.cart) !== null && _a !== void 0 ? _a : [],
+                likes: (_b = foundUser.likes) !== null && _b !== void 0 ? _b : [],
+                saves: (_c = foundUser.saves) !== null && _c !== void 0 ? _c : [],
+                follows: (_d = foundUser.following) !== null && _d !== void 0 ? _d : [],
+            });
+        }
+        catch (error) {
+            console.error("Error getting user actions:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Failed to get user actions"));
+        }
+    });
+}
+// Search Controller
+/**
+ * Search across multiple collections
+ */
+function findInAll(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const options = req.body;
+        if (!options.searchText) {
+            return res.status(400).json((0, utilities_1.responseDto)("Search text is required"));
+        }
+        try {
+            const query = options.searchText;
+            const toleranceCount = Math.ceil(query.length * 0.4);
+            const queryRegex = `${query.length >= 4 ? (0, utilities_1.generateVariants)(query, toleranceCount) : query}|${query}..`;
+            const regex = new RegExp(queryRegex, "i");
+            const enabledOptions = Object.entries(options).filter(([key, value]) => key !== "searchText" && value).length;
+            const limit = Math.floor(8 / enabledOptions);
+            const searchPromises = [];
+            const items = [];
+            if (options.products) {
+                searchPromises.push(Products_1.default.find({ name: regex })
+                    .limit(limit)
+                    .lean()
+                    .then((products) => products.map((item) => ({ item, type: "product" }))));
+            }
+            if (options.vendors) {
+                searchPromises.push(Vendors_1.default.find({ name: regex })
+                    .limit(limit)
+                    .lean()
+                    .then((vendors) => vendors.map((item) => ({ item, type: "vendor" }))));
+            }
+            if (options.categories) {
+                searchPromises.push(Categories_1.default.find({ name: regex })
+                    .limit(limit)
+                    .lean()
+                    .then((category) => category.map((item) => ({ item, type: "category" }))));
+            }
+            if (options.tags) {
+                searchPromises.push(Tags_1.default.find({ name: regex })
+                    .limit(limit)
+                    .lean()
+                    .then((tag) => tag.map((item) => ({ item, type: "tag" }))));
+            }
+            const results = yield Promise.all(searchPromises);
+            results.forEach((result) => items.push(...result));
+            return res.status(200).json(items);
+        }
+        catch (error) {
+            console.error("Error searching:", error);
+            return res.status(500).json((0, utilities_1.responseDto)("Search failed"));
         }
     });
 }
@@ -123,49 +256,6 @@ function getFollowingIds(req, res) {
         }
         catch (err) {
             res.status(400).json((0, utilities_1.responseDto)(err.message));
-        }
-    });
-}
-function addProductToCart(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const user = res.locals.user;
-        const productId = req.params.id;
-        const quantity = req.body.quantity;
-        const attributes = req.body.attributes;
-        if (!productId)
-            res.status(400).json("missing product id");
-        try {
-            const product = yield Products_1.default.findByIdAndUpdate(productId, {
-                $inc: { carts: 1 },
-            })
-                .select("productAttributes")
-                .lean()
-                .exec();
-            if (!product)
-                throw new Error("wrong product Id");
-            (0, utilities_1.validateAttributes)(attributes !== null && attributes !== void 0 ? attributes : [], product.productAttributes);
-            const updated = yield Users_1.default.updateOne({
-                _id: user._id,
-                cart: {
-                    $not: {
-                        $elemMatch: { product: new mongoose_1.default.Types.ObjectId(productId) },
-                    },
-                },
-            }, {
-                $push: {
-                    cart: {
-                        product: new mongoose_1.default.Types.ObjectId(productId),
-                        quantity,
-                        attributes,
-                    },
-                },
-            });
-            if (!updated.matchedCount)
-                throw new Error("Could not add product to cart");
-            res.status(200).json("Product added to cart");
-        }
-        catch (err) {
-            res.status(400).json(err.message);
         }
     });
 }
@@ -262,110 +352,6 @@ function getCities(req, res) {
             setTimeout(() => {
                 res.status(200).json(country === null || country === void 0 ? void 0 : country.cities);
             }, 2000);
-        }
-        catch (err) {
-            res.status(400).json(err.message);
-        }
-    });
-}
-function getAllUserActions(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
-        const user = res.locals.user;
-        try {
-            const foundUser = yield Users_1.default.findById(user._id).lean().exec();
-            const reviews = yield Reviews_1.default.find({ customer: foundUser === null || foundUser === void 0 ? void 0 : foundUser._id })
-                .select("_id")
-                .lean()
-                .exec();
-            res.status(200).json({
-                reviews: reviews !== null && reviews !== void 0 ? reviews : [],
-                cart: (_a = foundUser === null || foundUser === void 0 ? void 0 : foundUser.cart) !== null && _a !== void 0 ? _a : [],
-                likes: (_b = foundUser === null || foundUser === void 0 ? void 0 : foundUser.likes) !== null && _b !== void 0 ? _b : [],
-                saves: (_c = foundUser === null || foundUser === void 0 ? void 0 : foundUser.saves) !== null && _c !== void 0 ? _c : [],
-                follows: (_d = foundUser === null || foundUser === void 0 ? void 0 : foundUser.following) !== null && _d !== void 0 ? _d : [],
-            });
-        }
-        catch (err) {
-            res.status(400).json(err.message);
-        }
-    });
-}
-function findInAll(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const options = req.body;
-        const items = [];
-        const query = options.searchText;
-        const toleranceCount = Math.ceil(query.length * 0.2);
-        // let queryRegex = "";
-        // for (let i = 0; i < 2; i++) {
-        //   for (let l = 0; l < query.length; l++) {
-        //     for (let j = l + 1; j < query.length; j++) {
-        //       let variant = query.replace(query[l], ".");
-        //       variant = variant.replace(variant[j], ".");
-        //       queryRegex += variant + "|";
-        //     }
-        //   }
-        // }
-        let queryRegex = (0, utilities_1.generateVariants)(query, toleranceCount);
-        queryRegex += "|" + query + "..";
-        console.log(queryRegex);
-        const regex = new RegExp(queryRegex, "i");
-        try {
-            let optionsCount = -1;
-            let key;
-            for (key in options)
-                if (options[key])
-                    optionsCount++;
-            if (options.products) {
-                const products = yield Products_1.default.find({
-                    $or: [{ name: regex }],
-                })
-                    .limit(Math.floor(8 / optionsCount))
-                    .lean();
-                const productItems = products.map((product) => ({
-                    item: product,
-                    type: "product",
-                }));
-                items.push(...productItems);
-            }
-            if (options.vendors) {
-                const vendors = yield Vendors_1.default.find({
-                    $or: [{ name: regex }],
-                })
-                    .limit(Math.floor(8 / optionsCount))
-                    .lean();
-                const vendorItems = vendors.map((vendor) => ({
-                    item: vendor,
-                    type: "vendor",
-                }));
-                items.push(...vendorItems);
-            }
-            if (options.categories) {
-                const categories = yield Categories_1.default.find({
-                    $or: [{ name: regex }],
-                })
-                    .limit(Math.floor(8 / optionsCount))
-                    .lean();
-                const categryItems = categories.map((category) => ({
-                    item: category,
-                    type: "category",
-                }));
-                items.push(...categryItems);
-            }
-            if (options.tags) {
-                const tags = yield Tags_1.default.find({
-                    $or: [{ name: regex }],
-                })
-                    .limit(Math.floor(8 / optionsCount))
-                    .lean();
-                const tagItems = tags.map((tag) => ({
-                    item: tag,
-                    type: "tag",
-                }));
-                items.push(...tagItems);
-            }
-            res.status(200).json(items);
         }
         catch (err) {
             res.status(400).json(err.message);
