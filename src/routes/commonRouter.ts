@@ -1,5 +1,5 @@
-import express from "express";
-import upload from "../middlewares/upload.middleware";
+import express from 'express';
+import upload from '../middlewares/upload.middleware';
 import {
   addProductToCart,
   changeLanguage,
@@ -13,33 +13,33 @@ import {
   getReviewIds,
   getSavesId,
   removeProductFromCart,
-} from "../controllers/common.controller";
-import { uploadImage } from "../controllers/upload.controller";
+} from '../controllers/common.controller';
+import { uploadImage } from '../controllers/upload.controller';
 const router = express.Router();
 
 // User action related routes
-router.get("/reviewedIds", getReviewIds);
-router.get("/followingIds", getFollowingIds);
-router.get("/savesId", getSavesId);
-router.get("/likesId", getLikesId);
-router.get("/allActions", getAllUserActions);
+router.get('/reviewedIds', getReviewIds);
+router.get('/followingIds', getFollowingIds);
+router.get('/savesId', getSavesId);
+router.get('/likesId', getLikesId);
+router.get('/allActions', getAllUserActions);
 
 // Cart related routes
-router.get("/cart", getCartProducts);
-router.get("/cart/ids", getCartProductsIds);
-router.post("/cart/add/:id", addProductToCart);
-router.delete("/cart/remove/:id", removeProductFromCart);
+router.get('/cart', getCartProducts);
+router.get('/cart/ids', getCartProductsIds);
+router.post('/cart/add/:id', addProductToCart);
+router.delete('/cart/remove/:id', removeProductFromCart);
 
 // Checkout related routes
-router.get("/checkout", getCheckoutDetails);
+router.get('/checkout', getCheckoutDetails);
 
 // Search related routes
-router.post("/find", findInAll);
+router.post('/find', findInAll);
 
 // Language related routes
-router.post("/changeLanguage/:lang", changeLanguage);
+router.post('/changeLanguage/:lang', changeLanguage);
 
 // File upload routes
-router.post("/upload", upload.single("image"), uploadImage);
+router.post('/upload', upload.single('image'), uploadImage);
 
 export default router;

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 export interface ICity {
   name: string;
@@ -27,10 +27,10 @@ export const CitySchema = new mongoose.Schema<ICityDocument>(cityFields, {
 });
 
 CitySchema.index({ code: 1 });
-CitySchema.index({ name: "text" });
+CitySchema.index({ name: 'text' });
 
 const Cities =
   (mongoose.models.Cities as mongoose.Model<ICityDocument>) ||
-  mongoose.model<ICityDocument>("Cities", CitySchema);
+  mongoose.model<ICityDocument>('Cities', CitySchema);
 
 export default Cities;

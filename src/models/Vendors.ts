@@ -1,10 +1,9 @@
-import mongoose from "mongoose";
-import { IVendor } from "../global-types";
+import mongoose from 'mongoose';
+import { IVendor } from '../global-types';
 
 export interface IVendorDocument extends IVendor, mongoose.Document {}
 
-const DEFAULT_PROFILE_IMAGE =
-  process.env.DOMAIN + "/images/profile_placeholder.jpg";
+const DEFAULT_PROFILE_IMAGE = process.env.DOMAIN + '/images/profile_placeholder.jpg';
 
 const vendorFields = {
   name: {
@@ -30,16 +29,16 @@ const vendorFields = {
   user: {
     type: mongoose.Schema.ObjectId,
     required: true,
-    ref: "Users",
+    ref: 'Users',
   },
 };
 
 export const VendorSchema = new mongoose.Schema<IVendorDocument>(vendorFields);
 
-VendorSchema.index({ name: "text" });
+VendorSchema.index({ name: 'text' });
 
 const Vendors =
   (mongoose.models.Vendors as mongoose.Model<IVendorDocument>) ||
-  mongoose.model<IVendorDocument>("Vendors", VendorSchema);
+  mongoose.model<IVendorDocument>('Vendors', VendorSchema);
 
 export default Vendors;

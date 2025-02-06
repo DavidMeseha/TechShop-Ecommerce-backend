@@ -1,9 +1,9 @@
-import en from "./en.json";
-import ar from "./ar.json";
-import fr from "./fr.json";
+import en from './en.json';
+import ar from './ar.json';
+import fr from './fr.json';
 
-export type Language = "en" | "ar" | "fr";
-export const languages: Language[] = ["en", "ar", "fr"];
+export type Language = 'en' | 'ar' | 'fr';
+export const languages: Language[] = ['en', 'ar', 'fr'];
 type Dictionary = keyof typeof en;
 
 const dictionaries = {

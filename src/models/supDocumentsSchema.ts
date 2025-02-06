@@ -1,20 +1,12 @@
-import mongoose from "mongoose";
-import {
-  IPicture,
-  IProductAttribute,
-  IProductAttributeValue,
-} from "../global-types";
-import { ICity } from "./Cities";
-import { ICountry } from "./Countries";
+import mongoose from 'mongoose';
+import { IPicture, IProductAttribute, IProductAttributeValue } from '../global-types';
+import { ICity } from './Cities';
+import { ICountry } from './Countries';
 
 // Document interfaces
 export interface IPictureDocument extends IPicture, mongoose.Document {}
-export interface IProductAttributeValueDocument
-  extends IProductAttributeValue,
-    mongoose.Document {}
-export interface IProductAttributeDocument
-  extends IProductAttribute,
-    mongoose.Document {}
+export interface IProductAttributeValueDocument extends IProductAttributeValue, mongoose.Document {}
+export interface IProductAttributeDocument extends IProductAttribute, mongoose.Document {}
 export interface IAddress {
   address: string;
   city: ICity;
@@ -22,7 +14,7 @@ export interface IAddress {
 }
 
 // Schema configurations
-const DEFAULT_IMAGE = process.env.DOMAIN + "/images/no_image_placeholder.jpg";
+const DEFAULT_IMAGE = process.env.DOMAIN + '/images/no_image_placeholder.jpg';
 
 const imageFields = {
   imageUrl: {
@@ -45,8 +37,9 @@ const attributeValueFields = {
   },
 };
 
-export const AttributeValueSchema =
-  new mongoose.Schema<IProductAttributeValueDocument>(attributeValueFields);
+export const AttributeValueSchema = new mongoose.Schema<IProductAttributeValueDocument>(
+  attributeValueFields
+);
 
 const attributeFields = {
   name: String,
@@ -62,18 +55,16 @@ const addressFields = {
   country: {
     type: mongoose.Schema.ObjectId,
     required: true,
-    ref: "Countries",
+    ref: 'Countries',
   },
   city: {
     type: mongoose.Schema.ObjectId,
     required: true,
-    ref: "Cities",
+    ref: 'Cities',
   },
 };
 
 // Schemas
 export const ImageSchema = new mongoose.Schema<IPictureDocument>(imageFields);
-export const AttributeSchema = new mongoose.Schema<IProductAttributeDocument>(
-  attributeFields
-);
+export const AttributeSchema = new mongoose.Schema<IProductAttributeDocument>(attributeFields);
 export const AddressSchema = new mongoose.Schema<IAddress>(addressFields);

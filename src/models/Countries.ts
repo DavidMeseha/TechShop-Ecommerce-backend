@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import { ICity } from "./Cities";
+import mongoose from 'mongoose';
+import { ICity } from './Cities';
 
 export interface ICountry {
   name: string;
@@ -25,22 +25,21 @@ const countryFields = {
   cities: [
     {
       type: mongoose.Schema.ObjectId,
-      ref: "Cities",
+      ref: 'Cities',
       required: true,
     },
   ],
 };
 
-export const CountrySchema = new mongoose.Schema<ICountryDocument>(
-  countryFields,
-  { timestamps: true }
-);
+export const CountrySchema = new mongoose.Schema<ICountryDocument>(countryFields, {
+  timestamps: true,
+});
 
 CountrySchema.index({ code: 1 });
-CountrySchema.index({ name: "text" });
+CountrySchema.index({ name: 'text' });
 
 const Countries =
   (mongoose.models.Countries as mongoose.Model<ICountryDocument>) ||
-  mongoose.model<ICountryDocument>("Countries", CountrySchema);
+  mongoose.model<ICountryDocument>('Countries', CountrySchema);
 
 export default Countries;

@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
-import { IFullProduct, IProductAttribute } from "../global-types";
-import { AttributeSchema, IAddress } from "./supDocumentsSchema";
-import { IUser } from "./Users";
+import mongoose from 'mongoose';
+import { IFullProduct, IProductAttribute } from '../global-types';
+import { AttributeSchema, IAddress } from './supDocumentsSchema';
+import { IUser } from './Users';
 
 export interface IOrder {
   customer: IUser;
@@ -26,7 +26,7 @@ export interface IOrderDocument extends IOrder, mongoose.Document {}
 const orderItemFields = {
   product: {
     type: mongoose.Schema.ObjectId,
-    ref: "Products",
+    ref: 'Products',
     required: true,
   },
   quantity: {
@@ -40,8 +40,8 @@ const orderItemFields = {
 const shippingFields = {
   shippingStatus: {
     type: String,
-    default: "Processing",
-    enum: ["Processing", "Shipped", "Delivered", "Cancelled"],
+    default: 'Processing',
+    enum: ['Processing', 'Shipped', 'Delivered', 'Cancelled'],
   },
   shippingAddress: {
     address: {
@@ -50,12 +50,12 @@ const shippingFields = {
     },
     country: {
       type: mongoose.Schema.ObjectId,
-      ref: "Countries",
+      ref: 'Countries',
       required: true,
     },
     city: {
       type: mongoose.Schema.ObjectId,
-      ref: "Cities",
+      ref: 'Cities',
       required: true,
     },
   },
@@ -70,12 +70,12 @@ const billingFields = {
   billingMethod: {
     type: String,
     required: true,
-    enum: ["card", "cod", "paypal"],
+    enum: ['card', 'cod', 'paypal'],
   },
   billingStatus: {
     type: String,
     required: true,
-    enum: ["pending", "paid", "failed"],
+    enum: ['pending', 'paid', 'failed'],
   },
 };
 
@@ -95,7 +95,7 @@ const priceFields = {
 const orderFields = {
   customer: {
     type: mongoose.Schema.ObjectId,
-    ref: "Users",
+    ref: 'Users',
     required: true,
     index: true,
   },
@@ -115,6 +115,6 @@ OrderSchema.index({ createdAt: -1 });
 
 const Orders =
   (mongoose.models.Orders as mongoose.Model<IOrderDocument>) ||
-  mongoose.model<IOrderDocument>("Orders", OrderSchema);
+  mongoose.model<IOrderDocument>('Orders', OrderSchema);
 
 export default Orders;

@@ -1,8 +1,5 @@
-import express, { Router } from "express";
-import {
-  apiAuthMiddleware,
-  userAuthMiddleware,
-} from "../middlewares/auth.middleware";
+import express, { Router } from 'express';
+import { apiAuthMiddleware, userAuthMiddleware } from '../middlewares/auth.middleware';
 import {
   login,
   register,
@@ -10,14 +7,14 @@ import {
   guestToken,
   logout,
   refreshToken,
-} from "../controllers/auth.controller";
+} from '../controllers/auth.controller';
 const router: Router = express.Router();
 
-router.get("/check", checkToken);
-router.get("/guest", guestToken);
-router.post("/login", apiAuthMiddleware, login);
-router.post("/logout", userAuthMiddleware, logout);
-router.post("/register", apiAuthMiddleware, register);
-router.get("/refreshToken", userAuthMiddleware, refreshToken);
+router.get('/check', checkToken);
+router.get('/guest', guestToken);
+router.post('/login', apiAuthMiddleware, login);
+router.post('/logout', userAuthMiddleware, logout);
+router.post('/register', apiAuthMiddleware, register);
+router.get('/refreshToken', userAuthMiddleware, refreshToken);
 
 export default router;

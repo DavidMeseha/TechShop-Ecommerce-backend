@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
-import bcrypt from "bcrypt-nodejs";
-import { IFullProduct, IProductAttribute, IVendor } from "../global-types";
-import { AddressSchema, AttributeSchema, IAddress } from "./supDocumentsSchema";
-import { IOrder } from "./Orders";
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt-nodejs';
+import { IFullProduct, IProductAttribute, IVendor } from '../global-types';
+import { AddressSchema, AttributeSchema, IAddress } from './supDocumentsSchema';
+import { IOrder } from './Orders';
 
 interface IUserCart {
   product: IFullProduct;
@@ -49,8 +49,7 @@ export interface IUserDocument extends IUser, mongoose.Document {
   comparePassword(candidatePassword: string): boolean;
 }
 
-const DEFAULT_PROFILE_IMAGE =
-  process.env.DOMAIN + "/images/profile_placeholder.jpg";
+const DEFAULT_PROFILE_IMAGE = process.env.DOMAIN + '/images/profile_placeholder.jpg';
 
 const userProfileFields = {
   imageUrl: {
@@ -87,7 +86,7 @@ const userProfileFields = {
 const userPreferences = {
   language: {
     type: String,
-    default: "en",
+    default: 'en',
   },
 };
 
@@ -111,7 +110,7 @@ const userCollections = {
     {
       product: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Products",
+        ref: 'Products',
       },
       quantity: Number,
       attributes: [AttributeSchema],
@@ -120,31 +119,31 @@ const userCollections = {
   saves: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Products",
+      ref: 'Products',
     },
   ],
   likes: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Products",
+      ref: 'Products',
     },
   ],
   recentProducts: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Products",
+      ref: 'Products',
     },
   ],
   following: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Vendors",
+      ref: 'Vendors',
     },
   ],
   orders: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Orders",
+      ref: 'Orders',
     },
   ],
   addresses: [AddressSchema],
@@ -160,7 +159,7 @@ export const UserSchema = new mongoose.Schema<IUserDocument>(
   { timestamps: true }
 );
 
-UserSchema.pre("save", function (next) {
+UserSchema.pre('save', function (next) {
   if (this.password) {
     const salt = bcrypt.genSaltSync(8);
     this.password = bcrypt.hashSync(this.password, salt);
@@ -168,14 +167,12 @@ UserSchema.pre("save", function (next) {
   next();
 });
 
-UserSchema.methods.comparePassword = function (
-  candidatePassword: string
-): boolean {
-  return bcrypt.compareSync(candidatePassword, this.password || "");
+UserSchema.methods.comparePassword = function (candidatePassword: string): boolean {
+  return bcrypt.compareSync(candidatePassword, this.password || '');
 };
 
 const Users =
   (mongoose.models.Users as mongoose.Model<IUserDocument>) ||
-  mongoose.model<IUserDocument>("Users", UserSchema);
+  mongoose.model<IUserDocument>('Users', UserSchema);
 
 export default Users;

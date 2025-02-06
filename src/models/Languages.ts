@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 export interface ILanguage {
   name: string;
@@ -12,20 +12,19 @@ const languageFields = {
     required: true,
     unique: true,
     trim: true,
-    enum: ["en", "ar", "fr"], // Match supported languages from useT.ts
+    enum: ['en', 'ar', 'fr'], // Match supported languages from useT.ts
     lowercase: true,
   },
 };
 
-export const LanguageSchema = new mongoose.Schema<ILanguageDocument>(
-  languageFields,
-  { timestamps: true }
-);
+export const LanguageSchema = new mongoose.Schema<ILanguageDocument>(languageFields, {
+  timestamps: true,
+});
 
 LanguageSchema.index({ name: 1 });
 
 const Languages =
   (mongoose.models.Languages as mongoose.Model<ILanguageDocument>) ||
-  mongoose.model<ILanguageDocument>("Languages", LanguageSchema);
+  mongoose.model<ILanguageDocument>('Languages', LanguageSchema);
 
 export default Languages;

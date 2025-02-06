@@ -1,19 +1,15 @@
-import { Request, Response } from "express";
-import mongoose from "mongoose";
-import { IUserTokenPayload, IProductAttribute } from "../global-types";
-import {
-  generateVariants,
-  responseDto,
-  validateAttributes,
-} from "../utilities";
-import Products from "../models/Products";
-import Users from "../models/Users";
-import Countries from "../models/Countries";
-import Vendors from "../models/Vendors";
-import Categories from "../models/Categories";
-import Tags from "../models/Tags";
-import Reviews from "../models/Reviews";
-import { languages } from "../locales/useT";
+import { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import { IUserTokenPayload } from '../global-types';
+import { generateVariants, responseDto, validateAttributes } from '../utilities';
+import Products from '../models/Products';
+import Users from '../models/Users';
+import Countries from '../models/Countries';
+import Vendors from '../models/Vendors';
+import Categories from '../models/Categories';
+import Tags from '../models/Tags';
+import Reviews from '../models/Reviews';
+import { languages } from '../locales/useT';
 
 interface CommonControllerResponse {
   success: boolean;
@@ -33,13 +29,13 @@ export async function getCheckoutDetails(
 
   try {
     const foundUser = await Users.findById(user._id)
-      .select("cart addresses")
-      .populate("cart.product")
+      .select('cart addresses')
+      .populate('cart.product')
       .lean()
       .exec();
 
     if (!foundUser || !foundUser.cart) {
-      return res.status(404).json(responseDto("User not found"));
+      return res.status(404).json(responseDto('User not found'));
     }
 
     const total = foundUser.cart.reduce(
@@ -53,8 +49,8 @@ export async function getCheckoutDetails(
       total,
     });
   } catch (error) {
-    console.error("Error getting checkout details:", error);
-    return res.status(500).json(responseDto("Failed to get checkout details"));
+    console.error('Error getting checkout details:', error);
+    return res.status(500).json(responseDto('Failed to get checkout details'));
   }
 }
 
@@ -70,7 +66,7 @@ export async function addProductToCart(
   const { quantity, attributes } = req.body;
 
   if (!productId) {
-    return res.status(400).json(responseDto("Product ID is required"));
+    return res.status(400).json(responseDto('Product ID is required'));
   }
 
   try {
@@ -79,12 +75,12 @@ export async function addProductToCart(
       { $inc: { carts: 1 } },
       { new: true }
     )
-      .select("productAttributes")
+      .select('productAttributes')
       .lean()
       .exec();
 
     if (!product) {
-      return res.status(404).json(responseDto("Product not found"));
+      return res.status(404).json(responseDto('Product not found'));
     }
 
     validateAttributes(attributes ?? [], product.productAttributes);
@@ -110,13 +106,13 @@ export async function addProductToCart(
     );
 
     if (!updated.matchedCount) {
-      return res.status(400).json(responseDto("Failed to add product to cart"));
+      return res.status(400).json(responseDto('Failed to add product to cart'));
     }
 
-    return res.status(200).json(responseDto("Product added to cart", true));
+    return res.status(200).json(responseDto('Product added to cart', true));
   } catch (error) {
-    console.error("Error adding product to cart:", error);
-    return res.status(500).json(responseDto("Failed to add product to cart"));
+    console.error('Error adding product to cart:', error);
+    return res.status(500).json(responseDto('Failed to add product to cart'));
   }
 }
 
@@ -133,11 +129,11 @@ export async function getAllUserActions(
   try {
     const [foundUser, reviews] = await Promise.all([
       Users.findById(user._id).lean().exec(),
-      Reviews.find({ customer: user._id }).select("_id").lean().exec(),
+      Reviews.find({ customer: user._id }).select('_id').lean().exec(),
     ]);
 
     if (!foundUser) {
-      return res.status(404).json(responseDto("User not found"));
+      return res.status(404).json(responseDto('User not found'));
     }
 
     return res.status(200).json({
@@ -148,8 +144,8 @@ export async function getAllUserActions(
       follows: foundUser.following ?? [],
     });
   } catch (error) {
-    console.error("Error getting user actions:", error);
-    return res.status(500).json(responseDto("Failed to get user actions"));
+    console.error('Error getting user actions:', error);
+    return res.status(500).json(responseDto('Failed to get user actions'));
   }
 }
 
@@ -170,7 +166,7 @@ export async function findInAll(
   };
 
   if (!options.searchText) {
-    return res.status(400).json(responseDto("Search text is required"));
+    return res.status(400).json(responseDto('Search text is required'));
   }
 
   try {
@@ -179,10 +175,10 @@ export async function findInAll(
     const queryRegex = `${
       query.length >= 4 ? generateVariants(query, toleranceCount) : query
     }|${query}..`;
-    const regex = new RegExp(queryRegex, "i");
+    const regex = new RegExp(queryRegex, 'i');
 
     const enabledOptions = Object.entries(options).filter(
-      ([key, value]) => key !== "searchText" && value
+      ([key, value]) => key !== 'searchText' && value
     ).length;
 
     const limit = Math.floor(8 / enabledOptions);
@@ -195,9 +191,7 @@ export async function findInAll(
         Products.find({ name: regex })
           .limit(limit)
           .lean()
-          .then((products) =>
-            products.map((item) => ({ item, type: "product" }))
-          )
+          .then((products) => products.map((item) => ({ item, type: 'product' })))
       );
     }
 
@@ -206,7 +200,7 @@ export async function findInAll(
         Vendors.find({ name: regex })
           .limit(limit)
           .lean()
-          .then((vendors) => vendors.map((item) => ({ item, type: "vendor" })))
+          .then((vendors) => vendors.map((item) => ({ item, type: 'vendor' })))
       );
     }
 
@@ -215,9 +209,7 @@ export async function findInAll(
         Categories.find({ name: regex })
           .limit(limit)
           .lean()
-          .then((category) =>
-            category.map((item) => ({ item, type: "category" }))
-          )
+          .then((category) => category.map((item) => ({ item, type: 'category' })))
       );
     }
 
@@ -226,7 +218,7 @@ export async function findInAll(
         Tags.find({ name: regex })
           .limit(limit)
           .lean()
-          .then((tag) => tag.map((item) => ({ item, type: "tag" })))
+          .then((tag) => tag.map((item) => ({ item, type: 'tag' })))
       );
     }
 
@@ -235,8 +227,8 @@ export async function findInAll(
 
     return res.status(200).json(items);
   } catch (error) {
-    console.error("Error searching:", error);
-    return res.status(500).json(responseDto("Search failed"));
+    console.error('Error searching:', error);
+    return res.status(500).json(responseDto('Search failed'));
   }
 }
 
@@ -247,7 +239,7 @@ export async function getReviewIds(req: Request, res: Response) {
     const reviews = await Reviews.find({
       customer: new mongoose.Types.ObjectId(user._id),
     })
-      .select("product")
+      .select('product')
       .lean()
       .exec();
 
@@ -260,10 +252,10 @@ export async function getReviewIds(req: Request, res: Response) {
 export async function getLikesId(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
   try {
-    const found = await Users.findById(user._id).select("likes").lean().exec();
+    const found = await Users.findById(user._id).select('likes').lean().exec();
     res.status(200).json(found?.likes ?? []);
   } catch (err) {
-    res.status(500).json(responseDto("error getting user lieks", false));
+    res.status(500).json(responseDto('error getting user lieks', false));
   }
 }
 
@@ -271,12 +263,10 @@ export async function getSavesId(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
 
   try {
-    const found = await Users.findById(user._id).select("saves").lean().exec();
+    const found = await Users.findById(user._id).select('saves').lean().exec();
     res.status(200).json(found?.saves ?? []);
   } catch (err) {
-    res
-      .status(500)
-      .json(responseDto("error getting user saved products", false));
+    res.status(500).json(responseDto('error getting user saved products', false));
   }
 }
 
@@ -285,11 +275,8 @@ export async function getFollowingIds(req: Request, res: Response) {
   if (!user) return;
 
   try {
-    const foundUser = await Users.findById(user._id)
-      .select("following")
-      .lean()
-      .exec();
-    if (!foundUser) throw new Error("No user Found");
+    const foundUser = await Users.findById(user._id).select('following').lean().exec();
+    if (!foundUser) throw new Error('No user Found');
     res.status(200).json(foundUser.following);
   } catch (err: any) {
     res.status(400).json(responseDto(err.message));
@@ -301,7 +288,7 @@ export async function getCartProductsIds(req: Request, res: Response) {
 
   try {
     const userCart = await Users.findById(user._id)
-      .select("cart.product cart.quantity")
+      .select('cart.product cart.quantity')
       .lean()
       .exec();
 
@@ -316,8 +303,8 @@ export async function getCartProducts(req: Request, res: Response) {
 
   try {
     const userCart = await Users.findById(user._id)
-      .select("cart")
-      .populate("cart.product")
+      .select('cart')
+      .populate('cart.product')
       .lean()
       .exec();
 
@@ -344,15 +331,11 @@ export async function removeProductFromCart(req: Request, res: Response) {
       }
     );
 
-    if (!updated.modifiedCount)
-      throw new Error("The product is not in user's cart");
+    if (!updated.modifiedCount) throw new Error("The product is not in user's cart");
 
-    await Products.updateOne(
-      { _id: productId },
-      { $inc: { carts: -1 } }
-    ).exec();
+    await Products.updateOne({ _id: productId }, { $inc: { carts: -1 } }).exec();
 
-    res.status(200).json("Item Removed from cart");
+    res.status(200).json('Item Removed from cart');
   } catch (err: any) {
     res.status(400).json(err.message);
   }
@@ -364,14 +347,11 @@ export async function changeLanguage(req: Request, res: Response) {
 
   try {
     const isSupported = !!languages.find((lang) => lang === language);
-    if (!isSupported) throw new Error("language is not supported");
+    if (!isSupported) throw new Error('language is not supported');
 
-    await Users.updateOne(
-      { _id: new mongoose.Types.ObjectId(user._id) },
-      { language: language }
-    );
+    await Users.updateOne({ _id: new mongoose.Types.ObjectId(user._id) }, { language: language });
 
-    res.status(200).json("language changed");
+    res.status(200).json('language changed');
   } catch (err: any) {
     res.status(400).json(err.message);
   }
@@ -379,7 +359,7 @@ export async function changeLanguage(req: Request, res: Response) {
 
 export async function getCountries(req: Request, res: Response) {
   try {
-    const countries = await Countries.find({}).select("-cities").lean().exec();
+    const countries = await Countries.find({}).select('-cities').lean().exec();
     res.status(200).json(countries);
   } catch (err: any) {
     res.status(400).json(err.message);
@@ -391,8 +371,8 @@ export async function getCities(req: Request, res: Response) {
 
   try {
     const country = await Countries.findById(countryId)
-      .select("cities")
-      .populate("cities")
+      .select('cities')
+      .populate('cities')
       .lean()
       .exec();
 

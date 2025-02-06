@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import { IUser } from "./models/Users";
+import mongoose from 'mongoose';
+import { IUser } from './models/Users';
 
 export interface ICategory {
   name: string;

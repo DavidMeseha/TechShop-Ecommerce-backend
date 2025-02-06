@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import { IProductAttribute } from "./global-types";
+import mongoose from 'mongoose';
+import { IProductAttribute } from './global-types';
 
 export function responseDto<T>(
   response: T,
@@ -56,16 +56,16 @@ export const delay = () => {
 };
 
 export function generateVariants(query: string, n: number) {
-  let queryRegex = "";
+  let queryRegex = '';
 
-  function replaceChars(currentIndex: number, indicesToReplace: any[]) {
+  function replaceChars(currentIndex: number, indicesToReplace: (string | number | any)[]) {
     // If we have selected n indices, create the variant
     if (indicesToReplace.length === n) {
       let variant = query;
-      for (let index of indicesToReplace) {
-        variant = variant.replace(variant[index], ".");
+      for (const index of indicesToReplace) {
+        variant = variant.replace(variant[index], '.');
       }
-      queryRegex += variant + "|";
+      queryRegex += variant + '|';
       return;
     }
 
@@ -80,7 +80,7 @@ export function generateVariants(query: string, n: number) {
   replaceChars(0, []);
 
   // Remove the trailing "|" if necessary
-  if (queryRegex.endsWith("|")) {
+  if (queryRegex.endsWith('|')) {
     queryRegex = queryRegex.slice(0, -1);
   }
 

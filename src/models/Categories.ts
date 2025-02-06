@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import { ICategory } from "../global-types";
+import mongoose from 'mongoose';
+import { ICategory } from '../global-types';
 
 export interface ICategoryDocument extends ICategory, mongoose.Document {}
 
@@ -22,16 +22,15 @@ const categoryFields = {
   },
 };
 
-export const CategorySchema = new mongoose.Schema<ICategoryDocument>(
-  categoryFields,
-  { timestamps: true }
-);
+export const CategorySchema = new mongoose.Schema<ICategoryDocument>(categoryFields, {
+  timestamps: true,
+});
 
-CategorySchema.index({ name: "text" });
+CategorySchema.index({ name: 'text' });
 CategorySchema.index({ seName: 1 });
 
 const Categories =
   (mongoose.models.Categories as mongoose.Model<ICategoryDocument>) ||
-  mongoose.model<ICategoryDocument>("Categories", CategorySchema);
+  mongoose.model<ICategoryDocument>('Categories', CategorySchema);
 
 export default Categories;

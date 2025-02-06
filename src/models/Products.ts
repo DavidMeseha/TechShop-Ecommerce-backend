@@ -1,13 +1,13 @@
-import mongoose from "mongoose";
-import { IFullProduct } from "../global-types";
-import { AttributeSchema, ImageSchema } from "./supDocumentsSchema";
+import mongoose from 'mongoose';
+import { IFullProduct } from '../global-types';
+import { AttributeSchema, ImageSchema } from './supDocumentsSchema';
 
 export interface IFullProductDocument extends IFullProduct, mongoose.Document {}
 
 const DEFAULT_PRODUCT_IMAGE = {
-  imageUrl: "",
-  title: "",
-  alternateText: "",
+  imageUrl: '',
+  title: '',
+  alternateText: '',
 } as const;
 
 // Schema field groups
@@ -110,29 +110,29 @@ const statsFields = {
 };
 
 const relationFields = {
-  gender: [{ type: String, enum: ["male", "female", "unisex"] }],
+  gender: [{ type: String, enum: ['male', 'female', 'unisex'] }],
   category: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Categories",
+    ref: 'Categories',
     required: true,
     index: true,
   },
   productReviews: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Reviews",
+      ref: 'Reviews',
     },
   ],
   vendor: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Vendors",
+    ref: 'Vendors',
     required: true,
     index: true,
   },
   productTags: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Tags",
+      ref: 'Tags',
     },
   ],
 };
@@ -148,22 +148,19 @@ const productFields = {
   ...relationFields,
 };
 
-export const ProductSchema = new mongoose.Schema<IFullProductDocument>(
-  productFields,
-  {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
-  }
-);
+export const ProductSchema = new mongoose.Schema<IFullProductDocument>(productFields, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+});
 
-ProductSchema.index({ name: "text" });
+ProductSchema.index({ name: 'text' });
 ProductSchema.index({ seName: 1 });
 ProductSchema.index({ sku: 1 });
-ProductSchema.index({ "price.price": 1 });
+ProductSchema.index({ 'price.price': 1 });
 
 const Products =
   (mongoose.models.Products as mongoose.Model<IFullProductDocument>) ||
-  mongoose.model<IFullProductDocument>("Products", ProductSchema);
+  mongoose.model<IFullProductDocument>('Products', ProductSchema);
 
 export default Products;
