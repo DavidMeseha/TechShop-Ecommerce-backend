@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { ITag } from '../global-types';
+import { ITag } from '../interfaces/Product.interface';
 
 export interface ITagDocument extends ITag, mongoose.Document {}
 

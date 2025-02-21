@@ -1,51 +1,34 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { IUserTokenPayload } from '../global-types';
-import { generateVariants, responseDto, validateAttributes } from '../utilities';
+import { IUserTokenPayload } from '../interfaces/user.interface';
+import { generateVariants, responseDto } from '../utilities';
 import Products from '../models/Products';
 import Users from '../models/Users';
 import Countries from '../models/Countries';
-import Vendors from '../models/Vendors';
-import Categories from '../models/Categories';
-import Tags from '../models/Tags';
 import Reviews from '../models/Reviews';
 import { languages } from '../locales/useT';
-
-interface CommonControllerResponse {
-  success: boolean;
-  data?: any;
-  error?: string;
-}
+import db from '../data/mongo-common.data';
 
 // Cart Related Controllers
 /**
  * Get checkout details for the current user
  */
-export async function getCheckoutDetails(
-  req: Request,
-  res: Response
-): Promise<Response<CommonControllerResponse>> {
+export async function getCheckoutDetails(_req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
 
   try {
-    const foundUser = await Users.findById(user._id)
-      .select('cart addresses')
-      .populate('cart.product')
-      .lean()
-      .exec();
+    const foundUser = await db.getUserCart(user._id);
+    if (!foundUser) return res.status(404).json(responseDto('User not found'));
 
-    if (!foundUser || !foundUser.cart) {
-      return res.status(404).json(responseDto('User not found'));
-    }
-
-    const total = foundUser.cart.reduce(
-      (sum, item) => sum + item.product.price.price * item.quantity,
+    const cart = foundUser.cart ?? [];
+    const total = cart.reduce(
+      (sum, item) => ('price' in item.product ? sum + item.product.price.price * item.quantity : 0),
       0
     );
 
     return res.status(200).json({
       addresses: foundUser.addresses,
-      cartItems: foundUser.cart,
+      cartItems: cart,
       total,
     });
   } catch (error) {
@@ -57,10 +40,7 @@ export async function getCheckoutDetails(
 /**
  * Add product to user's cart
  */
-export async function addProductToCart(
-  req: Request,
-  res: Response
-): Promise<Response<CommonControllerResponse>> {
+export async function addProductToCart(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
   const { id: productId } = req.params;
   const { quantity, attributes } = req.body;
@@ -70,49 +50,44 @@ export async function addProductToCart(
   }
 
   try {
-    const product = await Products.findByIdAndUpdate(
+    const addToCartStatus = await db.addProductToUserCart(
+      user._id,
       productId,
-      { $inc: { carts: 1 } },
-      { new: true }
-    )
-      .select('productAttributes')
-      .lean()
-      .exec();
+      attributes,
+      quantity
+    );
+    if (addToCartStatus.isError) return res.status(400).json(responseDto(addToCartStatus.message));
+    return res.status(200).json(responseDto(addToCartStatus.message, true));
+  } catch (error) {
+    console.error('Error adding product to cart:', error);
+    return res.status(500).json(responseDto('Failed to add product to cart'));
+  }
+}
 
-    if (!product) {
-      return res.status(404).json(responseDto('Product not found'));
-    }
+export async function removeProductFromCart(req: Request, res: Response) {
+  const user: IUserTokenPayload = res.locals.user;
+  const productId: string = req.params.id;
 
-    validateAttributes(attributes ?? [], product.productAttributes);
-
+  try {
     const updated = await Users.updateOne(
       {
         _id: user._id,
         cart: {
-          $not: {
-            $elemMatch: { product: new mongoose.Types.ObjectId(productId) },
-          },
+          $elemMatch: { product: new mongoose.Types.ObjectId(productId) },
         },
       },
       {
-        $push: {
-          cart: {
-            product: new mongoose.Types.ObjectId(productId),
-            quantity,
-            attributes,
-          },
-        },
+        $pull: { cart: { product: new mongoose.Types.ObjectId(productId) } },
       }
     );
 
-    if (!updated.matchedCount) {
-      return res.status(400).json(responseDto('Failed to add product to cart'));
-    }
+    if (!updated.modifiedCount) throw new Error("The product is not in user's cart");
 
-    return res.status(200).json(responseDto('Product added to cart', true));
-  } catch (error) {
-    console.error('Error adding product to cart:', error);
-    return res.status(500).json(responseDto('Failed to add product to cart'));
+    await Products.updateOne({ _id: productId }, { $inc: { carts: -1 } }).exec();
+
+    res.status(200).json('Item Removed from cart');
+  } catch (err: any) {
+    res.status(400).json(err.message);
   }
 }
 
@@ -120,29 +95,17 @@ export async function addProductToCart(
 /**
  * Get all user actions (reviews, cart, likes, saves, follows)
  */
-export async function getAllUserActions(
-  req: Request,
-  res: Response
-): Promise<Response<CommonControllerResponse>> {
+export async function getAllUserActions(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
 
   try {
-    const [foundUser, reviews] = await Promise.all([
-      Users.findById(user._id).lean().exec(),
-      Reviews.find({ customer: user._id }).select('_id').lean().exec(),
-    ]);
+    const actions = await db.allUserActions(user._id);
 
-    if (!foundUser) {
+    if (!actions) {
       return res.status(404).json(responseDto('User not found'));
     }
 
-    return res.status(200).json({
-      reviews: reviews ?? [],
-      cart: foundUser.cart ?? [],
-      likes: foundUser.likes ?? [],
-      saves: foundUser.saves ?? [],
-      follows: foundUser.following ?? [],
-    });
+    return res.status(200).json(actions);
   } catch (error) {
     console.error('Error getting user actions:', error);
     return res.status(500).json(responseDto('Failed to get user actions'));
@@ -153,10 +116,7 @@ export async function getAllUserActions(
 /**
  * Search across multiple collections
  */
-export async function findInAll(
-  req: Request,
-  res: Response
-): Promise<Response<CommonControllerResponse>> {
+export async function findInAll(req: Request, res: Response) {
   const options = req.body as {
     searchText: string;
     categories: boolean;
@@ -182,45 +142,13 @@ export async function findInAll(
     ).length;
 
     const limit = Math.floor(8 / enabledOptions);
-
     const searchPromises = [];
     const items: { item: any; type: string }[] = [];
 
-    if (options.products) {
-      searchPromises.push(
-        Products.find({ name: regex })
-          .limit(limit)
-          .lean()
-          .then((products) => products.map((item) => ({ item, type: 'product' })))
-      );
-    }
-
-    if (options.vendors) {
-      searchPromises.push(
-        Vendors.find({ name: regex })
-          .limit(limit)
-          .lean()
-          .then((vendors) => vendors.map((item) => ({ item, type: 'vendor' })))
-      );
-    }
-
-    if (options.categories) {
-      searchPromises.push(
-        Categories.find({ name: regex })
-          .limit(limit)
-          .lean()
-          .then((category) => category.map((item) => ({ item, type: 'category' })))
-      );
-    }
-
-    if (options.tags) {
-      searchPromises.push(
-        Tags.find({ name: regex })
-          .limit(limit)
-          .lean()
-          .then((tag) => tag.map((item) => ({ item, type: 'tag' })))
-      );
-    }
+    if (options.products) searchPromises.push(db.findProductsByName(regex, limit));
+    if (options.vendors) searchPromises.push(db.findVendorsByName(regex, limit));
+    if (options.categories) searchPromises.push(db.findCategoriesByName(regex, limit));
+    if (options.tags) searchPromises.push(db.findTagsByName(regex, limit));
 
     const results = await Promise.all(searchPromises);
     results.forEach((result) => items.push(...result));
@@ -309,33 +237,6 @@ export async function getCartProducts(req: Request, res: Response) {
       .exec();
 
     res.status(200).json(userCart?.cart);
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
-}
-
-export async function removeProductFromCart(req: Request, res: Response) {
-  const user: IUserTokenPayload = res.locals.user;
-  const productId: string = req.params.id;
-
-  try {
-    const updated = await Users.updateOne(
-      {
-        _id: user._id,
-        cart: {
-          $elemMatch: { product: new mongoose.Types.ObjectId(productId) },
-        },
-      },
-      {
-        $pull: { cart: { product: new mongoose.Types.ObjectId(productId) } },
-      }
-    );
-
-    if (!updated.modifiedCount) throw new Error("The product is not in user's cart");
-
-    await Products.updateOne({ _id: productId }, { $inc: { carts: -1 } }).exec();
-
-    res.status(200).json('Item Removed from cart');
   } catch (err: any) {
     res.status(400).json(err.message);
   }

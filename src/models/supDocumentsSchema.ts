@@ -1,7 +1,11 @@
 import mongoose from 'mongoose';
-import { IPicture, IProductAttribute, IProductAttributeValue } from '../global-types';
 import { ICity } from './Cities';
 import { ICountry } from './Countries';
+import {
+  IPicture,
+  IProductAttribute,
+  IProductAttributeValue,
+} from '../interfaces/Product.interface';
 
 // Document interfaces
 export interface IPictureDocument extends IPicture, mongoose.Document {}

@@ -1,6 +1,7 @@
 import {
-  getAllCategoriesSeNames,
-  getAllVendorsIds,
+  getAllCategoriesSeName,
+  getAllTagsSeName,
+  getAllVendorsSeName,
   getCategories,
   getCategoryInfo,
   getCategoryProducts,
@@ -28,8 +29,8 @@ router.get('/tag/:seName', getTagInfo);
 router.get('/tagProducts/:id', getTagProducts);
 router.get('/category/:seName', getCategoryInfo);
 router.get('/categoryProducts/:id', getCategoryProducts);
-router.get('/allVendors', getAllVendorsIds);
-router.get('/allCategories', getAllCategoriesSeNames);
-router.get('/allTags', getAllVendorsIds);
+router.get('/allVendors', getAllVendorsSeName);
+router.get('/allCategories', getAllCategoriesSeName);
+router.get('/allTags', getAllTagsSeName);
 
 export default router;

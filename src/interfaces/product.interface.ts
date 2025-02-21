@@ -1,26 +1,10 @@
-import mongoose from 'mongoose';
-import { IUser } from './models/Users';
+import { Types } from 'mongoose';
+import { IUser } from './user.interface';
 
 export interface ICategory {
   name: string;
   seName: string;
   productsCount?: number;
-}
-
-export interface IUserTokenPayload {
-  firstName: string;
-  lastName: string;
-  email: string;
-  isLogin: boolean;
-  isVendor: boolean;
-  isRegistered: boolean;
-  _id: string;
-  createdAt: string;
-  updatedAt: string;
-  imageUrl: string;
-  __v: number;
-  iat?: number;
-  exp?: number;
 }
 
 export interface IPicture {
@@ -86,10 +70,10 @@ export interface IFullProduct {
   metaTitle?: string;
   seName: string;
   sku: string;
-  vendor?: mongoose.Types.ObjectId;
+  vendor?: Types.ObjectId;
   price: IPrice;
   productTags?: ITag[];
-  productAttributes?: IProductAttributes[];
+  productAttributes?: IProductAttribute[];
   hasAttributes: boolean;
   productReviewOverview?: {
     ratingSum: number;

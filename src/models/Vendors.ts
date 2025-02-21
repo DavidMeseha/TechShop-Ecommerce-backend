@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IVendor } from '../global-types';
+import { IVendor } from '../interfaces/Product.interface';
 
 export interface IVendorDocument extends IVendor, mongoose.Document {}
 

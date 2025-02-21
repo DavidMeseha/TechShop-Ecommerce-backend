@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { IProductReview, IUserTokenPayload } from '../global-types';
 import { responseDto } from '../utilities';
 import mongoose from 'mongoose';
 import Users from '../models/Users';
@@ -10,6 +9,8 @@ import bcrypt from 'bcrypt-nodejs';
 import { IAddress } from '../models/supDocumentsSchema';
 import Orders from '../models/Orders';
 import Stripe from 'stripe';
+import { IUserTokenPayload } from '../interfaces/user.interface';
+import { IProductReview } from '../interfaces/Product.interface';
 
 const STRIPE_SECRET = process.env.STRIPE_SECRET;
 
@@ -176,7 +177,7 @@ export async function paymentIntent(
 
     const cart = foundUser.cart ?? [];
     const total = cart.reduce(
-      (sum, item) => sum + item.product.price.price * item.quantity,
+      (sum, item) => ('price' in item.product ? sum + item.product.price.price * item.quantity : 0),
       25 // Base shipping fee
     );
 
@@ -550,17 +551,16 @@ export async function placeOrder(req: Request, res: Response) {
     const foundUser = await Users.findById(user._id).populate('cart.product').lean().exec();
     if (!foundUser) throw new Error('No user Found');
 
-    console.log(foundUser);
-
     const cart = foundUser.cart ?? [];
     const userAddresses = foundUser.addresses as (IAddress & { _id: string })[];
     const shippingAddress = userAddresses.find(
       (address) => String(address._id) === order.shippingAddressId
     );
-    console.log(shippingAddress);
 
     let total = 0;
-    for (const item of cart) total += item.product.price.price * item.quantity;
+    for (const item of cart) {
+      if ('price' in item.product) total += item.product.price.price * item.quantity;
+    }
 
     const createdOrder = await Orders.create({
       customer: user._id,

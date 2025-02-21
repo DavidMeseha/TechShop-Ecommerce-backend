@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import { IProductAttribute } from './global-types';
+import { IUser } from './interfaces/user.interface';
+import { IProductAttributeDocument } from './models/supDocumentsSchema';
 
 export function responseDto<T>(
   response: T,
@@ -34,11 +34,12 @@ export function responseDto<T>(
 }
 
 export function validateAttributes(
-  selected: (IProductAttribute & mongoose.Document)[],
-  product: (IProductAttribute & mongoose.Document)[]
-) {
-  const requiredAttributes = product.map((attribute) => String(attribute._id));
-  const providedAttributes = selected.map((attribute) => attribute._id);
+  attributes: IProductAttributeDocument[],
+  productAttributes: IProductAttributeDocument[] | undefined
+): boolean {
+  if (!productAttributes) return false;
+  const requiredAttributes = productAttributes.map((attribute) => String(attribute._id));
+  const providedAttributes = attributes.map((attribute) => String(attribute._id));
 
   const missingAttributes = requiredAttributes.filter(
     (attribute) => !providedAttributes.includes(attribute)
@@ -85,4 +86,14 @@ export function generateVariants(query: string, n: number) {
   }
 
   return queryRegex;
+}
+
+export function cleanUser(user: IUser) {
+  delete user.password;
+  delete user.likes;
+  delete user.recentProducts;
+  delete user.saves;
+  delete user.cart;
+
+  return user;
 }

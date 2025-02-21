@@ -3,8 +3,9 @@ import jwt from 'jsonwebtoken';
 import Users from '../models/Users';
 import bcrypt from 'bcrypt-nodejs';
 import Joi from 'joi';
-import { responseDto } from '../utilities';
-import { IUserTokenPayload } from '../global-types';
+import { cleanUser, responseDto } from '../utilities';
+import { IUserTokenPayload } from '../interfaces/user.interface';
+import db from '../data/mongo-user.data';
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
@@ -66,9 +67,7 @@ export async function checkToken(req: Request, res: Response) {
 
       if (!userToken) return res.status(400).json(responseDto('Token not valid'));
 
-      const foundUser = await Users.findById(userToken._id)
-        .select('firstName lastName imageUrl email isRegistered isLogin isVendor language')
-        .then((result) => result?.toJSON());
+      const foundUser = await db.findUserById(userToken._id);
 
       if (foundUser && ((foundUser.isLogin && foundUser.isRegistered) || !foundUser.isRegistered)) {
         res.cookie('language', foundUser.language, {
@@ -86,21 +85,7 @@ export async function checkToken(req: Request, res: Response) {
 
 export async function guestToken(req: Request, res: Response) {
   try {
-    const newUser = await Users.create({
-      isRegistered: false,
-      isVendor: false,
-    })
-      .then((user) => user.toJSON())
-      .then((userJson) => {
-        delete userJson.password;
-        delete userJson.likes;
-        delete userJson.recentProducts;
-        delete userJson.saves;
-        delete userJson.cart;
-
-        return userJson;
-      })
-      .catch(() => null);
+    const newUser = await db.createGuestUser();
 
     if (!newUser)
       return res
@@ -115,7 +100,7 @@ export async function guestToken(req: Request, res: Response) {
     jwt.sign({ ...newUser }, ACCESS_TOKEN_SECRET, { expiresIn: '400d' }, (err, token) => {
       if (err) return res.status(500).json(responseDto('could not create token'));
       return res.status(200).json({
-        user: newUser,
+        user: cleanUser(newUser),
         token,
       });
     });
@@ -133,11 +118,10 @@ export async function login(req: Request, res: Response) {
     .select('_id firstName lastName email imageUrl isRegistered isVendor language password')
     .then((result) => result?.toJSON());
 
-  if (!user) return res.status(401).json({ message: res.locals.t('emailNotFound') });
+  if (!user) return res.status(401).json({ message: res.locals.t('WrongCredentials') });
   const passwordMatching = bcrypt.compareSync(password, user.password ?? '');
 
-  if (!passwordMatching)
-    return res.status(401).json({ message: res.locals.t('wrongEmailPassword') });
+  if (!passwordMatching) return res.status(401).json({ message: res.locals.t('WrongCredentials') });
 
   if (!ACCESS_TOKEN_SECRET)
     return res.status(500).json(responseDto('user created but ENV Server Error'));
@@ -159,7 +143,7 @@ export async function register(req: Request, res: Response) {
   const registerForm: RegisterRequestBody = req.body;
 
   const { error, value } = RegisterSchema.validate({ ...registerForm });
-  console.log(error?.details[0]);
+
   if (error) {
     let message;
     if (error?.details[0].context?.label === 'password') message = res.locals.t('passwordError');
@@ -168,20 +152,20 @@ export async function register(req: Request, res: Response) {
       message: message,
     });
   }
-  const emailDublicate = !!(await Users.findOne({ email: value.email }));
+  const emailDublicate = !!(await db.findUserByEmail(value.email));
   if (emailDublicate) return res.status(400).json({ message: res.locals.t('emailAlreadyUsed') });
 
-  const newUser = await Users.create({
-    ...value,
-    isRegistered: true,
-    isLogin: false,
-    dateOfBirth: {
-      day: value.dayOfBirth,
-      month: value.monthOfBirth,
-      year: value.yearOfBirth,
-    },
-  })
-    .then((user) => user.toJSON())
+  const newUser = await db
+    .createUser({
+      ...value,
+      isRegistered: true,
+      isLogin: false,
+      dateOfBirth: {
+        day: value.dayOfBirth,
+        month: value.monthOfBirth,
+        year: value.yearOfBirth,
+      },
+    })
     .catch(() => res.status(500).json({ message: res.locals.t('serverError') }));
 
   if (newUser) res.status(200).json(responseDto('Registerd Successfully', true));
@@ -190,6 +174,6 @@ export async function register(req: Request, res: Response) {
 
 export async function logout(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
-  Users.updateOne({ _id: user._id }, { isLogin: false });
+  await db.logout(user._id);
   res.status(200).json('success');
 }

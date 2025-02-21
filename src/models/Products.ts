@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
-import { IFullProduct } from '../global-types';
+
 import { AttributeSchema, ImageSchema } from './supDocumentsSchema';
+import { IFullProduct } from '../interfaces/Product.interface';
 
 export interface IFullProductDocument extends IFullProduct, mongoose.Document {}
 

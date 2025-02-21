@@ -1,216 +1,171 @@
 import { Request, Response } from 'express';
-import Products from '../models/Products';
 import { responseDto } from '../utilities';
-import Vendors from '../models/Vendors';
-import Tags from '../models/Tags';
-import Categories from '../models/Categories';
+import db from '../data/mongo-catalog.data';
 
 export async function getProducts(_req: Request, res: Response) {
-  const products = await Products.find({}).exec();
-  res.status(200).json(products);
+  try {
+    const products = await db.findProducts();
+    res.status(200).json(products);
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch products'));
+  }
 }
 
 export async function getSingleProduct(req: Request, res: Response) {
-  const id = req.params.id;
-
-  const product = await Products.findById(id)
-    .populate({ path: 'vendor', select: '_id name imageUrl seName' })
-    .populate('productTags')
-    .populate({
-      path: 'productReviews',
-      select: 'product customer reviewText rating',
-      populate: 'customer',
-    })
-    .lean()
-    .exec();
-
-  res.status(200).json(product);
+  try {
+    const product = await db.findProductById(req.params.id);
+    if (!product) {
+      return res.status(404).json(responseDto('Product not found'));
+    }
+    res.status(200).json(product);
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch product'));
+  }
 }
 
 export async function homeFeed(req: Request, res: Response) {
-  // const user: IUserTokenPayload = res.locals.user;
+  try {
+    const page = parseInt(req.query.page?.toString() ?? '1');
+    const limit = parseInt(req.query.limit?.toString() ?? '2');
 
-  // const userInfo = await Users.findById(user._id)
-  //   .populate("recentProducts")
-  //   .lean()
-  //   .exec();
-
-  const page = parseInt(req.query.page?.toString() ?? '1');
-  const limit = parseInt(req.query.limit?.toString() ?? '2');
-
-  const products = await Products.find({})
-    .populate('vendor productTags')
-    .limit(limit + 1)
-    .skip((page - 1) * limit)
-    .exec();
-
-  const hasNext = products.length > limit && !!products.pop();
-
-  return res.status(200).json(responseDto(products, true, { hasNext, limit, current: page }));
+    const result = await db.getHomeFeedProducts(page, limit);
+    return res.status(200).json(responseDto(result.data, true, result.pagination));
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch home feed'));
+  }
 }
 
 export async function getVendorInfo(req: Request, res: Response) {
-  const seName = req.params.seName;
-
   try {
-    const vendor = await Vendors.findOne({ seName: seName }).lean().exec();
+    const vendor = await db.findVendorBySeName(req.params.seName);
+    if (!vendor) {
+      return res.status(404).json(responseDto('Vendor not found'));
+    }
     res.status(200).json(vendor);
-  } catch (err: any) {
-    res.status(400).json(err.message);
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch vendor'));
   }
 }
 
 export async function getVendorProducts(req: Request, res: Response) {
-  const vendorId = req.params.id;
-  const page = parseInt(req.query.page?.toString() ?? '1');
-  const limit = 5;
-
   try {
-    const products = await Products.find({ vendor: vendorId })
-      .populate('vendor productTags')
-      .limit(limit + 1)
-      .skip((page - 1) * limit)
-      .lean()
-      .exec();
+    const page = parseInt(req.query.page?.toString() ?? '1');
+    const limit = 5;
 
-    const hasNext = products.length > limit && !!products.pop();
-
-    res.status(200).json(responseDto(products, true, { hasNext, limit, current: page }));
-  } catch (err: any) {
-    res.status(400).json(err.message);
+    const result = await db.findProductsByVendor(req.params.id, page, limit);
+    res.status(200).json(responseDto(result.data, true, result.pagination));
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch vendor products'));
   }
 }
 
 export async function getVendors(req: Request, res: Response) {
-  const page = parseInt(req.query.page?.toString() ?? '1');
-  const limit = 5;
-
   try {
-    const vendors = await Vendors.find({})
-      .limit(limit + 1)
-      .skip((page - 1) * limit)
-      .lean()
-      .exec();
+    const page = parseInt(req.query.page?.toString() ?? '1');
+    const limit = 5;
 
-    const hasNext = vendors.length > limit && !!vendors.pop();
-
-    res.status(200).json(responseDto(vendors, true, { hasNext, limit, current: page }));
-  } catch (err: any) {
-    res.status(400).json(err.message);
+    const result = await db.findVendors(page, limit);
+    res.status(200).json(responseDto(result.data, true, result.pagination));
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch vendors'));
   }
 }
 
 export async function getTags(req: Request, res: Response) {
-  const page = parseInt(req.query.page?.toString() ?? '1');
-  const limit = 5;
-
   try {
-    const tags = await Tags.find({})
-      .limit(limit + 1)
-      .skip((page - 1) * limit)
-      .lean()
-      .exec();
+    const page = parseInt(req.query.page?.toString() ?? '1');
+    const limit = 5;
 
-    const hasNext = tags.length > limit && !!tags.pop();
-
-    res.status(200).json(responseDto(tags, true, { hasNext, limit, current: page }));
-  } catch (err: any) {
-    res.status(400).json(err.message);
+    const result = await db.findTags(page, limit);
+    res.status(200).json(responseDto(result.data, true, result.pagination));
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch tags'));
   }
 }
 
 export async function getTagInfo(req: Request, res: Response) {
-  const seName = req.params.seName;
-
   try {
-    const tag = await Tags.findOne({ seName }).lean().exec();
+    const tag = await db.findTagBySeName(req.params.seName);
+    if (!tag) {
+      return res.status(404).json(responseDto('Tag not found'));
+    }
     res.status(200).json(tag);
-  } catch (err: any) {
-    res.status(400).json(err.message);
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch tag'));
   }
 }
 
 export async function getTagProducts(req: Request, res: Response) {
-  const tagId = req.params.id;
-  const page = parseInt(req.query.page?.toString() ?? '1');
-  const limit = 5;
-
   try {
-    const products = await Products.find({ productTags: tagId })
-      .populate('productTags vendor')
-      .limit(limit + 1)
-      .skip((page - 1) * limit)
-      .lean()
-      .exec();
+    const page = parseInt(req.query.page?.toString() ?? '1');
+    const limit = 5;
 
-    const hasNext = products.length > limit && !!products.pop();
-
-    res.status(200).json(responseDto(products, true, { hasNext, limit, current: page }));
-  } catch (err: any) {
-    res.status(400).json(err.message);
+    const result = await db.findProductsByTag(req.params.id, page, limit);
+    res.status(200).json(responseDto(result.data, true, result.pagination));
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch tag products'));
   }
 }
 
 export async function getCategories(req: Request, res: Response) {
-  const page = parseInt(req.query.page?.toString() ?? '1');
-  const limit = 5;
-
   try {
-    const categories = await Categories.find({})
-      .limit(limit + 1)
-      .skip((page - 1) * limit)
-      .lean()
-      .exec();
+    const page = parseInt(req.query.page?.toString() ?? '1');
+    const limit = 5;
 
-    const hasNext = categories.length > limit && !!categories.pop();
-
-    res.status(200).json(responseDto(categories, true, { hasNext, limit, current: page }));
-  } catch (err: any) {
-    res.status(400).json(err.message);
+    const result = await db.findCategories(page, limit);
+    res.status(200).json(responseDto(result.data, true, result.pagination));
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch categories'));
   }
 }
 
 export async function getCategoryInfo(req: Request, res: Response) {
-  const seName = req.params.seName;
-
   try {
-    const category = await Categories.findOne({ seName: seName }).lean().exec();
+    const category = await db.findCategoryBySeName(req.params.seName);
+    if (!category) {
+      return res.status(404).json(responseDto('Category not found'));
+    }
     res.status(200).json(category);
-  } catch (err: any) {
-    res.status(400).json(err.message);
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch category'));
   }
 }
 
 export async function getCategoryProducts(req: Request, res: Response) {
-  const categoryId = req.params.id;
-  const page = parseInt(req.query.page?.toString() ?? '1');
-  const limit = 5;
-
   try {
-    const products = await Products.find({ category: categoryId })
-      .populate('productTags vendor')
-      .limit(limit + 1)
-      .skip((page - 1) * limit)
-      .lean()
-      .exec();
+    const page = parseInt(req.query.page?.toString() ?? '1');
+    const limit = 5;
 
-    const hasNext = products.length > limit && !!products.pop();
-
-    res.status(200).json(responseDto(products, true, { hasNext, limit, current: page }));
-  } catch (err: any) {
-    res.status(400).json(err.message);
+    const result = await db.findProductsByCategory(req.params.id, page, limit);
+    res.status(200).json(responseDto(result.data, true, result.pagination));
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch category products'));
   }
 }
 
-export async function getAllVendorsIds(_req: Request, res: Response) {
-  const vendors = await Vendors.find({}).select('seName').lean().exec();
-  res.status(200).json(vendors);
+export async function getAllVendorsSeName(_req: Request, res: Response) {
+  try {
+    const vendors = await db.findAllVendorSeNames();
+    res.status(200).json(vendors);
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch vendor IDs'));
+  }
 }
-export async function getAllCategoriesSeNames(_req: Request, res: Response) {
-  const tags = await Tags.find({}).select('seName').lean().exec();
-  res.status(200).json(tags);
+
+export async function getAllCategoriesSeName(_req: Request, res: Response) {
+  try {
+    const categories = await db.findAllCategorySeNames();
+    res.status(200).json(categories);
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch category names'));
+  }
 }
-export async function getAllTagsIds(_req: Request, res: Response) {
-  const categories = await Categories.find({}).select('seName').lean().exec();
-  res.status(200).json(categories);
+
+export async function getAllTagsSeName(_req: Request, res: Response) {
+  try {
+    const tags = await db.findAllTagSeNames();
+    res.status(200).json(tags);
+  } catch (err) {
+    res.status(500).json(responseDto('Failed to fetch tag IDs'));
+  }
 }

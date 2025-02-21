@@ -1,49 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt-nodejs';
-import { IFullProduct, IProductAttribute, IVendor } from '../global-types';
-import { AddressSchema, AttributeSchema, IAddress } from './supDocumentsSchema';
-import { IOrder } from './Orders';
-
-interface IUserCart {
-  product: IFullProduct;
-  quantity: number;
-  attributes: IProductAttribute[];
-}
-
-interface IUserDateOfBirth {
-  day: number;
-  month: number;
-  year: number;
-}
-
-export interface IUser {
-  // Profile information
-  imageUrl?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  password?: string | null;
-  phone: string;
-  gender?: string;
-  dateOfBirth?: IUserDateOfBirth | null;
-
-  // User preferences
-  language?: string;
-
-  // Status flags
-  isLogin?: boolean;
-  isRegistered?: boolean;
-  isVendor?: boolean;
-
-  // Relations and collections
-  saves?: IFullProduct[];
-  likes?: IFullProduct[];
-  following: IVendor[];
-  recentProducts?: IFullProduct[];
-  cart?: IUserCart[];
-  addresses: IAddress[];
-  orders: IOrder[];
-}
+import { AddressSchema, AttributeSchema } from './supDocumentsSchema';
+import { IUser } from '../interfaces/user.interface';
 
 export interface IUserDocument extends IUser, mongoose.Document {
   comparePassword(candidatePassword: string): boolean;

@@ -1,25 +1,7 @@
 import mongoose from 'mongoose';
-import { IFullProduct, IProductAttribute } from '../global-types';
-import { AttributeSchema, IAddress } from './supDocumentsSchema';
-import { IUser } from './Users';
 
-export interface IOrder {
-  customer: IUser;
-  billingStatus: string;
-  billingMethod: string;
-  shippingAddress: IAddress;
-  shippingStatus: string;
-  items: OrderItem[];
-  subTotal: number;
-  totalValue: number;
-  shippingFees: number;
-}
-
-interface OrderItem {
-  product: IFullProduct;
-  quantity: number;
-  attributes: IProductAttribute[];
-}
+import { AttributeSchema } from './supDocumentsSchema';
+import { IOrder } from '../interfaces/user.interface';
 
 export interface IOrderDocument extends IOrder, mongoose.Document {}
 
