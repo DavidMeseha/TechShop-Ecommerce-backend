@@ -3,6 +3,5 @@
     "emailError": "The Email provided is not valid email",
     "emailAlreadyUsed": "Email Already in Use",
     "serverError": "Server Error",
-    "emailNotFound": "Email Not Found",
-    "wrongEmailPassword": "Wrong Email or password"
+    "WrongCredentials": "Wrong Credentials"
 }

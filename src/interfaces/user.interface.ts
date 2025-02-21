@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { IAddress } from '../models/supDocumentsSchema';
-import { IFullProduct, IProductAttribute, IVendor } from './Product.interface';
+import { IFullProduct, IProductAttribute, IVendor } from './product.interface';
 
 export interface IUserTokenPayload {
   firstName: string;

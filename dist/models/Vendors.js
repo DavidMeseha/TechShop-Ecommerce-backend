@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VendorSchema = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const DEFAULT_PROFILE_IMAGE = process.env.DOMAIN + "/images/profile_placeholder.jpg";
+const DEFAULT_PROFILE_IMAGE = process.env.DOMAIN + '/images/profile_placeholder.jpg';
 const vendorFields = {
     name: {
         type: String,
@@ -30,11 +30,11 @@ const vendorFields = {
     user: {
         type: mongoose_1.default.Schema.ObjectId,
         required: true,
-        ref: "Users",
+        ref: 'Users',
     },
 };
 exports.VendorSchema = new mongoose_1.default.Schema(vendorFields);
-exports.VendorSchema.index({ name: "text" });
+exports.VendorSchema.index({ name: 'text' });
 const Vendors = mongoose_1.default.models.Vendors ||
-    mongoose_1.default.model("Vendors", exports.VendorSchema);
+    mongoose_1.default.model('Vendors', exports.VendorSchema);
 exports.default = Vendors;

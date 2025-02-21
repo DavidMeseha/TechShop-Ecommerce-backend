@@ -64,18 +64,18 @@ function likeProduct(req, res) {
                 Products_1.default.updateOne({ _id: productId }, { $inc: { likes: 1 } }),
             ]);
             if (!userUpdate.modifiedCount) {
-                return res.status(400).json((0, utilities_1.responseDto)("Product is already liked"));
+                return res.status(400).json((0, utilities_1.responseDto)('Product is already liked'));
             }
             if (!productUpdate.matchedCount) {
                 // Rollback user update if product update fails
                 yield Users_1.default.updateOne({ _id: user._id }, { $pull: { likes: new mongoose_1.default.Types.ObjectId(productId) } });
-                return res.status(404).json((0, utilities_1.responseDto)("Product not found"));
+                return res.status(404).json((0, utilities_1.responseDto)('Product not found'));
             }
-            return res.status(200).json((0, utilities_1.responseDto)("Product liked successfully", true));
+            return res.status(200).json((0, utilities_1.responseDto)('Product liked successfully', true));
         }
         catch (error) {
-            console.error("Error liking product:", error);
-            return res.status(500).json((0, utilities_1.responseDto)("Failed to like product"));
+            console.error('Error liking product:', error);
+            return res.status(500).json((0, utilities_1.responseDto)('Failed to like product'));
         }
     });
 }
@@ -97,16 +97,16 @@ function unlikeProduct(req, res) {
                 Products_1.default.updateOne({ _id: productId }, { $inc: { likes: -1 } }),
             ]);
             if (!userUpdate.modifiedCount) {
-                return res.status(400).json((0, utilities_1.responseDto)("Product is not liked"));
+                return res.status(400).json((0, utilities_1.responseDto)('Product is not liked'));
             }
             if (!productUpdate.matchedCount) {
-                return res.status(404).json((0, utilities_1.responseDto)("Product not found"));
+                return res.status(404).json((0, utilities_1.responseDto)('Product not found'));
             }
-            return res.status(200).json((0, utilities_1.responseDto)("Product unliked successfully", true));
+            return res.status(200).json((0, utilities_1.responseDto)('Product unliked successfully', true));
         }
         catch (error) {
-            console.error("Error unliking product:", error);
-            return res.status(500).json((0, utilities_1.responseDto)("Failed to unlike product"));
+            console.error('Error unliking product:', error);
+            return res.status(500).json((0, utilities_1.responseDto)('Failed to unlike product'));
         }
     });
 }
@@ -120,11 +120,11 @@ function getUserInfo(req, res) {
         const user = res.locals.user;
         try {
             const foundUser = yield Users_1.default.findById(user._id)
-                .select("firstName lastName imageUrl dateOfBirth email gender phone orders")
+                .select('firstName lastName imageUrl dateOfBirth email gender phone orders')
                 .lean()
                 .exec();
             if (!foundUser) {
-                return res.status(404).json((0, utilities_1.responseDto)("User not found"));
+                return res.status(404).json((0, utilities_1.responseDto)('User not found'));
             }
             return res.status(200).json({
                 dateOfBirthDay: (_a = foundUser.dateOfBirth) === null || _a === void 0 ? void 0 : _a.day,
@@ -140,8 +140,8 @@ function getUserInfo(req, res) {
             });
         }
         catch (error) {
-            console.error("Error getting user info:", error);
-            return res.status(500).json((0, utilities_1.responseDto)("Failed to get user information"));
+            console.error('Error getting user info:', error);
+            return res.status(500).json((0, utilities_1.responseDto)('Failed to get user information'));
         }
     });
 }
@@ -155,29 +155,26 @@ function paymentIntent(req, res) {
         const user = res.locals.user;
         try {
             if (!STRIPE_SECRET) {
-                throw new Error("Stripe secret key not configured");
+                throw new Error('Stripe secret key not configured');
             }
-            const foundUser = yield Users_1.default.findById(user._id)
-                .populate("cart.product")
-                .lean()
-                .exec();
+            const foundUser = yield Users_1.default.findById(user._id).populate('cart.product').lean().exec();
             if (!foundUser) {
-                return res.status(404).json((0, utilities_1.responseDto)("User not found"));
+                return res.status(404).json((0, utilities_1.responseDto)('User not found'));
             }
             const cart = (_a = foundUser.cart) !== null && _a !== void 0 ? _a : [];
-            const total = cart.reduce((sum, item) => sum + item.product.price.price * item.quantity, 25 // Base shipping fee
+            const total = cart.reduce((sum, item) => ('price' in item.product ? sum + item.product.price.price * item.quantity : 0), 25 // Base shipping fee
             );
             const stripe = new stripe_1.default(STRIPE_SECRET);
             const paymentIntent = yield stripe.paymentIntents.create({
                 amount: total * 100, // Convert to cents
-                currency: "usd",
-                payment_method_types: ["card"],
+                currency: 'usd',
+                payment_method_types: ['card'],
             });
             return res.status(200).json({ paymentSecret: paymentIntent.client_secret });
         }
         catch (error) {
-            console.error("Payment intent creation error:", error);
-            return res.status(500).json((0, utilities_1.responseDto)("Failed to create payment intent"));
+            console.error('Payment intent creation error:', error);
+            return res.status(500).json((0, utilities_1.responseDto)('Failed to create payment intent'));
         }
     });
 }
@@ -193,9 +190,9 @@ function saveProduct(req, res) {
                 $push: { saves: new mongoose_1.default.Types.ObjectId(productId) },
             })).matchedCount;
             if (!isUpdated)
-                throw new Error("Product already saved");
+                throw new Error('Product already saved');
             yield Products_1.default.updateOne({ _id: productId }, { $inc: { saves: 1 } });
-            res.status(200).json((0, utilities_1.responseDto)("Product saved"));
+            res.status(200).json((0, utilities_1.responseDto)('Product saved'));
         }
         catch (err) {
             res.status(400).json((0, utilities_1.responseDto)(err.message, false));
@@ -214,9 +211,9 @@ function unsaveProduct(req, res) {
                 $pull: { saves: new mongoose_1.default.Types.ObjectId(productId) },
             })).matchedCount;
             if (!isUpdated)
-                throw new Error("could not unlike product it might be unliked already");
+                throw new Error('could not unlike product it might be unliked already');
             yield Products_1.default.updateOne({ _id: productId }, { $inc: { saves: -1 } });
-            res.status(200).json((0, utilities_1.responseDto)("Product Unsaved"));
+            res.status(200).json((0, utilities_1.responseDto)('Product Unsaved'));
         }
         catch (err) {
             res.status(400).json((0, utilities_1.responseDto)(err.message, false));
@@ -227,15 +224,11 @@ function getLikedProducts(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
         try {
-            const found = yield Users_1.default.findById(user._id)
-                .populate("likes")
-                .select("likes")
-                .lean()
-                .exec();
+            const found = yield Users_1.default.findById(user._id).populate('likes').select('likes').lean().exec();
             res.status(200).json(found === null || found === void 0 ? void 0 : found.likes);
         }
         catch (err) {
-            res.status(500).json((0, utilities_1.responseDto)("error getting user lieks", false));
+            res.status(500).json((0, utilities_1.responseDto)('error getting user lieks', false));
         }
     });
 }
@@ -243,17 +236,11 @@ function getSavedProducts(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
         try {
-            const found = yield Users_1.default.findById(user._id)
-                .populate("saves")
-                .select("saves")
-                .lean()
-                .exec();
+            const found = yield Users_1.default.findById(user._id).populate('saves').select('saves').lean().exec();
             res.status(200).json(found === null || found === void 0 ? void 0 : found.saves);
         }
         catch (err) {
-            res
-                .status(500)
-                .json((0, utilities_1.responseDto)("error getting user saved products", false));
+            res.status(500).json((0, utilities_1.responseDto)('error getting user saved products', false));
         }
     });
 }
@@ -265,18 +252,18 @@ function addReview(req, res) {
         try {
             const savedReview = yield Reviews_1.default.create(Object.assign(Object.assign({}, review), { customer: new mongoose_1.default.Types.ObjectId(user._id), product: new mongoose_1.default.Types.ObjectId(productId) })).then((res) => res.toJSON());
             if (!savedReview)
-                return res.status(500).json((0, utilities_1.responseDto)("Unable to add review"));
+                return res.status(500).json((0, utilities_1.responseDto)('Unable to add review'));
             yield Products_1.default.updateOne({ _id: productId }, {
                 $push: { productReviews: savedReview._id },
                 $inc: {
-                    "productReviewOverview.ratingSum": review.rating,
-                    "productReviewOverview.totalReviews": 1,
+                    'productReviewOverview.ratingSum': review.rating,
+                    'productReviewOverview.totalReviews': 1,
                 },
             }).then((res) => console.log(res));
             res.status(200).json(savedReview);
         }
         catch (err) {
-            res.status(400).json("could not save review");
+            res.status(400).json('could not save review');
         }
     });
 }
@@ -287,7 +274,7 @@ function followVendor(req, res) {
         try {
             const vendorIsUpdated = !!(yield Vendors_1.default.updateOne({ _id: vendorId }, { $inc: { followersCount: 1 } })).matchedCount;
             if (!vendorIsUpdated)
-                throw new Error("Wrong vendor id");
+                throw new Error('Wrong vendor id');
             const isUpdated = !!(yield Users_1.default.updateOne({
                 _id: user._id,
                 following: { $ne: new mongoose_1.default.Types.ObjectId(vendorId) },
@@ -295,8 +282,8 @@ function followVendor(req, res) {
                 $push: { following: new mongoose_1.default.Types.ObjectId(vendorId) },
             })).matchedCount;
             if (!isUpdated)
-                throw new Error("vendor already followed");
-            res.status(200).json((0, utilities_1.responseDto)("vendor followed successfully"));
+                throw new Error('vendor already followed');
+            res.status(200).json((0, utilities_1.responseDto)('vendor followed successfully'));
         }
         catch (err) {
             res.status(400).json((0, utilities_1.responseDto)(err.message));
@@ -315,9 +302,9 @@ function unfollowVendor(req, res) {
                 $pull: { following: new mongoose_1.default.Types.ObjectId(vendorId) },
             });
             if (!isUpdated.matchedCount)
-                throw new Error("vendor is not followed");
+                throw new Error('vendor is not followed');
             yield Vendors_1.default.updateOne({ _id: vendorId }, { $inc: { followersCount: -1 } });
-            res.status(200).json((0, utilities_1.responseDto)("vendor unfollowed successfully"));
+            res.status(200).json((0, utilities_1.responseDto)('vendor unfollowed successfully'));
         }
         catch (err) {
             res.status(400).json((0, utilities_1.responseDto)(err.message));
@@ -331,12 +318,12 @@ function getFollowingVendors(req, res) {
             return;
         try {
             const foundUser = yield Users_1.default.findById(user._id)
-                .select("following")
-                .populate("following")
+                .select('following')
+                .populate('following')
                 .lean()
                 .exec();
             if (!foundUser)
-                throw new Error("No user Found");
+                throw new Error('No user Found');
             res.status(200).json(foundUser.following);
         }
         catch (err) {
@@ -364,11 +351,11 @@ function updateInfo(req, res) {
                     year: form.dateOfBirthYear,
                 },
             })
-                .select("firstName lastName imageUrl dateOfBirth email gender phone")
+                .select('firstName lastName imageUrl dateOfBirth email gender phone')
                 .lean()
                 .exec();
             if (!updateUser)
-                throw new Error("No user Found");
+                throw new Error('No user Found');
             const userProfile = {
                 dateOfBirthDay: (_a = updateUser.dateOfBirth) === null || _a === void 0 ? void 0 : _a.day,
                 dateOfBirthMonth: (_b = updateUser.dateOfBirth) === null || _b === void 0 ? void 0 : _b.month,
@@ -376,9 +363,9 @@ function updateInfo(req, res) {
                 email: updateUser.email,
                 firstName: updateUser.firstName,
                 lastName: updateUser.lastName,
-                gender: (_d = updateUser.gender) !== null && _d !== void 0 ? _d : "",
+                gender: (_d = updateUser.gender) !== null && _d !== void 0 ? _d : '',
                 imageUrl: updateUser.imageUrl,
-                phone: (_e = updateUser.phone) !== null && _e !== void 0 ? _e : "",
+                phone: (_e = updateUser.phone) !== null && _e !== void 0 ? _e : '',
             };
             res.status(200).json(userProfile);
         }
@@ -391,25 +378,23 @@ function getReviews(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
         const user = res.locals.user;
-        const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "1");
+        const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : '1');
         const limit = 5;
         try {
             const reviews = yield Reviews_1.default.find({
                 customer: new mongoose_1.default.Types.ObjectId(user._id),
             })
-                .populate("customer")
+                .populate('customer')
                 .populate({
-                path: "product",
-                select: "name",
+                path: 'product',
+                select: 'name',
             })
                 .limit(limit + 1)
                 .skip((page - 1) * limit)
                 .lean()
                 .exec();
             const hasNext = reviews.length > limit && !!reviews.pop();
-            res
-                .status(200)
-                .json((0, utilities_1.responseDto)(reviews, true, { hasNext, limit, current: page }));
+            res.status(200).json((0, utilities_1.responseDto)(reviews, true, { hasNext, limit, current: page }));
         }
         catch (err) {
             res.status(400).json(err.message);
@@ -419,13 +404,13 @@ function getReviews(req, res) {
 function deleteAdress(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
-        let addressId = req.params.id;
+        const addressId = req.params.id;
         console.log(addressId);
         try {
-            const x = yield Users_1.default.findByIdAndUpdate(user._id, {
+            yield Users_1.default.findByIdAndUpdate(user._id, {
                 $pull: { addresses: { _id: addressId } },
             });
-            res.status(200).json({ message: "deleted" });
+            res.status(200).json({ message: 'deleted' });
         }
         catch (err) {
             res.status(400).json(err.message);
@@ -435,10 +420,10 @@ function deleteAdress(req, res) {
 function newAdress(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
-        let address = req.body;
+        const address = req.body;
         try {
             if (!address.address || !address.city || !address.country)
-                throw new Error("should recive address, country and city");
+                throw new Error('should recive address, country and city');
             const updated = yield Users_1.default.findByIdAndUpdate(user._id, {
                 $push: { addresses: Object.assign({}, address) },
             });
@@ -452,8 +437,8 @@ function newAdress(req, res) {
 function editAdress(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
-        let address = req.body;
-        let addressId = req.params.id;
+        const address = req.body;
+        const addressId = req.params.id;
         try {
             const updated = yield Users_1.default.updateOne({
                 _id: user._id,
@@ -462,9 +447,9 @@ function editAdress(req, res) {
                 },
             }, {
                 $set: {
-                    "addresses.$.city": address.city,
-                    "addresses.$.country": address.country,
-                    "addresses.$.address": address.address,
+                    'addresses.$.city': address.city,
+                    'addresses.$.country': address.country,
+                    'addresses.$.address': address.address,
                 },
             });
             res.status(200).json(updated);
@@ -479,8 +464,8 @@ function getAdresses(req, res) {
         const user = res.locals.user;
         try {
             const foundUser = yield Users_1.default.findById(user._id)
-                .select("addresses")
-                .populate("addresses.city addresses.country")
+                .select('addresses')
+                .populate('addresses.city addresses.country')
                 .lean()
                 .exec();
             res.status(200).json(foundUser === null || foundUser === void 0 ? void 0 : foundUser.addresses);
@@ -496,16 +481,13 @@ function changePassword(req, res) {
         const user = res.locals.user;
         const { password, newPassword } = req.body;
         try {
-            const foundUser = yield Users_1.default.findById(user._id)
-                .select("password isLogin")
-                .lean()
-                .exec();
-            const passwordMatching = bcrypt_nodejs_1.default.compareSync(password, (_a = foundUser === null || foundUser === void 0 ? void 0 : foundUser.password) !== null && _a !== void 0 ? _a : "");
+            const foundUser = yield Users_1.default.findById(user._id).select('password isLogin').lean().exec();
+            const passwordMatching = bcrypt_nodejs_1.default.compareSync(password, (_a = foundUser === null || foundUser === void 0 ? void 0 : foundUser.password) !== null && _a !== void 0 ? _a : '');
             if (!passwordMatching)
-                throw new Error("old Password");
+                throw new Error('old Password');
             const updated = yield Users_1.default.updateOne({ _id: user._id }, { password: bcrypt_nodejs_1.default.hashSync(newPassword, bcrypt_nodejs_1.default.genSaltSync(8)) });
             if (!updated.modifiedCount)
-                throw new Error("Password could not be changed");
+                throw new Error('Password could not be changed');
             res.status(200).json(foundUser === null || foundUser === void 0 ? void 0 : foundUser.addresses);
         }
         catch (err) {
@@ -519,23 +501,20 @@ function placeOrder(req, res) {
         const user = res.locals.user;
         const order = req.body;
         try {
-            const foundUser = yield Users_1.default.findById(user._id)
-                .populate("cart.product")
-                .lean()
-                .exec();
+            const foundUser = yield Users_1.default.findById(user._id).populate('cart.product').lean().exec();
             if (!foundUser)
-                throw new Error("No user Found");
-            console.log(foundUser);
+                throw new Error('No user Found');
             const cart = (_a = foundUser.cart) !== null && _a !== void 0 ? _a : [];
             const userAddresses = foundUser.addresses;
             const shippingAddress = userAddresses.find((address) => String(address._id) === order.shippingAddressId);
-            console.log(shippingAddress);
             let total = 0;
-            for (const item of cart)
-                total += item.product.price.price * item.quantity;
+            for (const item of cart) {
+                if ('price' in item.product)
+                    total += item.product.price.price * item.quantity;
+            }
             const createdOrder = yield Orders_1.default.create({
                 customer: user._id,
-                billingStatus: order.billingStatus || "cod",
+                billingStatus: order.billingStatus || 'cod',
                 billingMethod: order.billingMethod,
                 shippingAddress: shippingAddress,
                 items: cart,
@@ -544,7 +523,7 @@ function placeOrder(req, res) {
                 shippingFees: 25,
             });
             if (!createdOrder)
-                throw new Error("Could not create Order");
+                throw new Error('Could not create Order');
             const userUpdate = yield Users_1.default.findByIdAndUpdate(user._id, {
                 $push: { orders: createdOrder._id },
             });
@@ -562,17 +541,17 @@ function getOrders(req, res) {
         const user = res.locals.user;
         try {
             const foundUser = yield Users_1.default.findById(user._id)
-                .select("orders")
+                .select('orders')
                 .populate(
             // "orders orders.items.product orders.shippingAddress.country orders.shippingAddress.city"
             {
-                path: "orders",
-                populate: "items.product shippingAddress.country shippingAddress.city",
+                path: 'orders',
+                populate: 'items.product shippingAddress.country shippingAddress.city',
             })
                 .lean()
                 .exec();
             if (!(foundUser === null || foundUser === void 0 ? void 0 : foundUser.orders))
-                throw new Error("Could not find User Orders");
+                throw new Error('Could not find User Orders');
             res.status(200).json(foundUser.orders);
         }
         catch (err) {
@@ -584,12 +563,9 @@ function getOrdersIds(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
         try {
-            const foundUser = yield Users_1.default.findById(user._id)
-                .select("orders")
-                .lean()
-                .exec();
+            const foundUser = yield Users_1.default.findById(user._id).select('orders').lean().exec();
             if (!(foundUser === null || foundUser === void 0 ? void 0 : foundUser.orders))
-                throw new Error("Could not find User Orders");
+                throw new Error('Could not find User Orders');
             res.status(200).json(foundUser.orders);
         }
         catch (err) {
@@ -600,14 +576,14 @@ function getOrdersIds(req, res) {
 function getOrder(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
-        let orderId = req.params.id;
+        const orderId = req.params.id;
         try {
             const order = yield Orders_1.default.findOne({ customer: user._id, _id: orderId })
-                .populate("customer items.product shippingAddress.country shippingAddress.city")
+                .populate('customer items.product shippingAddress.country shippingAddress.city')
                 .lean()
                 .exec();
             if (!order)
-                throw new Error("Could not find User Orders");
+                throw new Error('Could not find User Orders');
             res.status(200).json(order);
         }
         catch (err) {

@@ -21,14 +21,16 @@ const countryFields = {
     cities: [
         {
             type: mongoose_1.default.Schema.ObjectId,
-            ref: "Cities",
+            ref: 'Cities',
             required: true,
         },
     ],
 };
-exports.CountrySchema = new mongoose_1.default.Schema(countryFields, { timestamps: true });
+exports.CountrySchema = new mongoose_1.default.Schema(countryFields, {
+    timestamps: true,
+});
 exports.CountrySchema.index({ code: 1 });
-exports.CountrySchema.index({ name: "text" });
+exports.CountrySchema.index({ name: 'text' });
 const Countries = mongoose_1.default.models.Countries ||
-    mongoose_1.default.model("Countries", exports.CountrySchema);
+    mongoose_1.default.model('Countries', exports.CountrySchema);
 exports.default = Countries;

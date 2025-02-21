@@ -3,7 +3,7 @@ import Products from '../models/Products';
 import Users from '../models/Users';
 import { validateAttributes } from '../utilities';
 import { IProductAttributeDocument } from '../models/supDocumentsSchema';
-import { IProductAttribute } from '../interfaces/Product.interface';
+import { IProductAttribute } from '../interfaces/product.interface';
 
 export async function alreadyInCart(userId: string, productId: string) {
   return !Users.findOne({

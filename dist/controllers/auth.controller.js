@@ -23,14 +23,15 @@ const Users_1 = __importDefault(require("../models/Users"));
 const bcrypt_nodejs_1 = __importDefault(require("bcrypt-nodejs"));
 const joi_1 = __importDefault(require("joi"));
 const utilities_1 = require("../utilities");
+const mongo_user_data_1 = __importDefault(require("../data/mongo-user.data"));
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const RegisterSchema = joi_1.default.object({
     email: joi_1.default.string().email().required(),
     firstName: joi_1.default.string().required(),
     lastName: joi_1.default.string().required(),
-    gender: joi_1.default.string().equal("male", "female", null).required(),
+    gender: joi_1.default.string().equal('male', 'female', null).required(),
     password: joi_1.default.string().min(8),
-    confirmPassword: joi_1.default.ref("password"),
+    confirmPassword: joi_1.default.ref('password'),
     dayOfBirth: joi_1.default.number().integer().max(31).min(1),
     monthOfBirth: joi_1.default.number().integer().max(12).min(1),
     yearOfBirth: joi_1.default.number()
@@ -44,83 +45,66 @@ function refreshToken(req, res) {
         delete user.exp;
         delete user.iat;
         if (!ACCESS_TOKEN_SECRET)
-            return res.status(500).json((0, utilities_1.responseDto)("ENV Server Error"));
+            return res.status(500).json((0, utilities_1.responseDto)('ENV Server Error'));
         try {
             if (!user)
-                return res.status(400).json((0, utilities_1.responseDto)("Token not valid"));
-            const newToken = jsonwebtoken_1.default.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "30m" });
+                return res.status(400).json((0, utilities_1.responseDto)('Token not valid'));
+            const newToken = jsonwebtoken_1.default.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: '30m' });
             return res.status(200).json({ token: newToken });
         }
         catch (err) {
             console.log(err);
-            return res.status(400).json("Token not valid");
+            return res.status(400).json('Token not valid');
         }
     });
 }
 function checkToken(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
-        const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
+        const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
         if (token) {
             if (!ACCESS_TOKEN_SECRET)
-                return res.status(500).json((0, utilities_1.responseDto)("ENV Server Error"));
+                return res.status(500).json((0, utilities_1.responseDto)('ENV Server Error'));
             try {
                 const userToken = jsonwebtoken_1.default.verify(token, ACCESS_TOKEN_SECRET);
                 if (!userToken)
-                    return res.status(400).json((0, utilities_1.responseDto)("Token not valid"));
-                const foundUser = yield Users_1.default.findById(userToken._id)
-                    .select("firstName lastName imageUrl email isRegistered isLogin isVendor language")
-                    .then((result) => result === null || result === void 0 ? void 0 : result.toJSON());
-                if (foundUser &&
-                    ((foundUser.isLogin && foundUser.isRegistered) ||
-                        !foundUser.isRegistered)) {
-                    res.cookie("language", foundUser.language, {
+                    return res.status(400).json((0, utilities_1.responseDto)('Token not valid'));
+                const foundUser = yield mongo_user_data_1.default.findUserById(userToken._id);
+                if (foundUser && ((foundUser.isLogin && foundUser.isRegistered) || !foundUser.isRegistered)) {
+                    res.cookie('language', foundUser.language, {
                         httpOnly: true,
                     });
                     return res.status(200).json(foundUser);
                 }
                 else
-                    res.status(400).json((0, utilities_1.responseDto)("Token not valid"));
+                    res.status(400).json((0, utilities_1.responseDto)('Token not valid'));
             }
             catch (err) {
-                return res.status(400).json("Token not valid");
+                return res.status(400).json('Token not valid');
             }
         }
         else {
-            res.status(400).json((0, utilities_1.responseDto)("No valid token provided"));
+            res.status(400).json((0, utilities_1.responseDto)('No valid token provided'));
         }
     });
 }
 function guestToken(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const newUser = yield Users_1.default.create({
-                isRegistered: false,
-                isVendor: false,
-            })
-                .then((user) => user.toJSON())
-                .then((userJson) => {
-                delete userJson.password;
-                delete userJson.likes;
-                delete userJson.recentProducts;
-                delete userJson.saves;
-                delete userJson.cart;
-                return userJson;
-            })
-                .catch(() => null);
+            const newUser = yield mongo_user_data_1.default.createGuestUser();
             if (!newUser)
                 return res
                     .status(500)
-                    .json((0, utilities_1.responseDto)("guest created but ENV Server Error on creating access token"));
+                    .json((0, utilities_1.responseDto)('guest created but ENV Server Error on creating access token'));
             if (!ACCESS_TOKEN_SECRET)
                 return res
                     .status(500)
-                    .json((0, utilities_1.responseDto)("guest created but ENV Server Error on creating access token"));
-            jsonwebtoken_1.default.sign(Object.assign({}, newUser), ACCESS_TOKEN_SECRET, { expiresIn: "400d" }, (err, token) => {
+                    .json((0, utilities_1.responseDto)('guest created but ENV Server Error on creating access token'));
+            jsonwebtoken_1.default.sign(Object.assign({}, newUser), ACCESS_TOKEN_SECRET, { expiresIn: '400d' }, (err, token) => {
                 if (err)
-                    return res.status(500).json((0, utilities_1.responseDto)("could not create token"));
+                    return res.status(500).json((0, utilities_1.responseDto)('could not create token'));
                 return res.status(200).json({
-                    user: newUser,
+                    user: (0, utilities_1.cleanUser)(newUser),
                     token,
                 });
             });
@@ -129,7 +113,7 @@ function guestToken(req, res) {
             console.log(err);
             return res
                 .status(500)
-                .json((0, utilities_1.responseDto)("guest created but ENV Server Error on creating access token"));
+                .json((0, utilities_1.responseDto)('guest created but ENV Server Error on creating access token'));
         }
     });
 }
@@ -138,23 +122,19 @@ function login(req, res) {
         var _a;
         const { email, password } = req.body;
         const user = yield Users_1.default.findOne({ email: email })
-            .select("_id firstName lastName email imageUrl isRegistered isVendor language password")
+            .select('_id firstName lastName email imageUrl isRegistered isVendor language password')
             .then((result) => result === null || result === void 0 ? void 0 : result.toJSON());
         if (!user)
-            return res.status(401).json({ message: res.locals.t("emailNotFound") });
-        const passwordMatching = bcrypt_nodejs_1.default.compareSync(password, (_a = user.password) !== null && _a !== void 0 ? _a : "");
+            return res.status(401).json({ message: res.locals.t('WrongCredentials') });
+        const passwordMatching = bcrypt_nodejs_1.default.compareSync(password, (_a = user.password) !== null && _a !== void 0 ? _a : '');
         if (!passwordMatching)
-            return res
-                .status(401)
-                .json({ message: res.locals.t("wrongEmailPassword") });
+            return res.status(401).json({ message: res.locals.t('WrongCredentials') });
         if (!ACCESS_TOKEN_SECRET)
-            return res
-                .status(500)
-                .json((0, utilities_1.responseDto)("user created but ENV Server Error"));
+            return res.status(500).json((0, utilities_1.responseDto)('user created but ENV Server Error'));
         delete user.password;
-        jsonwebtoken_1.default.sign(Object.assign({}, user), ACCESS_TOKEN_SECRET, { expiresIn: "30m" }, (err, token) => __awaiter(this, void 0, void 0, function* () {
+        jsonwebtoken_1.default.sign(Object.assign({}, user), ACCESS_TOKEN_SECRET, { expiresIn: '30m' }, (err, token) => __awaiter(this, void 0, void 0, function* () {
             if (err)
-                return res.status(500).json((0, utilities_1.responseDto)("could not create token"));
+                return res.status(500).json((0, utilities_1.responseDto)('could not create token'));
             res.status(200).json({
                 user,
                 token,
@@ -169,37 +149,36 @@ function register(req, res) {
         var _a, _b;
         const registerForm = req.body;
         const { error, value } = RegisterSchema.validate(Object.assign({}, registerForm));
-        console.log(error === null || error === void 0 ? void 0 : error.details[0]);
         if (error) {
             let message;
-            if (((_a = error === null || error === void 0 ? void 0 : error.details[0].context) === null || _a === void 0 ? void 0 : _a.label) === "password")
-                message = res.locals.t("passwordError");
-            else if (((_b = error === null || error === void 0 ? void 0 : error.details[0].context) === null || _b === void 0 ? void 0 : _b.label) === "email")
-                message = res.locals.t("emailError");
+            if (((_a = error === null || error === void 0 ? void 0 : error.details[0].context) === null || _a === void 0 ? void 0 : _a.label) === 'password')
+                message = res.locals.t('passwordError');
+            else if (((_b = error === null || error === void 0 ? void 0 : error.details[0].context) === null || _b === void 0 ? void 0 : _b.label) === 'email')
+                message = res.locals.t('emailError');
             return res.status(400).json({
                 message: message,
             });
         }
-        const emailDublicate = !!(yield Users_1.default.findOne({ email: value.email }));
+        const emailDublicate = !!(yield mongo_user_data_1.default.findUserByEmail(value.email));
         if (emailDublicate)
-            return res.status(400).json({ message: res.locals.t("emailAlreadyUsed") });
-        let newUser = yield Users_1.default.create(Object.assign(Object.assign({}, value), { isRegistered: true, isLogin: false, dateOfBirth: {
+            return res.status(400).json({ message: res.locals.t('emailAlreadyUsed') });
+        const newUser = yield mongo_user_data_1.default
+            .createUser(Object.assign(Object.assign({}, value), { isRegistered: true, isLogin: false, dateOfBirth: {
                 day: value.dayOfBirth,
                 month: value.monthOfBirth,
                 year: value.yearOfBirth,
             } }))
-            .then((user) => user.toJSON())
-            .catch(() => res.status(500).json({ message: res.locals.t("serverError") }));
+            .catch(() => res.status(500).json({ message: res.locals.t('serverError') }));
         if (newUser)
-            res.status(200).json((0, utilities_1.responseDto)("Registerd Successfully", true));
+            res.status(200).json((0, utilities_1.responseDto)('Registerd Successfully', true));
         else
-            res.status(500).json((0, utilities_1.responseDto)("Failed to create user in databse"));
+            res.status(500).json((0, utilities_1.responseDto)('Failed to create user in databse'));
     });
 }
 function logout(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = res.locals.user;
-        Users_1.default.updateOne({ _id: user._id }, { isLogin: false });
-        res.status(200).json("success");
+        yield mongo_user_data_1.default.logout(user._id);
+        res.status(200).json('success');
     });
 }

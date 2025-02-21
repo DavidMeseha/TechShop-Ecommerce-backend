@@ -10,7 +10,7 @@ import { IAddress } from '../models/supDocumentsSchema';
 import Orders from '../models/Orders';
 import Stripe from 'stripe';
 import { IUserTokenPayload } from '../interfaces/user.interface';
-import { IProductReview } from '../interfaces/Product.interface';
+import { IProductReview } from '../interfaces/product.interface';
 
 const STRIPE_SECRET = process.env.STRIPE_SECRET;
 

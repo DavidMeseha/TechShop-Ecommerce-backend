@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AddressSchema = exports.AttributeSchema = exports.ImageSchema = exports.AttributeValueSchema = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 // Schema configurations
-const DEFAULT_IMAGE = process.env.DOMAIN + "/images/no_image_placeholder.jpg";
+const DEFAULT_IMAGE = process.env.DOMAIN + '/images/no_image_placeholder.jpg';
 const imageFields = {
     imageUrl: {
         type: String,
@@ -40,12 +40,12 @@ const addressFields = {
     country: {
         type: mongoose_1.default.Schema.ObjectId,
         required: true,
-        ref: "Countries",
+        ref: 'Countries',
     },
     city: {
         type: mongoose_1.default.Schema.ObjectId,
         required: true,
-        ref: "Cities",
+        ref: 'Cities',
     },
 };
 // Schemas

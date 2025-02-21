@@ -4,6 +4,7 @@ exports.delay = void 0;
 exports.responseDto = responseDto;
 exports.validateAttributes = validateAttributes;
 exports.generateVariants = generateVariants;
+exports.cleanUser = cleanUser;
 function responseDto(response, success = false, page) {
     if (page && success)
         return {
@@ -23,9 +24,11 @@ function responseDto(response, success = false, page) {
             message: response,
         };
 }
-function validateAttributes(selected, product) {
-    const requiredAttributes = product.map((attribute) => String(attribute._id));
-    const providedAttributes = selected.map((attribute) => attribute._id);
+function validateAttributes(attributes, productAttributes) {
+    if (!productAttributes)
+        return false;
+    const requiredAttributes = productAttributes.map((attribute) => String(attribute._id));
+    const providedAttributes = attributes.map((attribute) => String(attribute._id));
     const missingAttributes = requiredAttributes.filter((attribute) => !providedAttributes.includes(attribute));
     if (missingAttributes.length > 0) {
         throw new Error(`Missing required attributes`);
@@ -37,15 +40,15 @@ const delay = () => {
 };
 exports.delay = delay;
 function generateVariants(query, n) {
-    let queryRegex = "";
+    let queryRegex = '';
     function replaceChars(currentIndex, indicesToReplace) {
         // If we have selected n indices, create the variant
         if (indicesToReplace.length === n) {
             let variant = query;
-            for (let index of indicesToReplace) {
-                variant = variant.replace(variant[index], ".");
+            for (const index of indicesToReplace) {
+                variant = variant.replace(variant[index], '.');
             }
-            queryRegex += variant + "|";
+            queryRegex += variant + '|';
             return;
         }
         // Iterate through the query string to find indices to replace
@@ -57,8 +60,16 @@ function generateVariants(query, n) {
     // Start the recursive function
     replaceChars(0, []);
     // Remove the trailing "|" if necessary
-    if (queryRegex.endsWith("|")) {
+    if (queryRegex.endsWith('|')) {
         queryRegex = queryRegex.slice(0, -1);
     }
     return queryRegex;
+}
+function cleanUser(user) {
+    delete user.password;
+    delete user.likes;
+    delete user.recentProducts;
+    delete user.saves;
+    delete user.cart;
+    return user;
 }

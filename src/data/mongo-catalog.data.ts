@@ -2,7 +2,7 @@ import Products from '../models/Products';
 import Vendors from '../models/Vendors';
 import Tags from '../models/Tags';
 import Categories from '../models/Categories';
-import { ICategory, IFullProduct, ITag, IVendor } from '../interfaces/Product.interface';
+import { ICategory, IFullProduct, ITag, IVendor } from '../interfaces/product.interface';
 
 interface PaginationResult<T> {
   data: T[];

@@ -13,19 +13,19 @@ exports.uploadImage = void 0;
 const blob_1 = require("@vercel/blob");
 const uploadImage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.file) {
-        return res.status(400).json({ message: "No file provided" });
+        return res.status(400).json({ message: 'No file provided' });
     }
     try {
         const file = req.file;
         const blob = yield (0, blob_1.put)(file.originalname, file.buffer, {
-            access: "public",
-            token: process.env.FILES_READ_WRITE_TOKEN
+            access: 'public',
+            token: process.env.FILES_READ_WRITE_TOKEN,
         });
         return res.status(200).json({ imageUrl: blob.url });
     }
     catch (error) {
-        console.error("File upload error:", error);
-        return res.status(500).json({ message: "Failed to upload file" });
+        console.error('File upload error:', error);
+        return res.status(500).json({ message: 'Failed to upload file' });
     }
 });
 exports.uploadImage = uploadImage;

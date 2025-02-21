@@ -11,12 +11,14 @@ const languageFields = {
         required: true,
         unique: true,
         trim: true,
-        enum: ["en", "ar", "fr"], // Match supported languages from useT.ts
+        enum: ['en', 'ar', 'fr'], // Match supported languages from useT.ts
         lowercase: true,
     },
 };
-exports.LanguageSchema = new mongoose_1.default.Schema(languageFields, { timestamps: true });
+exports.LanguageSchema = new mongoose_1.default.Schema(languageFields, {
+    timestamps: true,
+});
 exports.LanguageSchema.index({ name: 1 });
 const Languages = mongoose_1.default.models.Languages ||
-    mongoose_1.default.model("Languages", exports.LanguageSchema);
+    mongoose_1.default.model('Languages', exports.LanguageSchema);
 exports.default = Languages;

@@ -24,240 +24,206 @@ exports.getTagProducts = getTagProducts;
 exports.getCategories = getCategories;
 exports.getCategoryInfo = getCategoryInfo;
 exports.getCategoryProducts = getCategoryProducts;
-exports.getAllVendorsIds = getAllVendorsIds;
-exports.getAllCategoriesSeNames = getAllCategoriesSeNames;
-exports.getAllTagsIds = getAllTagsIds;
-const Products_1 = __importDefault(require("../models/Products"));
+exports.getAllVendorsSeName = getAllVendorsSeName;
+exports.getAllCategoriesSeName = getAllCategoriesSeName;
+exports.getAllTagsSeName = getAllTagsSeName;
 const utilities_1 = require("../utilities");
-const Vendors_1 = __importDefault(require("../models/Vendors"));
-const Tags_1 = __importDefault(require("../models/Tags"));
-const Categories_1 = __importDefault(require("../models/Categories"));
+const mongo_catalog_data_1 = __importDefault(require("../data/mongo-catalog.data"));
 function getProducts(_req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const products = yield Products_1.default.find({}).exec();
-        res.status(200).json(products);
+        try {
+            const products = yield mongo_catalog_data_1.default.findProducts();
+            res.status(200).json(products);
+        }
+        catch (err) {
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch products'));
+        }
     });
 }
 function getSingleProduct(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const id = req.params.id;
-        const product = yield Products_1.default.findById(id)
-            .populate({ path: "vendor", select: "_id name imageUrl seName" })
-            .populate("productTags")
-            .populate({
-            path: "productReviews",
-            select: "product customer reviewText rating",
-            populate: "customer",
-        })
-            .lean()
-            .exec();
-        res.status(200).json(product);
+        try {
+            const product = yield mongo_catalog_data_1.default.findProductById(req.params.id);
+            if (!product) {
+                return res.status(404).json((0, utilities_1.responseDto)('Product not found'));
+            }
+            res.status(200).json(product);
+        }
+        catch (err) {
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch product'));
+        }
     });
 }
 function homeFeed(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        // const user: IUserTokenPayload = res.locals.user;
         var _a, _b, _c, _d;
-        // const userInfo = await Users.findById(user._id)
-        //   .populate("recentProducts")
-        //   .lean()
-        //   .exec();
-        const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "1");
-        const limit = parseInt((_d = (_c = req.query.limit) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : "2");
-        let products = yield Products_1.default.find({})
-            .populate("vendor productTags")
-            .limit(limit + 1)
-            .skip((page - 1) * limit)
-            .exec();
-        const hasNext = products.length > limit && !!products.pop();
-        return res
-            .status(200)
-            .json((0, utilities_1.responseDto)(products, true, { hasNext, limit, current: page }));
+        try {
+            const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : '1');
+            const limit = parseInt((_d = (_c = req.query.limit) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : '2');
+            const result = yield mongo_catalog_data_1.default.getHomeFeedProducts(page, limit);
+            return res.status(200).json((0, utilities_1.responseDto)(result.data, true, result.pagination));
+        }
+        catch (err) {
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch home feed'));
+        }
     });
 }
 function getVendorInfo(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const seName = req.params.seName;
         try {
-            const vendor = yield Vendors_1.default.findOne({ seName: seName }).lean().exec();
+            const vendor = yield mongo_catalog_data_1.default.findVendorBySeName(req.params.seName);
+            if (!vendor) {
+                return res.status(404).json((0, utilities_1.responseDto)('Vendor not found'));
+            }
             res.status(200).json(vendor);
         }
         catch (err) {
-            res.status(400).json(err.message);
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch vendor'));
         }
     });
 }
 function getVendorProducts(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
-        const vendorId = req.params.id;
-        const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "1");
-        const limit = 5;
         try {
-            const products = yield Products_1.default.find({ vendor: vendorId })
-                .populate("vendor productTags")
-                .limit(limit + 1)
-                .skip((page - 1) * limit)
-                .lean()
-                .exec();
-            const hasNext = products.length > limit && !!products.pop();
-            res
-                .status(200)
-                .json((0, utilities_1.responseDto)(products, true, { hasNext, limit, current: page }));
+            const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : '1');
+            const limit = 5;
+            const result = yield mongo_catalog_data_1.default.findProductsByVendor(req.params.id, page, limit);
+            res.status(200).json((0, utilities_1.responseDto)(result.data, true, result.pagination));
         }
         catch (err) {
-            res.status(400).json(err.message);
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch vendor products'));
         }
     });
 }
 function getVendors(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
-        const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "1");
-        const limit = 5;
         try {
-            const vendors = yield Vendors_1.default.find({})
-                .limit(limit + 1)
-                .skip((page - 1) * limit)
-                .lean()
-                .exec();
-            const hasNext = vendors.length > limit && !!vendors.pop();
-            res
-                .status(200)
-                .json((0, utilities_1.responseDto)(vendors, true, { hasNext, limit, current: page }));
+            const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : '1');
+            const limit = 5;
+            const result = yield mongo_catalog_data_1.default.findVendors(page, limit);
+            res.status(200).json((0, utilities_1.responseDto)(result.data, true, result.pagination));
         }
         catch (err) {
-            res.status(400).json(err.message);
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch vendors'));
         }
     });
 }
 function getTags(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
-        const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "1");
-        const limit = 5;
         try {
-            const tags = yield Tags_1.default.find({})
-                .limit(limit + 1)
-                .skip((page - 1) * limit)
-                .lean()
-                .exec();
-            const hasNext = tags.length > limit && !!tags.pop();
-            res
-                .status(200)
-                .json((0, utilities_1.responseDto)(tags, true, { hasNext, limit, current: page }));
+            const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : '1');
+            const limit = 5;
+            const result = yield mongo_catalog_data_1.default.findTags(page, limit);
+            res.status(200).json((0, utilities_1.responseDto)(result.data, true, result.pagination));
         }
         catch (err) {
-            res.status(400).json(err.message);
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch tags'));
         }
     });
 }
 function getTagInfo(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const seName = req.params.seName;
         try {
-            const tag = yield Tags_1.default.findOne({ seName }).lean().exec();
+            const tag = yield mongo_catalog_data_1.default.findTagBySeName(req.params.seName);
+            if (!tag) {
+                return res.status(404).json((0, utilities_1.responseDto)('Tag not found'));
+            }
             res.status(200).json(tag);
         }
         catch (err) {
-            res.status(400).json(err.message);
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch tag'));
         }
     });
 }
 function getTagProducts(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
-        const tagId = req.params.id;
-        const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "1");
-        const limit = 5;
         try {
-            const products = yield Products_1.default.find({ productTags: tagId })
-                .populate("productTags vendor")
-                .limit(limit + 1)
-                .skip((page - 1) * limit)
-                .lean()
-                .exec();
-            const hasNext = products.length > limit && !!products.pop();
-            res
-                .status(200)
-                .json((0, utilities_1.responseDto)(products, true, { hasNext, limit, current: page }));
+            const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : '1');
+            const limit = 5;
+            const result = yield mongo_catalog_data_1.default.findProductsByTag(req.params.id, page, limit);
+            res.status(200).json((0, utilities_1.responseDto)(result.data, true, result.pagination));
         }
         catch (err) {
-            res.status(400).json(err.message);
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch tag products'));
         }
     });
 }
 function getCategories(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
-        const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "1");
-        const limit = 5;
         try {
-            const categories = yield Categories_1.default.find({})
-                .limit(limit + 1)
-                .skip((page - 1) * limit)
-                .lean()
-                .exec();
-            const hasNext = categories.length > limit && !!categories.pop();
-            res
-                .status(200)
-                .json((0, utilities_1.responseDto)(categories, true, { hasNext, limit, current: page }));
+            const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : '1');
+            const limit = 5;
+            const result = yield mongo_catalog_data_1.default.findCategories(page, limit);
+            res.status(200).json((0, utilities_1.responseDto)(result.data, true, result.pagination));
         }
         catch (err) {
-            res.status(400).json(err.message);
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch categories'));
         }
     });
 }
 function getCategoryInfo(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const seName = req.params.seName;
         try {
-            const category = yield Categories_1.default.findOne({ seName: seName }).lean().exec();
+            const category = yield mongo_catalog_data_1.default.findCategoryBySeName(req.params.seName);
+            if (!category) {
+                return res.status(404).json((0, utilities_1.responseDto)('Category not found'));
+            }
             res.status(200).json(category);
         }
         catch (err) {
-            res.status(400).json(err.message);
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch category'));
         }
     });
 }
 function getCategoryProducts(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
-        const categoryId = req.params.id;
-        const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "1");
-        const limit = 5;
         try {
-            const products = yield Products_1.default.find({ category: categoryId })
-                .populate("productTags vendor")
-                .limit(limit + 1)
-                .skip((page - 1) * limit)
-                .lean()
-                .exec();
-            const hasNext = products.length > limit && !!products.pop();
-            res
-                .status(200)
-                .json((0, utilities_1.responseDto)(products, true, { hasNext, limit, current: page }));
+            const page = parseInt((_b = (_a = req.query.page) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : '1');
+            const limit = 5;
+            const result = yield mongo_catalog_data_1.default.findProductsByCategory(req.params.id, page, limit);
+            res.status(200).json((0, utilities_1.responseDto)(result.data, true, result.pagination));
         }
         catch (err) {
-            res.status(400).json(err.message);
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch category products'));
         }
     });
 }
-function getAllVendorsIds(_req, res) {
+function getAllVendorsSeName(_req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const vendors = yield Vendors_1.default.find({}).select("seName").lean().exec();
-        res.status(200).json(vendors);
+        try {
+            const vendors = yield mongo_catalog_data_1.default.findAllVendorSeNames();
+            res.status(200).json(vendors);
+        }
+        catch (err) {
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch vendor IDs'));
+        }
     });
 }
-function getAllCategoriesSeNames(_req, res) {
+function getAllCategoriesSeName(_req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const tags = yield Tags_1.default.find({}).select("seName").lean().exec();
-        res.status(200).json(tags);
+        try {
+            const categories = yield mongo_catalog_data_1.default.findAllCategorySeNames();
+            res.status(200).json(categories);
+        }
+        catch (err) {
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch category names'));
+        }
     });
 }
-function getAllTagsIds(_req, res) {
+function getAllTagsSeName(_req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const categories = yield Categories_1.default.find({}).select("seName").lean().exec();
-        res.status(200).json(categories);
+        try {
+            const tags = yield mongo_catalog_data_1.default.findAllTagSeNames();
+            res.status(200).json(tags);
+        }
+        catch (err) {
+            res.status(500).json((0, utilities_1.responseDto)('Failed to fetch tag IDs'));
+        }
     });
 }

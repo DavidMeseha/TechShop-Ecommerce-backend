@@ -9,20 +9,20 @@ const tagFields = {
     name: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
     },
     seName: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
     },
     productCount: {
         type: Number,
-        default: 0
+        default: 0,
     },
 };
 exports.TagSchema = new mongoose_1.default.Schema(tagFields);
-exports.TagSchema.index({ name: "text" });
+exports.TagSchema.index({ name: 'text' });
 const Tags = mongoose_1.default.models.Tags ||
-    mongoose_1.default.model("Tags", exports.TagSchema);
+    mongoose_1.default.model('Tags', exports.TagSchema);
 exports.default = Tags;

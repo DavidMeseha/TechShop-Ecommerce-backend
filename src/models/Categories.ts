@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { ICategory } from '../interfaces/Product.interface';
+import { ICategory } from '../interfaces/product.interface';
 
 export interface ICategoryDocument extends ICategory, mongoose.Document {}
 

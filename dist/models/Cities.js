@@ -23,7 +23,7 @@ exports.CitySchema = new mongoose_1.default.Schema(cityFields, {
     timestamps: true,
 });
 exports.CitySchema.index({ code: 1 });
-exports.CitySchema.index({ name: "text" });
+exports.CitySchema.index({ name: 'text' });
 const Cities = mongoose_1.default.models.Cities ||
-    mongoose_1.default.model("Cities", exports.CitySchema);
+    mongoose_1.default.model('Cities', exports.CitySchema);
 exports.default = Cities;

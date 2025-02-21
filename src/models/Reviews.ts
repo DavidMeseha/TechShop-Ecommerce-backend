@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IProductReview } from '../interfaces/Product.interface';
+import { IProductReview } from '../interfaces/product.interface';
 
 export interface IProductReviewDocument extends IProductReview, mongoose.Document {}
 

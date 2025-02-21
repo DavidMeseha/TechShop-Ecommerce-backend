@@ -8,12 +8,12 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const reviewFields = {
     product: {
         type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: "Products",
+        ref: 'Products',
         required: true,
     },
     customer: {
         type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: "Users",
+        ref: 'Users',
         required: true,
     },
     reviewText: {
@@ -27,7 +27,9 @@ const reviewFields = {
         max: 5,
     },
 };
-exports.ProductReviewSchema = new mongoose_1.default.Schema(reviewFields, { timestamps: true });
+exports.ProductReviewSchema = new mongoose_1.default.Schema(reviewFields, {
+    timestamps: true,
+});
 const Reviews = mongoose_1.default.models.Reviews ||
-    mongoose_1.default.model("Reviews", exports.ProductReviewSchema);
+    mongoose_1.default.model('Reviews', exports.ProductReviewSchema);
 exports.default = Reviews;

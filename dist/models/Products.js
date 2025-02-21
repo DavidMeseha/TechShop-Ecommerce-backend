@@ -7,9 +7,9 @@ exports.ProductSchema = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const supDocumentsSchema_1 = require("./supDocumentsSchema");
 const DEFAULT_PRODUCT_IMAGE = {
-    imageUrl: "",
-    title: "",
-    alternateText: "",
+    imageUrl: '',
+    title: '',
+    alternateText: '',
 };
 // Schema field groups
 const basicFields = {
@@ -104,29 +104,29 @@ const statsFields = {
     },
 };
 const relationFields = {
-    gender: [{ type: String, enum: ["male", "female", "unisex"] }],
+    gender: [{ type: String, enum: ['male', 'female', 'unisex'] }],
     category: {
         type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: "Categories",
+        ref: 'Categories',
         required: true,
         index: true,
     },
     productReviews: [
         {
             type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: "Reviews",
+            ref: 'Reviews',
         },
     ],
     vendor: {
         type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: "Vendors",
+        ref: 'Vendors',
         required: true,
         index: true,
     },
     productTags: [
         {
             type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: "Tags",
+            ref: 'Tags',
         },
     ],
 };
@@ -136,10 +136,10 @@ exports.ProductSchema = new mongoose_1.default.Schema(productFields, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
 });
-exports.ProductSchema.index({ name: "text" });
+exports.ProductSchema.index({ name: 'text' });
 exports.ProductSchema.index({ seName: 1 });
 exports.ProductSchema.index({ sku: 1 });
-exports.ProductSchema.index({ "price.price": 1 });
+exports.ProductSchema.index({ 'price.price': 1 });
 const Products = mongoose_1.default.models.Products ||
-    mongoose_1.default.model("Products", exports.ProductSchema);
+    mongoose_1.default.model('Products', exports.ProductSchema);
 exports.default = Products;

@@ -23,9 +23,11 @@ const categoryFields = {
         min: 0,
     },
 };
-exports.CategorySchema = new mongoose_1.default.Schema(categoryFields, { timestamps: true });
-exports.CategorySchema.index({ name: "text" });
+exports.CategorySchema = new mongoose_1.default.Schema(categoryFields, {
+    timestamps: true,
+});
+exports.CategorySchema.index({ name: 'text' });
 exports.CategorySchema.index({ seName: 1 });
 const Categories = mongoose_1.default.models.Categories ||
-    mongoose_1.default.model("Categories", exports.CategorySchema);
+    mongoose_1.default.model('Categories', exports.CategorySchema);
 exports.default = Categories;

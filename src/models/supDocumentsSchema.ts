@@ -5,7 +5,7 @@ import {
   IPicture,
   IProductAttribute,
   IProductAttributeValue,
-} from '../interfaces/Product.interface';
+} from '../interfaces/product.interface';
 
 // Document interfaces
 export interface IPictureDocument extends IPicture, mongoose.Document {}
