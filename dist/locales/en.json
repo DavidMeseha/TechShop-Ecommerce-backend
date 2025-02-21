@@ -1,7 +1,0 @@
-{
-    "passwordError": "Password should be 8 character length or more",
-    "emailError": "The Email provided is not valid email",
-    "emailAlreadyUsed": "Email Already in Use",
-    "serverError": "Server Error",
-    "WrongCredentials": "Wrong Credentials"
-}
