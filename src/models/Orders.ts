@@ -52,12 +52,12 @@ const billingFields = {
   billingMethod: {
     type: String,
     required: true,
-    enum: ['card', 'cod', 'paypal'],
+    enum: ['card', 'cod'],
   },
   billingStatus: {
     type: String,
     required: true,
-    enum: ['pending', 'paid', 'failed'],
+    enum: ['pending', 'paid'],
   },
 };
 

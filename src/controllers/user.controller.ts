@@ -158,10 +158,7 @@ export async function getUserInfo(
 /**
  * Create payment intent for order
  */
-export async function paymentIntent(
-  req: Request,
-  res: Response
-): Promise<Response<UserControllerResponse>> {
+export async function paymentIntent(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
 
   try {
@@ -304,6 +301,7 @@ export async function followVendor(req: Request, res: Response) {
   const vendorId = req.params.id;
 
   try {
+    // await delay();
     const vendorIsUpdated = !!(
       await Vendors.updateOne({ _id: vendorId }, { $inc: { followersCount: 1 } })
     ).matchedCount;
@@ -543,7 +541,6 @@ export async function placeOrder(req: Request, res: Response) {
   const user: IUserTokenPayload = res.locals.user;
   const order: {
     billingMethod: string;
-    billingStatus: string;
     shippingAddressId: string;
   } = req.body;
 
@@ -564,7 +561,7 @@ export async function placeOrder(req: Request, res: Response) {
 
     const createdOrder = await Orders.create({
       customer: user._id,
-      billingStatus: order.billingStatus || 'cod',
+      billingStatus: order.billingMethod === 'cod' ? 'pending' : 'paid',
       billingMethod: order.billingMethod,
       shippingAddress: shippingAddress,
       items: cart,
