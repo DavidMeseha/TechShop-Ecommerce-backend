@@ -7,10 +7,6 @@ async function findUserById(id: string): Promise<IUser | null> {
     .then((user) => user?.toJSON() || null);
 }
 
-async function findUserByEmail(email: string): Promise<IUser | null> {
-  return Users.findOne({ email }).then((user) => user?.toJSON() || null);
-}
-
 async function createGuestUser(): Promise<IUser | null> {
   return Users.create({
     isRegistered: false,
@@ -24,6 +20,12 @@ async function createUser(user: Partial<IUser>): Promise<IUser | null> {
 
 async function logout(id: string): Promise<void> {
   await Users.updateOne({ _id: id }, { isLogin: false });
+}
+
+async function findUserByEmail(email: string) {
+  return Users.findOne({ email })
+    .select('_id firstName lastName email imageUrl isRegistered isVendor language password')
+    .then((result) => result?.toJSON());
 }
 
 export default {

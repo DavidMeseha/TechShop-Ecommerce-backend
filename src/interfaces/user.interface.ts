@@ -18,8 +18,8 @@ export interface IUserTokenPayload {
   exp?: number;
 }
 
-export interface IUserCart {
-  product: IFullProduct | Types.ObjectId;
+export interface IUserCart<T = string | IFullProduct> {
+  product: T;
   quantity: number;
   attributes: IProductAttribute[];
 }

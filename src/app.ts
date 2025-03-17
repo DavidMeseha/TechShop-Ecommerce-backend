@@ -17,7 +17,7 @@ import catalogRouter from './routes/catalogsRouter';
 import productRouter from './routes/productRouter';
 
 // Middlewares
-import { apiAuthMiddleware, userAuthMiddleware } from './middlewares/auth.middleware';
+import { apiAuthMiddleware, getUser, userAuthMiddleware } from './middlewares/auth.middleware';
 
 // Models
 import { VendorSchema } from './models/Vendors';
@@ -30,7 +30,7 @@ import { CitySchema } from './models/Cities';
 import { OrderSchema } from './models/Orders';
 
 // Controllers
-import { getCities, getCountries } from './controllers/common.controller';
+import { getCities, getCountries } from './controllers/common/common.controller';
 
 // Utils
 import useT, { Language } from './locales/useT';
@@ -83,8 +83,8 @@ const configureRoutes = (app: Application) => {
   app.use('/api/auth', authRouter);
   app.use('/api/user', userAuthMiddleware, userRouter);
   app.use('/api/common', apiAuthMiddleware, commonRouter);
-  app.use('/api/catalog', catalogRouter);
-  app.use('/api/product', productRouter);
+  app.use('/api/catalog', getUser, catalogRouter);
+  app.use('/api/product', getUser, productRouter);
 
   app.use('/api/status', (_req, res) => res.status(200).json('Connected'));
   app.use('/', (_req, res) => res.redirect(DEFAULT_ORIGIN));

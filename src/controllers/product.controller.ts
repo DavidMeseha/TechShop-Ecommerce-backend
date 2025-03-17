@@ -3,20 +3,9 @@ import mongoose from 'mongoose';
 import Products from '../models/Products';
 import Reviews from '../models/Reviews';
 import { responseDto } from '../utilities';
+import createProductPipeline from '../pipelines/singleProduct.pipeline';
 
-interface ProductControllerResponse {
-  success: boolean;
-  data?: any;
-  error?: string;
-}
-
-/**
- * Get product attributes by product ID
- */
-export async function getProductAtterputes(
-  req: Request,
-  res: Response
-): Promise<Response<ProductControllerResponse>> {
+export async function getProductAttributes(req: Request, res: Response) {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -37,25 +26,17 @@ export async function getProductAtterputes(
   }
 }
 
-/**
- * Get product details by SEO name
- */
-export async function getProductDetails(
-  req: Request,
-  res: Response
-): Promise<Response<ProductControllerResponse>> {
+export async function getProductDetails(req: Request, res: Response) {
   const { seName } = req.params;
+  const userId = res.locals.user?._id ?? '';
 
   if (!seName) {
     return res.status(400).json(responseDto('SEO name is required'));
   }
 
   try {
-    const product = await Products.findOne({ seName })
-      .populate([{ path: 'vendor' }, { path: 'category' }, { path: 'productTags' }])
-      .select('-productReviews')
-      .lean()
-      .exec();
+    const pipeline = createProductPipeline(userId, { $match: { seName } });
+    const product = (await Products.aggregate(pipeline).exec())[0];
 
     if (!product) {
       return res.status(404).json(responseDto('Product not found'));
@@ -71,10 +52,7 @@ export async function getProductDetails(
 /**
  * Get product reviews by product ID
  */
-export async function getReviews(
-  req: Request,
-  res: Response
-): Promise<Response<ProductControllerResponse>> {
+export async function getReviews(req: Request, res: Response) {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {

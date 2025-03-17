@@ -4,7 +4,7 @@ import fr from './fr.json';
 
 export type Language = 'en' | 'ar' | 'fr';
 export const languages: Language[] = ['en', 'ar', 'fr'];
-type Dictionary = keyof typeof en;
+export type Dictionary = keyof typeof en;
 
 const dictionaries = {
   en: en,

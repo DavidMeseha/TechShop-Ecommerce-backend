@@ -5,13 +5,6 @@ import { validateAttributes } from '../utilities';
 import { IProductAttributeDocument } from '../models/supDocumentsSchema';
 import { IProductAttribute } from '../interfaces/product.interface';
 
-export async function alreadyInCart(userId: string, productId: string) {
-  return !Users.findOne({
-    _id: userId,
-    'cart.product': new Types.ObjectId(productId),
-  });
-}
-
 export async function validateProductAndAttributes(
   id: string,
   attributes: IProductAttributeDocument[]
@@ -31,8 +24,13 @@ export async function addToCart(
   attributes: IProductAttribute[],
   quantity: number
 ) {
-  const [updated, _product] = await Promise.all([
-    Users.updateOne(
+  const productUpdate = await Products.updateOne(
+    { _id: productId, usersCarted: { $ne: userId } },
+    { $inc: { carts: 1 }, $push: { usersCarted: userId } }
+  );
+
+  if (productUpdate.modifiedCount > 0) {
+    const _updateUserCart = await Users.updateOne(
       { _id: userId },
       {
         $push: {
@@ -43,10 +41,9 @@ export async function addToCart(
           },
         },
       }
-    ),
-    Products.findByIdAndUpdate(productId, { $inc: { carts: 1 } }),
-  ]);
+    );
+  } else
+    return { isError: true, message: 'Failed to add product to cart, it might be already added' };
 
-  if (!updated.matchedCount) return { isError: true, message: 'Failed to add product to cart' };
   return { isError: false, message: 'Product added to cart' };
 }

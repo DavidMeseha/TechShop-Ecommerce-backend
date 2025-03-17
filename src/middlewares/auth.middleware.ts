@@ -63,3 +63,15 @@ export async function apiAuthMiddleware(req: Request, res: Response, next: NextF
     return res.status(403).json(responseDto(message, false));
   }
 }
+
+export async function getUser(req: Request, res: Response, next: NextFunction) {
+  try {
+    const token = extractToken(req);
+    const payload = await verifyToken(token);
+
+    res.locals.user = JSON.parse(JSON.stringify(payload));
+    next();
+  } catch (error) {
+    next();
+  }
+}

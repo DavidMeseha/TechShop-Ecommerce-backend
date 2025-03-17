@@ -1,13 +1,6 @@
 import express, { Router } from 'express';
 import { apiAuthMiddleware, userAuthMiddleware } from '../middlewares/auth.middleware';
-import {
-  login,
-  register,
-  checkToken,
-  guestToken,
-  logout,
-  refreshToken,
-} from '../controllers/auth.controller';
+import { login, register, checkToken, guestToken, logout, refreshToken } from '../controllers/auth';
 const router: Router = express.Router();
 
 router.get('/check', checkToken);

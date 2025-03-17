@@ -5,7 +5,7 @@ import {
   getCategories,
   getCategoryInfo,
   getCategoryProducts,
-  getSingleProduct,
+  getSinglProduct,
   getTagInfo,
   getTagProducts,
   getTags,
@@ -13,12 +13,12 @@ import {
   getVendorProducts,
   getVendors,
   homeFeed,
-} from '../controllers/catalog.controller';
+} from '../controllers/catalog';
 import express from 'express';
 
 const router = express.Router();
 
-router.get('/product/:id', getSingleProduct);
+router.get('/product/:id', getSinglProduct);
 router.get('/homefeed', homeFeed);
 router.get('/discover/vendors', getVendors);
 router.get('/discover/tags', getTags);

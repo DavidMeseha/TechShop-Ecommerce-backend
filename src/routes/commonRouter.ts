@@ -4,25 +4,13 @@ import {
   addProductToCart,
   changeLanguage,
   findInAll,
-  getAllUserActions,
   getCartProducts,
   getCartProductsIds,
   getCheckoutDetails,
-  getFollowingIds,
-  getLikesId,
-  getReviewIds,
-  getSavesId,
   removeProductFromCart,
-} from '../controllers/common.controller';
+} from '../controllers/common';
 import { uploadImage } from '../controllers/upload.controller';
 const router = express.Router();
-
-// User action related routes
-router.get('/reviewedIds', getReviewIds);
-router.get('/followingIds', getFollowingIds);
-router.get('/savesId', getSavesId);
-router.get('/likesId', getLikesId);
-router.get('/allActions', getAllUserActions);
 
 // Cart related routes
 router.get('/cart', getCartProducts);

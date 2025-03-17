@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  getProductAtterputes,
+  getProductAttributes,
   getProductDetails,
   getReviews,
 } from '../controllers/product.controller';
@@ -8,7 +8,7 @@ import express from 'express';
 
 const router: Router = express.Router();
 
-router.get('/attributes/:id', getProductAtterputes);
+router.get('/attributes/:id', getProductAttributes);
 router.get('/reviews/:id', getReviews);
 router.get('/details/:seName', getProductDetails);
 

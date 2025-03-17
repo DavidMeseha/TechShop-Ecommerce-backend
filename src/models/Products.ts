@@ -96,6 +96,26 @@ const statsFields = {
     default: 0,
     min: 0,
   },
+  usersLiked: [
+    {
+      type: String,
+    },
+  ],
+  usersSaved: [
+    {
+      type: String,
+    },
+  ],
+  usersCarted: [
+    {
+      type: String,
+    },
+  ],
+  usersReviewed: [
+    {
+      type: String,
+    },
+  ],
   productReviewOverview: {
     ratingSum: {
       type: Number,

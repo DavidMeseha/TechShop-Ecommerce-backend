@@ -31,6 +31,12 @@ const vendorFields = {
     required: true,
     ref: 'Users',
   },
+  usersFollowed: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Users',
+    },
+  ],
 };
 
 export const VendorSchema = new mongoose.Schema<IVendorDocument>(vendorFields);

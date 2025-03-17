@@ -3,6 +3,9 @@ import Vendors from '../models/Vendors';
 import Tags from '../models/Tags';
 import Categories from '../models/Categories';
 import { ICategory, IFullProduct, ITag, IVendor } from '../interfaces/product.interface';
+import createProductsAggregationPipeline from '../pipelines/products.pipeline';
+import createProductPipeline from '../pipelines/singleProduct.pipeline';
+import { Types } from 'mongoose';
 
 interface PaginationResult<T> {
   data: T[];
@@ -14,31 +17,28 @@ interface PaginationResult<T> {
 }
 
 async function findProducts(): Promise<IFullProduct[]> {
-  return Products.find({}).lean();
+  return Products.find({}).exec();
 }
 
-async function findProductById(id: string): Promise<IFullProduct | null> {
-  return Products.findById(id)
-    .populate({ path: 'vendor', select: '_id name imageUrl seName' })
-    .populate('productTags')
-    .populate({
-      path: 'productReviews',
-      select: 'product customer reviewText rating',
-      populate: 'customer',
-    })
-    .lean();
+async function findProductById(userId: string, productId: string) {
+  const pipeline = createProductPipeline(userId, {
+    $match: {
+      _id: new Types.ObjectId(productId),
+    },
+  });
+  const products = await Products.aggregate(pipeline).exec();
+  return products[0] ?? null;
 }
 
-async function findProductsByVendor(
-  vendorId: string,
-  page: number,
-  limit: number
-): Promise<PaginationResult<IFullProduct>> {
-  const products = await Products.find({ vendor: vendorId })
-    .populate('vendor productTags')
-    .limit(limit + 1)
-    .skip((page - 1) * limit)
-    .lean();
+async function findProductsByVendor(userId: string, vendorId: string, page: number, limit: number) {
+  const pipeline = createProductsAggregationPipeline(userId, page, limit, [
+    {
+      $match: {
+        vendor: new Types.ObjectId(vendorId),
+      },
+    },
+  ]);
+  const products = await Products.aggregate(pipeline).exec();
 
   const hasNext = products.length > limit;
   if (hasNext) products.pop();
@@ -49,16 +49,15 @@ async function findProductsByVendor(
   };
 }
 
-async function findProductsByTag(
-  tagId: string,
-  page: number,
-  limit: number
-): Promise<PaginationResult<IFullProduct>> {
-  const products = await Products.find({ productTags: tagId })
-    .populate('productTags vendor')
-    .limit(limit + 1)
-    .skip((page - 1) * limit)
-    .lean();
+async function findProductsByTag(userId: string, tagId: string, page: number, limit: number) {
+  const pipeline = createProductsAggregationPipeline(userId, page, limit, [
+    {
+      $match: {
+        productTags: { $in: [new Types.ObjectId(tagId)] },
+      },
+    },
+  ]);
+  const products = await Products.aggregate(pipeline).exec();
 
   const hasNext = products.length > limit;
   if (hasNext) products.pop();
@@ -70,15 +69,19 @@ async function findProductsByTag(
 }
 
 async function findProductsByCategory(
+  userId: string,
   categoryId: string,
   page: number,
   limit: number
-): Promise<PaginationResult<IFullProduct>> {
-  const products = await Products.find({ category: categoryId })
-    .populate('productTags vendor')
-    .limit(limit + 1)
-    .skip((page - 1) * limit)
-    .lean();
+) {
+  const pipeline = createProductsAggregationPipeline(userId, page, limit, [
+    {
+      $match: {
+        category: { $in: [new Types.ObjectId(categoryId)] },
+      },
+    },
+  ]);
+  const products = await Products.aggregate(pipeline).exec();
 
   const hasNext = products.length > limit;
   if (hasNext) products.pop();
@@ -91,13 +94,11 @@ async function findProductsByCategory(
 
 async function getHomeFeedProducts(
   page: number,
-  limit: number
+  limit: number,
+  userId: string | undefined
 ): Promise<PaginationResult<IFullProduct>> {
-  const products = await Products.find({})
-    .populate('vendor productTags')
-    .limit(limit + 1)
-    .skip((page - 1) * limit)
-    .lean();
+  const pipeline = createProductsAggregationPipeline(userId ?? '', page, limit);
+  const products = await Products.aggregate(pipeline).exec();
 
   const hasNext = products.length > limit;
   if (hasNext) products.pop();

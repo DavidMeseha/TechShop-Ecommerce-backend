@@ -10,7 +10,6 @@ import {
   getLikedProducts,
   getOrder,
   getOrders,
-  getOrdersIds,
   getReviews,
   getSavedProducts,
   getUserInfo,
@@ -23,7 +22,7 @@ import {
   unlikeProduct,
   unsaveProduct,
   updateInfo,
-} from '../controllers/user.controller';
+} from '../controllers/user';
 
 const router = express.Router();
 
@@ -50,7 +49,6 @@ router.get('/reviews', getReviews);
 router.get('/info', getUserInfo);
 router.get('/addresses', getAdresses);
 router.get('/orders', getOrders);
-router.get('/ordersIds', getOrdersIds);
 router.get('/order/:id', getOrder);
 router.get('/preperPayment', paymentIntent);
 
