@@ -27,7 +27,6 @@ export async function guestToken(req: Request, res: Response) {
       });
     });
   } catch (err) {
-    console.log(err);
     return res
       .status(500)
       .json(responseDto('guest created but ENV Server Error on creating access token'));

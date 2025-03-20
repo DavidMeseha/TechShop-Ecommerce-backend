@@ -6,7 +6,6 @@ import { IAddress } from '../../models/supDocumentsSchema';
 export async function deleteAdress(req: Request, res: Response) {
   const userId = res.locals.user?._id ?? '';
   const addressId = req.params.id;
-  console.log(addressId);
 
   try {
     await Users.findByIdAndUpdate(userId, {

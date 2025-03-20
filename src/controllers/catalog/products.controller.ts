@@ -27,7 +27,6 @@ export async function homeFeed(req: Request, res: Response) {
     const result = await db.getHomeFeedProducts(page, limit, userId);
     return res.status(200).json(responseDto(result.data, true, result.pagination));
   } catch (err) {
-    console.log(err);
     res.status(500).json(responseDto('Failed to fetch home feed'));
   }
 }

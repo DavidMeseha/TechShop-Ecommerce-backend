@@ -33,7 +33,7 @@ export async function unfollowVendor(req: Request, res: Response) {
     );
 
     if (updateVendor.modifiedCount > 0)
-      res.status(200).json(responseDto('vendor unfollowed successfully'));
+      return res.status(200).json(responseDto('vendor unfollowed successfully'));
 
     res.status(409).json({ message: 'vendor might not be followed' });
   } catch (err: any) {

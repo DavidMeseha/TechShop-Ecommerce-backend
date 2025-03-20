@@ -6,6 +6,7 @@ import { ICategory, IFullProduct, ITag, IVendor } from '../interfaces/product.in
 import createProductsAggregationPipeline from '../pipelines/products.pipeline';
 import createProductPipeline from '../pipelines/singleProduct.pipeline';
 import { Types } from 'mongoose';
+import createVendorsAggregationPipeline from '../pipelines/vendors.pipeline';
 
 interface PaginationResult<T> {
   data: T[];
@@ -113,11 +114,13 @@ async function findVendorBySeName(seName: string): Promise<IVendor | null> {
   return Vendors.findOne({ seName }).lean();
 }
 
-async function findVendors(page: number, limit: number): Promise<PaginationResult<IVendor>> {
-  const vendors = await Vendors.find({})
-    .limit(limit + 1)
-    .skip((page - 1) * limit)
-    .lean();
+async function findVendors(
+  userId: string,
+  page: number,
+  limit: number
+): Promise<PaginationResult<IVendor>> {
+  const pipeline = createVendorsAggregationPipeline(userId, page, limit);
+  const vendors = await Vendors.aggregate(pipeline).exec();
 
   const hasNext = vendors.length > limit;
   if (hasNext) vendors.pop();

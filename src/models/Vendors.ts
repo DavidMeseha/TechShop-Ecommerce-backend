@@ -33,8 +33,7 @@ const vendorFields = {
   },
   usersFollowed: [
     {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Users',
+      type: String,
     },
   ],
 };

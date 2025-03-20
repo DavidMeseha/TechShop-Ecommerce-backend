@@ -29,11 +29,12 @@ export async function getVendorProducts(req: Request, res: Response) {
 }
 
 export async function getVendors(req: Request, res: Response) {
-  try {
-    const page = parseInt(req.query.page?.toString() ?? '1');
-    const limit = 5;
+  const userId = res.locals.user._id;
+  const page = parseInt(req.query.page?.toString() ?? '1');
+  const limit = parseInt(req.query.limit?.toString() ?? '5');
 
-    const result = await db.findVendors(page, limit);
+  try {
+    const result = await db.findVendors(userId, page, limit);
     res.status(200).json(responseDto(result.data, true, result.pagination));
   } catch (err) {
     res.status(500).json(responseDto('Failed to fetch vendors'));

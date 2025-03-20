@@ -18,7 +18,6 @@ export async function refreshToken(req: Request, res: Response) {
 
     return res.status(200).json({ token: newToken });
   } catch (err) {
-    console.log(err);
     return res.status(400).json('Token not valid');
   }
 }

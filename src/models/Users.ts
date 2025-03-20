@@ -74,28 +74,10 @@ const userCollections = {
       attributes: [AttributeSchema],
     },
   ],
-  saves: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Products',
-    },
-  ],
-  likes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Products',
-    },
-  ],
   recentProducts: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Products',
-    },
-  ],
-  following: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Vendors',
     },
   ],
   orders: [

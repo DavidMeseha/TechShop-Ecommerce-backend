@@ -9,8 +9,6 @@ type LoginRequestBody = { email: string; password: string };
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
 export async function login(req: Request, res: Response) {
-  const guest = res.locals.user;
-  console.log(guest);
   const { email, password }: LoginRequestBody = req.body;
   const user = await db.findUserByEmail(email);
 
