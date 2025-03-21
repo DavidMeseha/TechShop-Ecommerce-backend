@@ -68,7 +68,6 @@ export async function getAdresses(req: Request, res: Response) {
     const foundUser = await Users.findById(userId)
       .select('addresses')
       .populate('addresses.city addresses.country')
-      .lean()
       .exec();
 
     res.status(200).json(foundUser?.addresses);

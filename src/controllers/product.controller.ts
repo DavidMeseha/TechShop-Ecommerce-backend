@@ -13,7 +13,10 @@ export async function getProductAttributes(req: Request, res: Response) {
   }
 
   try {
-    const product = await Products.findById(id).select('productAttributes name').lean().exec();
+    const product = await Products.findById(id)
+      .select('productAttributes name hasAttributes seName')
+      .lean()
+      .exec();
 
     if (!product) {
       return res.status(404).json(responseDto('Product not found'));
