@@ -1,103 +1,142 @@
-# TikShop Backend
+# TikShop Backend 🚀
 
 Backend service for TikShop e-commerce platform built with Node.js, Express, and MongoDB.
 
-## 🔗 Related Projects & Live Links
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-43853D?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+
+## 📋 Table of Contents
+- [Related Projects](#-related-projects)
+- [Technology Stack](#-technology-stack)
+- [Features](#-features)
+- [Getting Started](#-getting-started)
+- [API Documentation](#-api-documentation)
+- [Security](#-security)
+
+## 🔗 Related Projects
 
 ### Frontend Applications
-- [Next.js Frontend](https://github.com/DavidMeseha/allInOne-myShop-Front)
-- [Angular Frontend](https://github.com/DavidMeseha/TechShop-Angular-) (In Progress)
-
-### Live Demos
-- [Next.js Demo](https://techshop-commerce.vercel.app/)
-- [Angular Demo](https://tech-shop-angular.vercel.app/) (In Progress)
+- **Next.js Frontend**: [Repository](https://github.com/DavidMeseha/allInOne-myShop-Front) | [Live Demo](https://techshop-commerce.vercel.app/)
+- **Angular Frontend**: [Repository](https://github.com/DavidMeseha/TechShop-Angular-) | [Live Demo](https://tech-shop-angular.vercel.app/) (In Progress)
 
 ## 🛠️ Technology Stack
 
-### Core
-- **Node.js & Express.js** - Server framework
-- **MongoDB & Mongoose** - Database layer
-- **TypeScript** - Type safety
+### Core Technologies
+```json
+{
+  "backend": {
+    "runtime": "Node.js",
+    "framework": "Express.js",
+    "language": "TypeScript",
+    "database": "MongoDB"
+  }
+}
+```
 
-### Integrations
-- **JWT** - Authentication
-- **Vercel Blob** - File storage
-- **Stripe** - Payment processing
-- **Node-cron** - Task scheduling
+### Key Integrations
+- **Authentication**: JWT
+- **Storage**: Vercel Blob
+- **Payments**: Stripe
+- **Scheduling**: Node-cron
+- **ORM**: Mongoose
 
 ## 🎯 Features
 
-### Product Management
-- Product catalog with categories and tags
-- Product attributes and variants
-- Search functionality
-- Reviews and ratings
-- Image upload and management
+### 📦 Product Management
+- Product catalog with categories
+- Advanced search & filtering
+- Reviews & ratings system
+- Image management
+- Inventory tracking
 
-### User Management
-- Authentication & authorization
-- Profile management
-- Shopping cart functionality
-- Wishlist & favorites
-- Order history
+### 👥 User Management
+- Secure authentication
+- Role-based authorization
+- Profile customization
+- Shopping cart & wishlist
+- Order history tracking
 
-### Order Processing
-- Cart management
-- Stripe payment integration
+### 🛒 Order Processing
+- Cart management system
+- Secure payment processing
 - Order status tracking
-- Shipping management
+- Shipping integration
+- Automated notifications
 
-### Internationalization
-- Multi-language support (EN, AR, FR)
-- Localized content
-- RTL support
+### 🌐 Internationalization
+- Multi-language support
+  - 🇺🇸 English (en)
+  - 🇸🇦 Arabic (ar)
+  - 🇫🇷 French (fr)
+- RTL layout support
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18+)
-- MongoDB
-- npm
+```bash
+Node.js >= v18.0.0
+MongoDB >= v5.0.0
+npm >= v8.0.0
+```
 
-### Installation
+### Installation Steps
 
-1. Clone the repository:
-2. Install dependencies:
-3. Configure environment variables:
-bash
-cp .env
+1. Clone the repository
+```bash
+git clone https://github.com/your-username/tik-shadow-backend.git
+cd tik-shadow-backend
+```
 
+2. Install dependencies
+```bash
+npm install
+```
+
+3. Configure environment variables
+```env
 PORT=3000
-DB_URI=mongodb://localhost:27017/tikshop
+DB_URI=mongodb://localhost:27017/techshop
 ACCESS_TOKEN_SECRET=your_secret
 ORIGIN=http://localhost:3000
 DOMAIN=your_domain
-FILES_READ_WRITE_TOKEN=vercel_token
+FILES_READ_WRITE_TOKEN=vercel_blob_token
 STRIPE_SECRET=stripe_key
+```
 
-4. Start development server:
+4. Start development server
+```bash
 npm run dev
-
-## 🌐 Internationalization
-
-Supported languages:
-- English (en)
-- Arabic (ar)
-- French (fr)
-
-Translation files are located in `src/locales/`
+```
 
 ## 🔒 Security Features
 
+### Implementation
 - CORS protection
 - JWT authentication
+- Request rate limiting
 - Input validation
-- Rate limiting
-- Error handling
+- Error handling middleware
 
 ### Best Practices
 - RESTful API design
-- Proper error handling
-- Input validation
-- Type safety
-- Clean & Simple architecture
+- Secure password hashing
+- Environment variable protection
+- XSS/CSRF prevention
+- Regular security updates
+
+## 📖 API Documentation
+
+API documentation is available at `/api-docs` when running the server.
+
+### Sample Endpoints
+```typescript
+POST   /api/auth/login
+GET    /api/products
+POST   /api/orders
+PUT    /api/users/profile
+```
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
