@@ -79,3 +79,28 @@ export async function getReviews(req: Request, res: Response) {
     return res.status(500).json(responseDto('Failed to fetch product reviews'));
   }
 }
+
+export async function getUserActions(req: Request, res: Response) {
+  const { seName } = req.params;
+  const userId = res.locals.user._id;
+
+  try {
+    const product = await Products.findOne({ seName })
+      .select('usersLiked usersSaved usersReviewed usersCarted')
+      .exec();
+
+    if (!product) {
+      return res.status(404).json(responseDto('Product not found'));
+    }
+
+    const isLiked = product.usersLiked.includes(userId);
+    const isSaved = product.usersSaved.includes(userId);
+    const isReviewed = product.usersReviewed.includes(userId);
+    const isInCart = product.usersCarted.includes(userId);
+
+    return res.status(200).json({ isLiked, isReviewed, isInCart, isSaved });
+  } catch (error) {
+    console.error('Error fetching user actions:', error);
+    return res.status(500).json(responseDto('Failed to fetch user actions'));
+  }
+}

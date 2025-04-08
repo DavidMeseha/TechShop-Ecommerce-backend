@@ -58,6 +58,10 @@ export interface ITag {
 }
 
 export interface IFullProduct {
+  usersSaved: string[];
+  usersCarted: string[];
+  usersReviewed: string[];
+  usersLiked: string[];
   gender: string[];
   category: ICategory;
   defaultPicture?: IPicture;
