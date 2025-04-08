@@ -8,6 +8,8 @@ import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import cors, { CorsOptions } from 'cors';
 import cron from 'node-cron';
+import swaggerUIPath from 'swagger-ui-express';
+import swaggerjsonFilePath from '../docs/swagger.json';
 
 // Routers
 import authRouter from './routes/authRouter';
@@ -56,6 +58,7 @@ const configureMiddlewares = (app: Application) => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
+  app.use('/swagger', swaggerUIPath.serve, swaggerUIPath.setup(swaggerjsonFilePath));
   app.use(express.static(path.join(__dirname, '../public')));
   app.use('/images', express.static('../public/images'));
 };

@@ -3,13 +3,14 @@ import { responseDto } from '../../utilities';
 import db from '../../data/catalog.data';
 
 export async function getVendorInfo(req: Request, res: Response) {
+  const userId = res.locals.user._id;
   try {
-    const vendor = await db.findVendorBySeName(req.params.seName);
+    const vendor = await db.findVendorBySeName(userId, req.params.seName);
     if (!vendor) {
       return res.status(404).json(responseDto('Vendor not found'));
     }
     res.status(200).json(vendor);
-  } catch (err) {
+  } catch {
     res.status(500).json(responseDto('Failed to fetch vendor'));
   }
 }
@@ -23,7 +24,7 @@ export async function getVendorProducts(req: Request, res: Response) {
   try {
     const result = await db.findProductsByVendor(userId, vendorId, page, limit);
     res.status(200).json(responseDto(result.data, true, result.pagination));
-  } catch (err) {
+  } catch {
     res.status(500).json(responseDto('Failed to fetch vendor products'));
   }
 }
@@ -36,7 +37,7 @@ export async function getVendors(req: Request, res: Response) {
   try {
     const result = await db.findVendors(userId, page, limit);
     res.status(200).json(responseDto(result.data, true, result.pagination));
-  } catch (err) {
+  } catch {
     res.status(500).json(responseDto('Failed to fetch vendors'));
   }
 }
@@ -45,7 +46,7 @@ export async function getAllVendorsSeName(_req: Request, res: Response) {
   try {
     const vendors = await db.findAllVendorSeNames();
     res.status(200).json(vendors);
-  } catch (err) {
+  } catch {
     res.status(500).json(responseDto('Failed to fetch vendor IDs'));
   }
 }

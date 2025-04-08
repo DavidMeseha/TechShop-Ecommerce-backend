@@ -7,6 +7,7 @@ import createProductsAggregationPipeline from '../pipelines/products.pipeline';
 import createProductPipeline from '../pipelines/singleProduct.pipeline';
 import { Types } from 'mongoose';
 import createVendorsAggregationPipeline from '../pipelines/vendors.pipeline';
+import createSingleVendorAggregationPipeline from '../pipelines/singleVendor.pipeline';
 
 interface PaginationResult<T> {
   data: T[];
@@ -110,8 +111,10 @@ async function getHomeFeedProducts(
   };
 }
 
-async function findVendorBySeName(seName: string): Promise<IVendor | null> {
-  return Vendors.findOne({ seName }).lean();
+async function findVendorBySeName(userId: string, seName: string): Promise<IVendor | null> {
+  const pipeline = createSingleVendorAggregationPipeline(userId, { $match: { seName } });
+  const vendors = await Vendors.aggregate(pipeline).exec();
+  return vendors[0] ?? null;
 }
 
 async function findVendors(
