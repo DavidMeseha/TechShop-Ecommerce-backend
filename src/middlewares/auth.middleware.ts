@@ -71,7 +71,20 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
 
     res.locals.user = JSON.parse(JSON.stringify(payload));
     next();
-  } catch (error) {
+  } catch {
+    res.locals.user = {
+      _id: '',
+      isRegistered: false,
+      firstName: '',
+      lastName: '',
+      email: '',
+      isVendor: false,
+      isLogin: false,
+      createdAt: '',
+      updatedAt: '',
+      __v: 0,
+      imageUrl: '',
+    };
     next();
   }
 }

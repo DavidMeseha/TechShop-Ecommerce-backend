@@ -1,14 +1,15 @@
 const swaggerAutoGen = require('swagger-autogen');
-const generateSwagger = swaggerAutoGen();
 
 const _options = {
   openapi: 'OpenAPI 3',
   language: 'en-US',
   disableLogs: false,
-  autoHeaders: true,
-  autoQuery: false,
-  autoBody: false,
+  autoHeaders: false,
+  autoQuery: true,
+  autoBody: true,
 };
+
+const generateSwagger = swaggerAutoGen(_options);
 
 const swaggerDocument = {
   info: {
@@ -31,7 +32,14 @@ const swaggerDocument = {
       description: 'TechShop E-Commerce APIs',
     },
   ],
-  securityDefinitions: {},
+  securityDefinitions: {
+    bearerAuth: {
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      description: 'Enter your bearer token in the format "Bearer {token}"',
+    },
+  },
   components: {
     parameters: {
       Headers: {
@@ -68,7 +76,7 @@ const swaggerDocument = {
       message: 'You do not have permission to access this resource.',
     },
     'errorResponse.404': {
-      code: '404',
+      code: 404,
       message: 'The requested resource could not be found on the server.',
     },
     'errorResponse.500': {
