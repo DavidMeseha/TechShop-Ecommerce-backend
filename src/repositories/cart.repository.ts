@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import Products from '../models/Products';
 import Users from '../models/Users';
-import { validateAttributes } from '../utilities';
+import { validateAttributes } from '../utils/misc';
 import { IProductAttributeDocument } from '../models/supDocumentsSchema';
 import { IProductAttribute } from '../interfaces/product.interface';
 

@@ -6,6 +6,7 @@ import {
   IProductAttribute,
   IProductAttributeValue,
 } from '../interfaces/product.interface';
+import { DEFAULT_IMAGE } from '../config/env.config';
 
 // Document interfaces
 export interface IPictureDocument extends IPicture, mongoose.Document {}
@@ -16,9 +17,6 @@ export interface IAddress {
   city: ICity;
   country: ICountry;
 }
-
-// Schema configurations
-const DEFAULT_IMAGE = process.env.DOMAIN + '/images/no_image_placeholder.jpg';
 
 const imageFields = {
   imageUrl: {

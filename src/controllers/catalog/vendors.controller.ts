@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
-import db from '../../data/catalog.data';
+import { responseDto } from '../../utils/misc';
+import db from '../../repositories/catalog.repository';
 
 export async function getVendorInfo(req: Request, res: Response) {
-  const userId = res.locals.user._id;
+  const userId = res.locals.userId;
   try {
     const vendor = await db.findVendorBySeName(userId, req.params.seName);
     if (!vendor) {
@@ -16,7 +16,7 @@ export async function getVendorInfo(req: Request, res: Response) {
 }
 
 export async function getVendorProducts(req: Request, res: Response) {
-  const userId = res.locals.user._id ?? '';
+  const userId = res.locals.userId;
   const vendorId = req.params.id;
   const page = parseInt(req.query.page?.toString() ?? '1');
   const limit = parseInt(req.query.limit?.toString() ?? '5');
@@ -30,7 +30,7 @@ export async function getVendorProducts(req: Request, res: Response) {
 }
 
 export async function getVendors(req: Request, res: Response) {
-  const userId = res.locals.user._id;
+  const userId = res.locals.userId;
   const page = parseInt(req.query.page?.toString() ?? '1');
   const limit = parseInt(req.query.limit?.toString() ?? '5');
 

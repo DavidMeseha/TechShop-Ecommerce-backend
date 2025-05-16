@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import Products from '../../models/Products';
-import { responseDto } from '../../utilities';
-import createProductPipeline from '../../pipelines/singleProduct.pipeline';
+import { responseDto } from '../../utils/misc';
+import createProductPipeline from '../../pipelines/product.aggregation';
 
 export async function likeProduct(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const { id: productId } = req.params;
 
   try {
@@ -25,7 +25,7 @@ export async function likeProduct(req: Request, res: Response) {
 }
 
 export async function unlikeProduct(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const { id: productId } = req.params;
 
   try {
@@ -46,7 +46,7 @@ export async function unlikeProduct(req: Request, res: Response) {
 }
 
 export async function getLikedProducts(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   try {
     const pipline = createProductPipeline(userId, {
       $match: {

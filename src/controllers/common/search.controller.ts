@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { generateVariants, responseDto } from '../../utilities';
-import db from '../../data/common.data';
+import { generateVariants, responseDto } from '../../utils/misc';
+import db from '../../repositories/common.repository';
 
 export async function findInAll(req: Request, res: Response) {
   const options = req.body as {

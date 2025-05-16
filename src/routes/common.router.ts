@@ -9,7 +9,7 @@ import {
   getCheckoutDetails,
   removeProductFromCart,
 } from '../controllers/common';
-import { uploadImage } from '../controllers/upload.controller';
+import { uploadImage } from '../controllers/uploadImage.controller';
 const router = express.Router();
 
 // Cart related routes

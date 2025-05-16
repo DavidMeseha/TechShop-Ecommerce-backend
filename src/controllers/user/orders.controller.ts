@@ -1,14 +1,13 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
+import { responseDto } from '../../utils/misc';
 import Users from '../../models/Users';
 import { IAddress } from '../../models/supDocumentsSchema';
 import Orders from '../../models/Orders';
 import Stripe from 'stripe';
-
-const STRIPE_SECRET = process.env.STRIPE_SECRET;
+import { STRIPE_SECRET } from '../../config/env.config';
 
 export async function paymentIntent(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
 
   try {
     if (!STRIPE_SECRET) {
@@ -45,7 +44,7 @@ export async function paymentIntent(req: Request, res: Response) {
 }
 
 export async function placeOrder(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const order: {
     billingMethod: string;
     shippingAddressId: string;
@@ -94,7 +93,7 @@ export async function placeOrder(req: Request, res: Response) {
 }
 
 export async function getOrders(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
 
   try {
     const foundUser = await Users.findById(userId)
@@ -117,7 +116,7 @@ export async function getOrders(req: Request, res: Response) {
 }
 
 export async function getOrder(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const orderId = req.params.id;
 
   try {

@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
+import { responseDto } from '../../utils/misc';
 import { IUserTokenPayload } from '../../interfaces/user.interface';
 import jwt from 'jsonwebtoken';
-import db from '../../data/user.data';
-
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+import db from '../../repositories/user.repository';
+import { ACCESS_TOKEN_SECRET } from '../../config/env.config';
 
 export async function checkToken(req: Request, res: Response) {
   const token = req.headers.authorization?.split(' ')[1];
@@ -26,7 +25,7 @@ export async function checkToken(req: Request, res: Response) {
         return res.status(200).json(foundUser);
       } else res.status(400).json(responseDto('Token not valid'));
     } catch (err) {
-      return res.status(400).json('Token not valid');
+      return res.status(400).json(err);
     }
   } else {
     res.status(400).json(responseDto('No valid token provided'));

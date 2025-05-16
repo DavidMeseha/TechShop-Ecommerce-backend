@@ -1,6 +1,6 @@
 import { PipelineStage, Types } from 'mongoose';
 
-const createUserCartAggregationPipeline = (userId: string) => {
+const createCartPipeline = (userId: string) => {
   const pipeline: PipelineStage[] = [
     { $match: { _id: new Types.ObjectId(userId) } },
     {
@@ -82,4 +82,4 @@ const createUserCartAggregationPipeline = (userId: string) => {
   return pipeline;
 };
 
-export default createUserCartAggregationPipeline;
+export default createCartPipeline;

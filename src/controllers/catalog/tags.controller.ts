@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
-import db from '../../data/catalog.data';
+import { responseDto } from '../../utils/misc';
+import db from '../../repositories/catalog.repository';
 
 export async function getTags(req: Request, res: Response) {
   try {
@@ -10,7 +10,7 @@ export async function getTags(req: Request, res: Response) {
     const result = await db.findTags(page, limit);
     res.status(200).json(responseDto(result.data, true, result.pagination));
   } catch (err) {
-    res.status(500).json(responseDto('Failed to fetch tags'));
+    res.status(500).json(responseDto(err));
   }
 }
 
@@ -24,12 +24,12 @@ export async function getTagInfo(req: Request, res: Response) {
     }
     res.status(200).json(tag);
   } catch (err) {
-    res.status(500).json(responseDto('Failed to fetch tag'));
+    res.status(500).json(responseDto(err));
   }
 }
 
 export async function getTagProducts(req: Request, res: Response) {
-  const userId = res.locals.user._id;
+  const userId = res.locals.userId;
   const tagId = req.params.id;
   const page = parseInt(req.query.page?.toString() ?? '1');
   const limit = parseInt(req.query.limit?.toString() ?? '5');
@@ -38,7 +38,7 @@ export async function getTagProducts(req: Request, res: Response) {
     const result = await db.findProductsByTag(userId, tagId, page, limit);
     res.status(200).json(responseDto(result.data, true, result.pagination));
   } catch (err) {
-    res.status(500).json(responseDto('Failed to fetch tag products'));
+    res.status(500).json(responseDto(err));
   }
 }
 
@@ -47,6 +47,6 @@ export async function getAllTagsSeName(_req: Request, res: Response) {
     const tags = await db.findAllTagSeNames();
     res.status(200).json(tags);
   } catch (err) {
-    res.status(500).json(responseDto('Failed to fetch tag IDs'));
+    res.status(500).json(responseDto(err));
   }
 }

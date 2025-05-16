@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
 import { IVendor } from '../interfaces/product.interface';
+import { DEFAULT_PROFILE_IMAGE } from '../config/env.config';
 
 export interface IVendorDocument extends IVendor, mongoose.Document {}
-
-const DEFAULT_PROFILE_IMAGE = process.env.DOMAIN + '/images/profile_placeholder.jpg';
 
 const vendorFields = {
   name: {

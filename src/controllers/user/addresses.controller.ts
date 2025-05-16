@@ -4,7 +4,7 @@ import Users from '../../models/Users';
 import { IAddress } from '../../models/supDocumentsSchema';
 
 export async function deleteAdress(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const addressId = req.params.id;
 
   try {
@@ -18,7 +18,7 @@ export async function deleteAdress(req: Request, res: Response) {
 }
 
 export async function newAdress(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const address: IAddress = req.body;
 
   try {
@@ -35,7 +35,7 @@ export async function newAdress(req: Request, res: Response) {
 }
 
 export async function editAdress(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const address: IAddress = req.body;
   const addressId = req.params.id;
 
@@ -62,7 +62,7 @@ export async function editAdress(req: Request, res: Response) {
 }
 
 export async function getAdresses(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
 
   try {
     const foundUser = await Users.findById(userId)

@@ -1,6 +1,6 @@
 import { PipelineStage } from 'mongoose';
 
-function createProductsAggregationPipeline(
+function createProductsPipeline(
   id: string,
   page: number,
   limit: number,
@@ -64,4 +64,4 @@ function createProductsAggregationPipeline(
   return pipeline;
 }
 
-export default createProductsAggregationPipeline;
+export default createProductsPipeline;

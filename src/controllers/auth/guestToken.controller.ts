@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { cleanUser, responseDto } from '../../utilities';
-import db from '../../data/user.data';
-
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+import { cleanUser, responseDto } from '../../utils/misc';
+import db from '../../repositories/user.repository';
+import { ACCESS_TOKEN_SECRET } from '../../config/env.config';
 
 export async function guestToken(req: Request, res: Response) {
   try {
@@ -27,8 +26,6 @@ export async function guestToken(req: Request, res: Response) {
       });
     });
   } catch (err) {
-    return res
-      .status(500)
-      .json(responseDto('guest created but ENV Server Error on creating access token'));
+    return res.status(500).json(err);
   }
 }

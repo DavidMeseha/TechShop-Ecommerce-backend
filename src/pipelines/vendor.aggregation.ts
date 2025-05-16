@@ -1,8 +1,8 @@
 import { PipelineStage } from 'mongoose';
 
-function createSingleVendorAggregationPipeline(userId: string, pipelineStage: PipelineStage) {
+function createVendorPipeline(userId: string, pipelineStage: PipelineStage[]) {
   const pipeline: PipelineStage[] = [
-    pipelineStage,
+    ...pipelineStage,
     {
       $addFields: {
         isFollowed: { $in: [userId, { $ifNull: ['$usersFollowed', []] }] },
@@ -18,4 +18,4 @@ function createSingleVendorAggregationPipeline(userId: string, pipelineStage: Pi
   return pipeline;
 }
 
-export default createSingleVendorAggregationPipeline;
+export default createVendorPipeline;

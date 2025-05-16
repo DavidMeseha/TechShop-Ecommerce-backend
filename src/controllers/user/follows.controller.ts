@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
+import { responseDto } from '../../utils/misc';
 import Vendors from '../../models/Vendors';
-import createVendorsAggregationPipeline from '../../pipelines/vendors.pipeline';
+import createVendorsAggregationPipeline from '../../pipelines/vendors.aggregation';
 
 export async function followVendor(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const vendorId = req.params.id;
 
   try {
@@ -23,7 +23,7 @@ export async function followVendor(req: Request, res: Response) {
 }
 
 export async function unfollowVendor(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const vendorId = req.params.id;
 
   try {
@@ -42,7 +42,7 @@ export async function unfollowVendor(req: Request, res: Response) {
 }
 
 export async function getFollowingVendors(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
 
   try {
     const followedVendors = await Vendors.aggregate(

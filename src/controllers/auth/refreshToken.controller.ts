@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
+import { responseDto } from '../../utils/misc';
 import jwt from 'jsonwebtoken';
-
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+import { ACCESS_TOKEN_SECRET } from '../../config/env.config';
 
 export async function refreshToken(req: Request, res: Response) {
   const user = res.locals.user;
@@ -18,6 +17,6 @@ export async function refreshToken(req: Request, res: Response) {
 
     return res.status(200).json({ token: newToken });
   } catch (err) {
-    return res.status(400).json('Token not valid');
+    return res.status(400).json(err);
   }
 }

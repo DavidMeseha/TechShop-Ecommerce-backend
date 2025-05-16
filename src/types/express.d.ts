@@ -5,6 +5,7 @@ declare global {
   namespace Express {
     interface Locals {
       user: IUserTokenPayload;
+      userId: string;
       t: (key: Dictionary) => string;
     }
   }

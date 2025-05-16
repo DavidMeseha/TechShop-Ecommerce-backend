@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
-import createProductPipeline from '../../pipelines/singleProduct.pipeline';
+import { responseDto } from '../../utils/misc';
+import createProductPipeline from '../../pipelines/product.aggregation';
 import Products from '../../models/Products';
 
 export async function saveProduct(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const productId = req.params.id;
 
   try {
@@ -23,7 +23,7 @@ export async function saveProduct(req: Request, res: Response) {
 }
 
 export async function unsaveProduct(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const productId = req.params.id;
 
   try {
@@ -42,7 +42,7 @@ export async function unsaveProduct(req: Request, res: Response) {
 }
 
 export async function getSavedProducts(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   try {
     const pipline = createProductPipeline(userId, {
       $match: {

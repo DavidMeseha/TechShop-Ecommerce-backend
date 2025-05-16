@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
-import db from '../../data/common.data';
+import { responseDto } from '../../utils/misc';
+import db from '../../repositories/common.repository';
 
 export async function getCheckoutDetails(_req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
 
   try {
     const foundUser = await db.getUserCart(userId);

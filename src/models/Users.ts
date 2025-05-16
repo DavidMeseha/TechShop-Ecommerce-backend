@@ -2,12 +2,11 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt-nodejs';
 import { AddressSchema, AttributeSchema } from './supDocumentsSchema';
 import { IUser } from '../interfaces/user.interface';
+import { DEFAULT_PROFILE_IMAGE } from '../config/env.config';
 
 export interface IUserDocument extends IUser, mongoose.Document {
   comparePassword(candidatePassword: string): boolean;
 }
-
-const DEFAULT_PROFILE_IMAGE = process.env.DOMAIN + '/images/profile_placeholder.jpg';
 
 const userProfileFields = {
   imageUrl: {

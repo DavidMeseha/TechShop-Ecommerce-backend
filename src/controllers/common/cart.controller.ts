@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
-import { responseDto } from '../../utilities';
+import { responseDto } from '../../utils/misc';
 import Products from '../../models/Products';
 import Users from '../../models/Users';
-import { addToCart, validateProductAndAttributes } from '../../data/addToCart.data';
-import db from '../../data/common.data';
-import createProductsAggregationPipeline from '../../pipelines/products.pipeline';
+import { addToCart, validateProductAndAttributes } from '../../repositories/cart.repository';
+import db from '../../repositories/common.repository';
+import createProductsAggregationPipeline from '../../pipelines/products.aggregation';
 
 export async function addProductToCart(req: Request, res: Response) {
-  const userId = res.locals.user._id;
+  const userId = res.locals.userId;
   const { id: productId } = req.params;
   const { quantity, attributes } = req.body;
 
@@ -30,7 +30,7 @@ export async function addProductToCart(req: Request, res: Response) {
 }
 
 export async function removeProductFromCart(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const productId: string = req.params.id;
 
   if (!productId) return res.status(400).json(responseDto('Product ID is required'));
@@ -64,7 +64,7 @@ export async function removeProductFromCart(req: Request, res: Response) {
 }
 
 export async function getCartProductsIds(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
 
   try {
     const userCart = await Users.findById(userId).select('cart.product').exec();
@@ -77,7 +77,7 @@ export async function getCartProductsIds(req: Request, res: Response) {
 }
 
 export async function getCartProducts(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const pipeline = createProductsAggregationPipeline(userId, 1, 20, [
     {
       $match: {
@@ -95,7 +95,7 @@ export async function getCartProducts(req: Request, res: Response) {
 }
 
 export async function getCartProductsWithAttributes(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
 
   try {
     const foundUser = await db.getUserCart(userId);

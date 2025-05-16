@@ -1,9 +1,6 @@
 import { PipelineStage } from 'mongoose';
 
-function createSingleProductAggregationPipeline(
-  userId: string,
-  pipelineStage: PipelineStage
-): PipelineStage[] {
+function createProductPipeline(userId: string, pipelineStage: PipelineStage): PipelineStage[] {
   const pipeline: PipelineStage[] = [
     pipelineStage,
     {
@@ -85,4 +82,4 @@ function createSingleProductAggregationPipeline(
   return pipeline;
 }
 
-export default createSingleProductAggregationPipeline;
+export default createProductPipeline;

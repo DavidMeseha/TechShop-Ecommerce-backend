@@ -1,5 +1,5 @@
-import { IUser } from './interfaces/user.interface';
-import { IProductAttributeDocument } from './models/supDocumentsSchema';
+import { IUser } from '../interfaces/user.interface';
+import { IProductAttributeDocument } from '../models/supDocumentsSchema';
 
 export function responseDto<T>(
   response: T,

@@ -5,7 +5,7 @@ import Countries from '../../models/Countries';
 import { languages } from '../../locales/useT';
 
 export async function changeLanguage(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const language: string = req.params.lang;
 
   try {

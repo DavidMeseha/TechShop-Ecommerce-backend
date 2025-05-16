@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { put } from '@vercel/blob';
+import { FILES_READ_WRITE_TOKEN } from '../config/env.config';
 
 export const uploadImage = async (req: Request, res: Response) => {
   if (!req.file) {
@@ -10,7 +11,7 @@ export const uploadImage = async (req: Request, res: Response) => {
     const file = req.file;
     const blob = await put(file.originalname, file.buffer, {
       access: 'public',
-      token: process.env.FILES_READ_WRITE_TOKEN,
+      token: FILES_READ_WRITE_TOKEN,
     });
 
     return res.status(200).json({ imageUrl: blob.url });

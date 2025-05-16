@@ -3,11 +3,11 @@ import Vendors from '../models/Vendors';
 import Tags from '../models/Tags';
 import Categories from '../models/Categories';
 import { ICategory, IFullProduct, ITag, IVendor } from '../interfaces/product.interface';
-import createProductsAggregationPipeline from '../pipelines/products.pipeline';
-import createProductPipeline from '../pipelines/singleProduct.pipeline';
+import createProductsAggregationPipeline from '../pipelines/products.aggregation';
+import createProductPipeline from '../pipelines/product.aggregation';
 import { Types } from 'mongoose';
-import createVendorsAggregationPipeline from '../pipelines/vendors.pipeline';
-import createSingleVendorAggregationPipeline from '../pipelines/singleVendor.pipeline';
+import createVendorsPipeline from '../pipelines/vendors.aggregation';
+import createVendorPipeline from '../pipelines/vendor.aggregation';
 
 interface PaginationResult<T> {
   data: T[];
@@ -112,7 +112,7 @@ async function getHomeFeedProducts(
 }
 
 async function findVendorBySeName(userId: string, seName: string): Promise<IVendor | null> {
-  const pipeline = createSingleVendorAggregationPipeline(userId, { $match: { seName } });
+  const pipeline = createVendorPipeline(userId, [{ $match: { seName } }]);
   const vendors = await Vendors.aggregate(pipeline).exec();
   return vendors[0] ?? null;
 }
@@ -122,7 +122,7 @@ async function findVendors(
   page: number,
   limit: number
 ): Promise<PaginationResult<IVendor>> {
-  const pipeline = createVendorsAggregationPipeline(userId, page, limit);
+  const pipeline = createVendorsPipeline(userId, page, limit);
   const vendors = await Vendors.aggregate(pipeline).exec();
 
   const hasNext = vendors.length > limit;

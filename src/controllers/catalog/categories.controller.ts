@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
-import db from '../../data/catalog.data';
+import { responseDto } from '../../utils/misc';
+import db from '../../repositories/catalog.repository';
 
 export async function getCategories(req: Request, res: Response) {
   try {
@@ -10,7 +10,7 @@ export async function getCategories(req: Request, res: Response) {
     const result = await db.findCategories(page, limit);
     res.status(200).json(responseDto(result.data, true, result.pagination));
   } catch (err) {
-    res.status(500).json(responseDto('Failed to fetch categories'));
+    res.status(500).json(responseDto(err));
   }
 }
 
@@ -22,21 +22,21 @@ export async function getCategoryInfo(req: Request, res: Response) {
     }
     res.status(200).json(category);
   } catch (err) {
-    res.status(500).json(responseDto('Failed to fetch category'));
+    res.status(500).json(responseDto(err));
   }
 }
 
 export async function getCategoryProducts(req: Request, res: Response) {
   try {
     const categoryId = req.params.id;
-    const userId = res.locals.user._id;
+    const userId = res.locals.userId;
     const page = parseInt(req.query.page?.toString() ?? '1');
     const limit = parseInt(req.query.limit?.toString() ?? '5');
 
     const result = await db.findProductsByCategory(userId, categoryId, page, limit);
     res.status(200).json(responseDto(result.data, true, result.pagination));
   } catch (err) {
-    res.status(500).json(responseDto('Failed to fetch category products'));
+    res.status(500).json(responseDto(err));
   }
 }
 
@@ -45,6 +45,6 @@ export async function getAllCategoriesSeName(_req: Request, res: Response) {
     const categories = await db.findAllCategorySeNames();
     res.status(200).json(categories);
   } catch (err) {
-    res.status(500).json(responseDto('Failed to fetch category names'));
+    res.status(500).json(responseDto(err));
   }
 }

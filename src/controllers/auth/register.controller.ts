@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
-import { responseDto } from '../../utilities';
-import db from '../../data/user.data';
+import { responseDto } from '../../utils/misc';
+import db from '../../repositories/user.repository';
 
 type RegisterRequestBody = {
   email: string;

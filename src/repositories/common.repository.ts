@@ -3,7 +3,7 @@ import Products from '../models/Products';
 import Vendors from '../models/Vendors';
 import Categories from '../models/Categories';
 import Tags from '../models/Tags';
-import createUserCartAggregationPipeline from '../pipelines/userCart.pipeline';
+import createUserCartAggregationPipeline from '../pipelines/cart.aggregation';
 import { IUserCart } from '../interfaces/user.interface';
 import { IFullProduct } from '../interfaces/product.interface';
 import { IAddress } from '../models/supDocumentsSchema';

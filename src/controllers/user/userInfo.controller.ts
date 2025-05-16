@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
+import { responseDto } from '../../utils/misc';
 import Users from '../../models/Users';
 import bcrypt from 'bcrypt-nodejs';
 
@@ -16,7 +16,7 @@ interface UserInfoBody {
 }
 
 export async function getUserInfo(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
 
   try {
     const foundUser = await Users.findById(userId)
@@ -47,7 +47,7 @@ export async function getUserInfo(req: Request, res: Response) {
 }
 
 export async function updateInfo(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const form: UserInfoBody = req.body;
 
   try {
@@ -86,7 +86,7 @@ export async function updateInfo(req: Request, res: Response) {
 }
 
 export async function changePassword(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const { password, newPassword } = req.body;
 
   try {

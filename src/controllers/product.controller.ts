@@ -2,8 +2,8 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import Products from '../models/Products';
 import Reviews from '../models/Reviews';
-import { responseDto } from '../utilities';
-import createProductPipeline from '../pipelines/singleProduct.pipeline';
+import { responseDto } from '../utils/misc';
+import createProductPipeline from '../pipelines/product.aggregation';
 
 export async function getProductAttributes(req: Request, res: Response) {
   const { id } = req.params;
@@ -31,7 +31,7 @@ export async function getProductAttributes(req: Request, res: Response) {
 
 export async function getProductDetails(req: Request, res: Response) {
   const { seName } = req.params;
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
 
   if (!seName) {
     return res.status(400).json(responseDto('SEO name is required'));
@@ -82,7 +82,7 @@ export async function getReviews(req: Request, res: Response) {
 
 export async function getUserActions(req: Request, res: Response) {
   const { seName } = req.params;
-  const userId = res.locals.user._id;
+  const userId = res.locals.userId;
 
   try {
     const product = await Products.findOne({ seName })

@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import { responseDto } from '../../utilities';
+import { responseDto } from '../../utils/misc';
 import mongoose from 'mongoose';
 import Products from '../../models/Products';
 import Reviews from '../../models/Reviews';
 import { IProductReview } from '../../interfaces/product.interface';
 
 export async function addReview(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const productId: string = req.params.id;
   const review: IProductReview = req.body;
   try {
@@ -37,7 +37,7 @@ export async function addReview(req: Request, res: Response) {
 }
 
 export async function getReviews(req: Request, res: Response) {
-  const userId = res.locals.user?._id ?? '';
+  const userId = res.locals.userId;
   const page = parseInt(req.query.page?.toString() ?? '1');
   const limit = 5;
 

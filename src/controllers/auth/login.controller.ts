@@ -2,11 +2,11 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import Users from '../../models/Users';
 import bcrypt from 'bcrypt-nodejs';
-import { responseDto } from '../../utilities';
-import db from '../../data/user.data';
+import { responseDto } from '../../utils/misc';
+import db from '../../repositories/user.repository';
+import { ACCESS_TOKEN_SECRET } from '../../config/env.config';
 
 type LoginRequestBody = { email: string; password: string };
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
 export async function login(req: Request, res: Response) {
   const { email, password }: LoginRequestBody = req.body;
