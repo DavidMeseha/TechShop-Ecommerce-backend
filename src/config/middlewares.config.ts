@@ -32,6 +32,6 @@ export default function configureMiddlewares(app: Application) {
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
   app.use('/swagger', swaggerUIPath.serve, swaggerUIPath.setup(swaggerjsonFilePath));
-  app.use(express.static(path.join(__dirname, '../public')));
-  app.use('/images', express.static('../public/images'));
+  app.use(express.static(path.join(__dirname, '../../public')));
+  app.use('/images', express.static('../../public/images'));
 }

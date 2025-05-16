@@ -4,4 +4,4 @@ export * from './likes.controller';
 export * from './saves.controller';
 export * from './reviews.controller';
 export * from './orders.controller';
-export * from './userInfo.controller';
+export * from './info.controller';
