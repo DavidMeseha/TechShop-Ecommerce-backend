@@ -11,8 +11,8 @@ import { DEFAULT_ORIGIN } from './env.config';
 export default function configureRoutes(app: Application) {
   app.use('/api/common/countries', getCountries);
   app.use('/api/common/cities/:id', getCities);
-  app.use('/api/auth', authRouter);
   app.use('/api/user', userAuth, userRouter);
+  app.use('/api/auth', authRouter);
   app.use('/api/common', apiAuth, commonRouter);
   app.use('/api/catalog', fetchUser, catalogRouter);
   app.use('/api/product', fetchUser, productRouter);

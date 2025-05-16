@@ -26,6 +26,16 @@ import {
 
 const router = express.Router();
 
+router.get('/likedProducts', getLikedProducts);
+router.get('/savedProducts', getSavedProducts);
+router.get('/followingVendors', getFollowingVendors);
+router.get('/reviews', getReviews);
+router.get('/info', getUserInfo);
+router.get('/addresses', getAdresses);
+router.get('/orders', getOrders);
+router.get('/order/:id', getOrder);
+router.get('/preperPayment', paymentIntent);
+
 router.post('/likeProduct/:id', likeProduct);
 router.post('/saveProduct/:id', saveProduct);
 router.post('/unlikeProduct/:id', unlikeProduct);
@@ -41,15 +51,5 @@ router.delete('/address/delete/:id', deleteAdress);
 
 router.put('/addresses/edit/:id', editAdress);
 router.put('/info', updateInfo);
-
-router.get('/likedProducts', getLikedProducts);
-router.get('/savedProducts', getSavedProducts);
-router.get('/followingVendors', getFollowingVendors);
-router.get('/reviews', getReviews);
-router.get('/info', getUserInfo);
-router.get('/addresses', getAdresses);
-router.get('/orders', getOrders);
-router.get('/order/:id', getOrder);
-router.get('/preperPayment', paymentIntent);
 
 export default router;

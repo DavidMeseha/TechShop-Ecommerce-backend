@@ -15,6 +15,7 @@ export async function userAuth(req: Request, res: Response, next: NextFunction) 
     }
 
     res.locals.user = user;
+    res.locals.userId = user._id;
     next();
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Authentication Error';
@@ -45,8 +46,9 @@ export async function fetchUser(req: Request, res: Response, next: NextFunction)
   try {
     const token = extractToken(req);
     const payload = await verifyToken(token);
+    const user: IUserTokenPayload = JSON.parse(JSON.stringify(payload));
 
-    res.locals.userId = JSON.parse(JSON.stringify(payload));
+    res.locals.userId = user._id;
   } catch {
     res.locals.userId = '';
   } finally {

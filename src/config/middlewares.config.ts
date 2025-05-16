@@ -22,8 +22,6 @@ function configureCors(): CorsOptions {
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true, // Allow credentials (cookies, authorization headers)
-    optionsSuccessStatus: 200, // Some legacy browsers (IE11) choke on 204
   };
 }
 
