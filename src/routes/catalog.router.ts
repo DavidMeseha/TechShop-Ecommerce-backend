@@ -19,7 +19,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 
 const router = express.Router();
 
-router.get('/product/:id', asyncHandler(getSinglProduct));
+router.get('/product/:seName', asyncHandler(getSinglProduct));
 router.get('/homefeed', asyncHandler(homeFeed));
 router.get('/discover/vendors', asyncHandler(getVendors));
 router.get('/discover/tags', asyncHandler(getTags));
