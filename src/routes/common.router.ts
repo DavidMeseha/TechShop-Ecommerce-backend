@@ -10,24 +10,25 @@ import {
   removeProductFromCart,
 } from '../controllers/common';
 import { uploadImage } from '../controllers/uploadImage.controller';
+import { asyncHandler } from '../utils/asyncHandler';
 const router = express.Router();
 
 // Cart related routes
-router.get('/cart', getCartProducts);
-router.get('/cart/ids', getCartProductsIds);
-router.post('/cart/add/:id', addProductToCart);
-router.delete('/cart/remove/:id', removeProductFromCart);
+router.get('/cart', asyncHandler(getCartProducts));
+router.get('/cart/ids', asyncHandler(getCartProductsIds));
+router.post('/cart/add/:id', asyncHandler(addProductToCart));
+router.delete('/cart/remove/:id', asyncHandler(removeProductFromCart));
 
 // Checkout related routes
-router.get('/checkout', getCheckoutDetails);
+router.get('/checkout', asyncHandler(getCheckoutDetails));
 
 // Search related routes
-router.post('/find', findInAll);
+router.post('/find', asyncHandler(findInAll));
 
 // Language related routes
-router.post('/changeLanguage/:lang', changeLanguage);
+router.post('/changeLanguage/:lang', asyncHandler(changeLanguage));
 
 // File upload routes
-router.post('/upload', upload.single('image'), uploadImage);
+router.post('/upload', upload.single('image'), asyncHandler(uploadImage));
 
 export default router;

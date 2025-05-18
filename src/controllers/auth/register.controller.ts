@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { responseDto } from '../../utils/misc';
-import db from '../../repositories/user.repository';
+import { createUser, findUserByEmail } from '../../repositories/user.repository';
 
 type RegisterRequestBody = {
   email: string;
@@ -44,22 +44,20 @@ export async function register(req: Request, res: Response) {
     return res.status(400).json(jsonResponse);
   }
 
-  const emailDublicate = !!(await db.findUserByEmail(value.email));
+  const emailDublicate = !!(await findUserByEmail(value.email));
   if (emailDublicate)
     return res.status(400).json({ code: 'EMAIL_IN_USE', message: 'Email already in use' });
 
-  const newUser = await db
-    .createUser({
-      ...value,
-      isRegistered: true,
-      isLogin: false,
-      dateOfBirth: {
-        day: value.dayOfBirth,
-        month: value.monthOfBirth,
-        year: value.yearOfBirth,
-      },
-    })
-    .catch(() => res.status(500).json({ message: res.locals.t('serverError') }));
+  const newUser = await createUser({
+    ...value,
+    isRegistered: true,
+    isLogin: false,
+    dateOfBirth: {
+      day: value.dayOfBirth,
+      month: value.monthOfBirth,
+      year: value.yearOfBirth,
+    },
+  }).catch(() => res.status(500).json({ message: res.locals.t('serverError') }));
 
   if (newUser) res.status(200).json(responseDto('Registerd Successfully', true));
   else res.status(500).json(responseDto('Failed to create user in databse'));

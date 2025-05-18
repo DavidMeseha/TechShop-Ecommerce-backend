@@ -1,50 +1,42 @@
 import { Request, Response } from 'express';
 import { responseDto } from '../../utils/misc';
-import db from '../../repositories/catalog.repository';
+import {
+  findAllCategorySeNames,
+  findCategories,
+  findCategoryBySeName,
+  findProductsByCategory,
+} from '../../repositories/catalog.repository';
+import { AppError } from '../../utils/appErrors';
 
 export async function getCategories(req: Request, res: Response) {
-  try {
-    const page = parseInt(req.query.page?.toString() ?? '1');
-    const limit = 5;
+  const page = parseInt(req.query.page?.toString() ?? '1');
+  const limit = parseInt(req.query.limit?.toString() ?? '5');
 
-    const result = await db.findCategories(page, limit);
-    res.status(200).json(responseDto(result.data, true, result.pagination));
-  } catch (err) {
-    res.status(500).json(responseDto(err));
-  }
+  const result = await findCategories(page, limit);
+  res.status(200).json(responseDto(result.data, true, result.pagination));
 }
 
 export async function getCategoryInfo(req: Request, res: Response) {
-  try {
-    const category = await db.findCategoryBySeName(req.params.seName);
-    if (!category) {
-      return res.status(404).json(responseDto('Category not found'));
-    }
-    res.status(200).json(category);
-  } catch (err) {
-    res.status(500).json(responseDto(err));
-  }
+  const seName = req.params.seName;
+  if (!seName) throw new AppError('seName is required', 400);
+
+  const category = await findCategoryBySeName(seName);
+  if (!category) throw new AppError('Category not found', 404);
+
+  res.status(200).json(category);
 }
 
 export async function getCategoryProducts(req: Request, res: Response) {
-  try {
-    const categoryId = req.params.id;
-    const userId = res.locals.userId;
-    const page = parseInt(req.query.page?.toString() ?? '1');
-    const limit = parseInt(req.query.limit?.toString() ?? '5');
+  const userId = res.locals.userId;
+  const page = parseInt(req.query.page?.toString() ?? '1');
+  const limit = parseInt(req.query.limit?.toString() ?? '5');
+  const categoryId = req.params.id;
 
-    const result = await db.findProductsByCategory(userId, categoryId, page, limit);
-    res.status(200).json(responseDto(result.data, true, result.pagination));
-  } catch (err) {
-    res.status(500).json(responseDto(err));
-  }
+  const result = await findProductsByCategory(userId, categoryId, page, limit);
+  res.status(200).json(responseDto(result.data, true, result.pagination));
 }
 
 export async function getAllCategoriesSeName(_req: Request, res: Response) {
-  try {
-    const categories = await db.findAllCategorySeNames();
-    res.status(200).json(categories);
-  } catch (err) {
-    res.status(500).json(responseDto(err));
-  }
+  const categories = await findAllCategorySeNames();
+  res.status(200).json(categories);
 }

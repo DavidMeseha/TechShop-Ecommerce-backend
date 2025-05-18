@@ -1,53 +1,30 @@
 import { NextFunction, Request, Response } from 'express';
-import { responseDto } from '../utils/misc';
 import { extractToken, verifyToken } from '../utils/token';
-import { IUserTokenPayload } from '../interfaces/user.interface';
+import { AppError } from '../utils/appErrors';
 
 export async function userAuth(req: Request, res: Response, next: NextFunction) {
-  try {
-    const token = extractToken(req);
-    const payload = await verifyToken(token);
+  const token = extractToken(req);
+  const user = await verifyToken(token);
+  if (!user.isRegistered) throw new AppError('You Need to Signup', 401);
 
-    const user = JSON.parse(JSON.stringify(payload));
-
-    if (!user.isRegistered) {
-      return res.status(401).json(responseDto('You Need to Signup', false));
-    }
-
-    res.locals.user = user;
-    res.locals.userId = user._id;
-    next();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Authentication Error';
-    if (message === 'ENV server Error') {
-      return res.status(500).json(responseDto(message, false));
-    }
-    return res.status(403).json(responseDto(message, false));
-  }
+  res.locals.user = user;
+  res.locals.userId = user._id;
+  next();
 }
 
 export async function apiAuth(req: Request, res: Response, next: NextFunction) {
-  try {
-    const token = extractToken(req);
-    const payload = await verifyToken(token);
+  const token = extractToken(req);
+  const user = await verifyToken(token);
 
-    const user: IUserTokenPayload = JSON.parse(JSON.stringify(payload));
-
-    res.locals.user = user;
-    res.locals.userId = user._id;
-    next();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Authentication Error';
-    return res.status(403).json(responseDto(message, false));
-  }
+  res.locals.user = user;
+  res.locals.userId = user._id;
+  next();
 }
 
 export async function fetchUser(req: Request, res: Response, next: NextFunction) {
   try {
     const token = extractToken(req);
-    const payload = await verifyToken(token);
-    const user: IUserTokenPayload = JSON.parse(JSON.stringify(payload));
-
+    const user = await verifyToken(token);
     res.locals.userId = user._id;
   } catch {
     res.locals.userId = '';

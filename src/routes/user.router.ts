@@ -2,7 +2,7 @@ import express from 'express';
 import {
   addReview,
   changePassword,
-  deleteAdress,
+  removeAddress,
   editAdress,
   followVendor,
   getAdresses,
@@ -23,33 +23,34 @@ import {
   unsaveProduct,
   updateInfo,
 } from '../controllers/user';
+import { asyncHandler } from '../utils/asyncHandler';
 
 const router = express.Router();
 
-router.get('/likedProducts', getLikedProducts);
-router.get('/savedProducts', getSavedProducts);
-router.get('/followingVendors', getFollowingVendors);
-router.get('/reviews', getReviews);
-router.get('/info', getUserInfo);
-router.get('/addresses', getAdresses);
-router.get('/orders', getOrders);
-router.get('/order/:id', getOrder);
-router.get('/preperPayment', paymentIntent);
+router.get('/likedProducts', asyncHandler(getLikedProducts));
+router.get('/savedProducts', asyncHandler(getSavedProducts));
+router.get('/followingVendors', asyncHandler(getFollowingVendors));
+router.get('/reviews', asyncHandler(getReviews));
+router.get('/info', asyncHandler(getUserInfo));
+router.get('/addresses', asyncHandler(getAdresses));
+router.get('/orders', asyncHandler(getOrders));
+router.get('/order/:id', asyncHandler(getOrder));
+router.get('/preperPayment', asyncHandler(paymentIntent));
 
-router.post('/likeProduct/:id', likeProduct);
-router.post('/saveProduct/:id', saveProduct);
-router.post('/unlikeProduct/:id', unlikeProduct);
-router.post('/unsaveProduct/:id', unsaveProduct);
-router.post('/followVendor/:id', followVendor);
-router.post('/unfollowVendor/:id', unfollowVendor);
-router.post('/addReview/:id', addReview);
-router.post('/addresses/add', newAdress);
-router.post('/changePassword', changePassword);
-router.post('/order/submit', placeOrder);
+router.post('/likeProduct/:id', asyncHandler(likeProduct));
+router.post('/saveProduct/:id', asyncHandler(saveProduct));
+router.post('/unlikeProduct/:id', asyncHandler(unlikeProduct));
+router.post('/unsaveProduct/:id', asyncHandler(unsaveProduct));
+router.post('/followVendor/:id', asyncHandler(followVendor));
+router.post('/unfollowVendor/:id', asyncHandler(unfollowVendor));
+router.post('/addReview/:id', asyncHandler(addReview));
+router.post('/addresses/add', asyncHandler(newAdress));
+router.post('/changePassword', asyncHandler(changePassword));
+router.post('/order/submit', asyncHandler(placeOrder));
 
-router.delete('/address/delete/:id', deleteAdress);
+router.delete('/address/delete/:id', asyncHandler(removeAddress));
 
-router.put('/addresses/edit/:id', editAdress);
-router.put('/info', updateInfo);
+router.put('/addresses/edit/:id', asyncHandler(editAdress));
+router.put('/info', asyncHandler(updateInfo));
 
 export default router;

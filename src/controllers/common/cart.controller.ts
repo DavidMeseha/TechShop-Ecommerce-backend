@@ -1,109 +1,73 @@
 import { Request, Response } from 'express';
-import { Types } from 'mongoose';
-import { responseDto } from '../../utils/misc';
-import Products from '../../models/Products';
 import Users from '../../models/Users';
-import { addToCart, validateProductAndAttributes } from '../../repositories/cart.repository';
-import db from '../../repositories/common.repository';
-import createProductsAggregationPipeline from '../../pipelines/products.aggregation';
+import {
+  addToCart,
+  cartProducts,
+  removeFromCart,
+  validateProductAndAttributes,
+} from '../../repositories/cart.repository';
+import { getUserCart } from '../../repositories/common.repository';
+import { AppError } from '../../utils/appErrors';
+import calculateCartValue from '../../utils/calculate-cart-value';
 
 export async function addProductToCart(req: Request, res: Response) {
   const userId = res.locals.userId;
   const { id: productId } = req.params;
   const { quantity, attributes } = req.body;
 
-  if (!productId) return res.status(400).json(responseDto('Product ID is required'));
+  if (!productId || !quantity || !attributes)
+    throw new AppError('productId, quantity and attributes are required', 400);
 
-  try {
-    const validProductAttributes = await validateProductAndAttributes(productId, attributes);
-    if (!validProductAttributes)
-      return res.status(400).json(responseDto('Invalid product attributes'));
+  const validProductAttributes = await validateProductAndAttributes(productId, attributes);
+  if (!validProductAttributes) throw new AppError('Invalid product attributes', 400);
 
-    const addToCartState = await addToCart(userId, productId, attributes, quantity);
-    if (addToCartState.isError) return res.status(409).json(responseDto(addToCartState.message));
+  const addToCartState = await addToCart(userId, productId, attributes, quantity);
+  if (addToCartState.isError) throw new AppError(addToCartState.message, 409);
 
-    return res.status(200).json(responseDto('product added to cat successfully', true));
-  } catch (error) {
-    console.error('Error adding product to cart:', error);
-    return res.status(500).json(responseDto('Failed to add product to cart'));
-  }
+  res.status(200).json('product added to cat successfully');
 }
 
 export async function removeProductFromCart(req: Request, res: Response) {
   const userId = res.locals.userId;
   const productId: string = req.params.id;
 
-  if (!productId) return res.status(400).json(responseDto('Product ID is required'));
+  const [userUpdate, productUpdate] = await removeFromCart(userId, productId);
+  if (!userUpdate.modifiedCount && !productUpdate.modifiedCount)
+    return res.status(409).json({ message: 'Product not found in cart' });
 
-  try {
-    const [userUpdate, productUpdate] = await Promise.all([
-      Users.updateOne(
-        {
-          _id: userId,
-          cart: {
-            $elemMatch: { product: new Types.ObjectId(productId) },
-          },
-        },
-        {
-          $pull: { cart: { product: new Types.ObjectId(productId) } },
-        }
-      ),
-      Products.updateOne(
-        { _id: productId, usersCarted: { $eq: userId } },
-        { $inc: { carts: -1 }, $pull: { usersCarted: userId } }
-      ).exec(),
-    ]);
-
-    if (!userUpdate.modifiedCount && !productUpdate.modifiedCount)
-      return res.status(409).json({ message: 'Product not found in cart' });
-
-    return res.status(200).json(responseDto('Product removed from cart successfully', true));
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
+  res.status(200).json('Product removed from cart successfully');
 }
 
 export async function getCartProductsIds(req: Request, res: Response) {
   const userId = res.locals.userId;
 
-  try {
-    const userCart = await Users.findById(userId).select('cart.product').exec();
-    const cart = userCart?.cart ?? [];
+  const userCart = await Users.findById(userId).select('cart.product').exec();
+  const cart = userCart?.cart ?? [];
 
-    res.status(200).json(cart.map((cartItem) => cartItem.product) ?? []);
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
+  res.status(200).json(cart.map((cartItem) => cartItem.product) ?? []);
 }
 
 export async function getCartProducts(req: Request, res: Response) {
   const userId = res.locals.userId;
-  const pipeline = createProductsAggregationPipeline(userId, 1, 20, [
-    {
-      $match: {
-        usersCarted: userId,
-      },
-    },
-  ]);
-
-  try {
-    const cartProdcuts = await Products.aggregate(pipeline);
-    res.status(200).json(cartProdcuts);
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
+  const products = await cartProducts(userId);
+  res.status(200).json(products);
 }
 
 export async function getCartProductsWithAttributes(req: Request, res: Response) {
   const userId = res.locals.userId;
+  const { cart } = await getUserCart(userId);
+  res.status(200).json(cart);
+}
 
-  try {
-    const foundUser = await db.getUserCart(userId);
-    if (!foundUser) return res.status(400).json(responseDto('User not found'));
+export async function getCheckoutDetails(_req: Request, res: Response) {
+  const userId = res.locals.userId;
 
-    const cart = foundUser.cart;
-    res.status(200).json(cart);
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
+  const { cart, addresses } = await getUserCart(userId);
+  const total = calculateCartValue(cart);
+
+  return res.status(200).json({
+    cartItems: cart,
+    addresses,
+    total,
+  });
 }

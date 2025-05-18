@@ -1,6 +1,18 @@
 import { Types } from 'mongoose';
-import { IAddress } from '../models/supDocumentsSchema';
+import { IAddressDocument } from '../models/supDocumentsSchema';
 import { IFullProduct, IProductAttribute, IVendor } from './product.interface';
+
+export interface UserInfoBody {
+  dateOfBirthDay: number;
+  dateOfBirthMonth: number;
+  dateOfBirthYear: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  gender: string;
+  imageUrl: string;
+  phone: string;
+}
 
 export interface IUserTokenPayload {
   firstName: string;
@@ -34,7 +46,7 @@ export interface IOrder {
   customer: IUser | Types.ObjectId;
   billingStatus: string;
   billingMethod: string;
-  shippingAddress: IAddress;
+  shippingAddress: IAddressDocument;
   shippingStatus: string;
   items: (OrderItem | Types.ObjectId)[];
   subTotal: number;
@@ -73,6 +85,6 @@ export interface IUser {
   following: (IVendor | Types.ObjectId)[];
   recentProducts?: (IFullProduct | Types.ObjectId)[];
   cart?: IUserCart[];
-  addresses: IAddress[];
+  addresses: IAddressDocument[];
   orders: (IOrder | Types.ObjectId)[];
 }

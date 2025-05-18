@@ -18,6 +18,8 @@ export interface IAddress {
   country: ICountry;
 }
 
+export interface IAddressDocument extends IAddress, mongoose.Document {}
+
 const imageFields = {
   imageUrl: {
     type: String,

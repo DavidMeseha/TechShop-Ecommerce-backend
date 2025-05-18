@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
 import { generateVariants, responseDto } from '../../utils/misc';
-import db from '../../repositories/common.repository';
+import {
+  findCategoriesByName,
+  findProductsByName,
+  findTagsByName,
+  findVendorsByName,
+} from '../../repositories/common.repository';
 
 export async function findInAll(req: Request, res: Response) {
   const options = req.body as {
@@ -31,10 +36,10 @@ export async function findInAll(req: Request, res: Response) {
     const searchPromises = [];
     const items: { item: any; type: string }[] = [];
 
-    if (options.products) searchPromises.push(db.findProductsByName(regex, limit));
-    if (options.vendors) searchPromises.push(db.findVendorsByName(regex, limit));
-    if (options.categories) searchPromises.push(db.findCategoriesByName(regex, limit));
-    if (options.tags) searchPromises.push(db.findTagsByName(regex, limit));
+    if (options.products) searchPromises.push(findProductsByName(regex, limit));
+    if (options.vendors) searchPromises.push(findVendorsByName(regex, limit));
+    if (options.categories) searchPromises.push(findCategoriesByName(regex, limit));
+    if (options.tags) searchPromises.push(findTagsByName(regex, limit));
 
     const results = await Promise.all(searchPromises);
     results.forEach((result) => items.push(...result));

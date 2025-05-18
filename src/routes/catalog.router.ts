@@ -15,22 +15,23 @@ import {
   homeFeed,
 } from '../controllers/catalog';
 import express from 'express';
+import { asyncHandler } from '../utils/asyncHandler';
 
 const router = express.Router();
 
-router.get('/product/:id', getSinglProduct);
-router.get('/homefeed', homeFeed);
-router.get('/discover/vendors', getVendors);
-router.get('/discover/tags', getTags);
+router.get('/product/:id', asyncHandler(getSinglProduct));
+router.get('/homefeed', asyncHandler(homeFeed));
+router.get('/discover/vendors', asyncHandler(getVendors));
+router.get('/discover/tags', asyncHandler(getTags));
 router.get('/discover/categories', getCategories);
-router.get('/vendor/:seName', getVendorInfo);
-router.get('/vendorProducts/:id', getVendorProducts);
-router.get('/tag/:seName', getTagInfo);
-router.get('/tagProducts/:id', getTagProducts);
-router.get('/category/:seName', getCategoryInfo);
-router.get('/categoryProducts/:id', getCategoryProducts);
-router.get('/allVendors', getAllVendorsSeName);
-router.get('/allCategories', getAllCategoriesSeName);
-router.get('/allTags', getAllTagsSeName);
+router.get('/vendor/:seName', asyncHandler(getVendorInfo));
+router.get('/vendorProducts/:id', asyncHandler(getVendorProducts));
+router.get('/tag/:seName', asyncHandler(getTagInfo));
+router.get('/tagProducts/:id', asyncHandler(getTagProducts));
+router.get('/category/:seName', asyncHandler(getCategoryInfo));
+router.get('/categoryProducts/:id', asyncHandler(getCategoryProducts));
+router.get('/allVendors', asyncHandler(getAllVendorsSeName));
+router.get('/allCategories', asyncHandler(getAllCategoriesSeName));
+router.get('/allTags', asyncHandler(getAllTagsSeName));
 
 export default router;

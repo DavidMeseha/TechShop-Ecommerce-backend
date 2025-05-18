@@ -1,18 +1,19 @@
 import express, { Router } from 'express';
 import { apiAuth, userAuth } from '../middlewares/auth.middleware';
 import { login, register, checkToken, guestToken, logout, refreshToken } from '../controllers/auth';
+import { asyncHandler } from '../utils/asyncHandler';
 const router: Router = express.Router();
 
 //public
-router.get('/check', checkToken);
-router.get('/guest', guestToken);
+router.get('/check', asyncHandler(checkToken));
+router.get('/guest', asyncHandler(guestToken));
 
 //non registered users
-router.post('/login', apiAuth, login);
-router.post('/register', apiAuth, register);
+router.post('/login', asyncHandler(apiAuth), asyncHandler(login));
+router.post('/register', asyncHandler(apiAuth), asyncHandler(register));
 
 //registered users only
-router.get('/refreshToken', userAuth, refreshToken);
-router.post('/logout', userAuth, logout);
+router.get('/refreshToken', asyncHandler(userAuth), asyncHandler(refreshToken));
+router.post('/logout', asyncHandler(userAuth), asyncHandler(logout));
 
 export default router;

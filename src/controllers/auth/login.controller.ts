@@ -2,27 +2,28 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import Users from '../../models/Users';
 import bcrypt from 'bcrypt-nodejs';
-import { responseDto } from '../../utils/misc';
-import db from '../../repositories/user.repository';
+import { logoutUser, findUserByEmail } from '../../repositories/user.repository';
 import { ACCESS_TOKEN_SECRET } from '../../config/env.config';
+import { AppError } from '../../utils/appErrors';
 
 type LoginRequestBody = { email: string; password: string };
 
 export async function login(req: Request, res: Response) {
   const { email, password }: LoginRequestBody = req.body;
-  const user = await db.findUserByEmail(email);
+  if (!email || !password) throw new AppError('Required email and password', 400);
 
-  if (!user) return res.status(403).json({ message: 'Wrong Credentials' });
+  const user = await findUserByEmail(email);
+  if (!user) throw new AppError('Wrong Credentials', 403);
+
   const passwordMatching = bcrypt.compareSync(password, user.password ?? '');
 
-  if (!passwordMatching) return res.status(403).json({ message: 'Wrong Credentials' });
+  if (!passwordMatching) throw new AppError('Wrong Credentials', 403);
   delete user.password;
 
-  if (!ACCESS_TOKEN_SECRET)
-    return res.status(500).json(responseDto('user created but ENV Server Error'));
+  if (!ACCESS_TOKEN_SECRET) throw new AppError('ENV server Error', 500);
 
   jwt.sign({ ...user }, ACCESS_TOKEN_SECRET, { expiresIn: '30m' }, async (err, token) => {
-    if (err) return res.status(500).json(responseDto('could not create token'));
+    if (err) throw new AppError('could not create token', 500);
 
     res.status(200).json({
       user,
@@ -35,6 +36,6 @@ export async function login(req: Request, res: Response) {
 
 export async function logout(req: Request, res: Response) {
   const user = res.locals.user;
-  await db.logout(user._id);
+  await logoutUser(user._id);
   res.status(200).json('success');
 }

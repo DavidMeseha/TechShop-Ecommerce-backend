@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { IUser } from '../interfaces/user.interface';
 import { IProductAttributeDocument } from '../models/supDocumentsSchema';
 
@@ -96,4 +97,8 @@ export function cleanUser(user: IUser) {
   delete user.cart;
 
   return user;
+}
+
+export function isValidIdFormat(id: string) {
+  return Types.ObjectId.isValid(id);
 }

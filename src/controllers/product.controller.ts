@@ -1,106 +1,53 @@
 import { Request, Response } from 'express';
-import mongoose from 'mongoose';
-import Products from '../models/Products';
-import Reviews from '../models/Reviews';
-import { responseDto } from '../utils/misc';
-import createProductPipeline from '../pipelines/product.aggregation';
+import {
+  productAttributes,
+  productDetails,
+  productReviews,
+} from '../repositories/product.repository';
+import { AppError } from '../utils/appErrors';
+import { findProductBySeName } from '../repositories/catalog.repository';
 
 export async function getProductAttributes(req: Request, res: Response) {
-  const { id } = req.params;
+  const { seName } = req.params;
+  if (!seName) throw new AppError('Invalid product seName', 400);
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json(responseDto('Invalid product ID'));
-  }
+  const product = await productAttributes(seName);
+  if (!product) throw new AppError('Product not found', 404);
 
-  try {
-    const product = await Products.findById(id)
-      .select('productAttributes name hasAttributes seName')
-      .lean()
-      .exec();
-
-    if (!product) {
-      return res.status(404).json(responseDto('Product not found'));
-    }
-
-    return res.status(200).json(product);
-  } catch (error) {
-    console.error('Error fetching product attributes:', error);
-    return res.status(500).json(responseDto('Failed to fetch product attributes'));
-  }
+  return res.status(200).json(product);
 }
 
 export async function getProductDetails(req: Request, res: Response) {
-  const { seName } = req.params;
   const userId = res.locals.userId;
+  const seName = req.params.seName;
+  if (!seName) throw new AppError('product seName is required', 400);
 
-  if (!seName) {
-    return res.status(400).json(responseDto('SEO name is required'));
-  }
+  const product = await productDetails(userId, seName);
+  if (!product) throw new AppError('Product not found', 404);
 
-  try {
-    const pipeline = createProductPipeline(userId, { $match: { seName } });
-    const product = (await Products.aggregate(pipeline).exec())[0];
-
-    if (!product) {
-      return res.status(404).json(responseDto('Product not found'));
-    }
-
-    return res.status(200).json(product);
-  } catch (error) {
-    console.error('Error fetching product details:', error);
-    return res.status(500).json(responseDto('Failed to fetch product details'));
-  }
+  return res.status(200).json(product);
 }
 
-/**
- * Get product reviews by product ID
- */
 export async function getReviews(req: Request, res: Response) {
-  const { id } = req.params;
+  const id = req.params.id;
+  if (!id) throw new AppError('id is required', 400);
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json(responseDto('Invalid product ID'));
-  }
-
-  try {
-    const reviews = await Reviews.find({
-      product: new mongoose.Types.ObjectId(id),
-    })
-      .populate({
-        path: 'customer',
-        select: 'firstName lastName imageUrl',
-      })
-      .lean()
-      .exec();
-
-    return res.status(200).json(reviews ?? []);
-  } catch (error) {
-    console.error('Error fetching product reviews:', error);
-    return res.status(500).json(responseDto('Failed to fetch product reviews'));
-  }
+  const reviews = await productReviews(id);
+  return res.status(200).json(reviews);
 }
 
 export async function getUserActions(req: Request, res: Response) {
-  const { seName } = req.params;
   const userId = res.locals.userId;
+  const { seName } = req.params;
+  if (!seName) throw new AppError('product seName is required', 400);
 
-  try {
-    const product = await Products.findOne({ seName })
-      .select('usersLiked usersSaved usersReviewed usersCarted')
-      .exec();
+  const product = await findProductBySeName(userId, seName);
+  if (!product) throw new AppError('Product not found', 404);
 
-    if (!product) {
-      return res.status(404).json(responseDto('Product not found'));
-    }
+  const isLiked = product.usersLiked.includes(userId);
+  const isSaved = product.usersSaved.includes(userId);
+  const isReviewed = product.usersReviewed.includes(userId);
+  const isInCart = product.usersCarted.includes(userId);
 
-    const isLiked = product.usersLiked.includes(userId);
-    const isSaved = product.usersSaved.includes(userId);
-    const isReviewed = product.usersReviewed.includes(userId);
-    const isInCart = product.usersCarted.includes(userId);
-
-    return res.status(200).json({ isLiked, isReviewed, isInCart, isSaved });
-  } catch (error) {
-    console.error('Error fetching user actions:', error);
-    return res.status(500).json(responseDto('Failed to fetch user actions'));
-  }
+  return res.status(200).json({ isLiked, isReviewed, isInCart, isSaved });
 }

@@ -8,6 +8,8 @@ import createProductPipeline from '../pipelines/product.aggregation';
 import { Types } from 'mongoose';
 import createVendorsPipeline from '../pipelines/vendors.aggregation';
 import createVendorPipeline from '../pipelines/vendor.aggregation';
+import { isValidIdFormat } from '../utils/misc';
+import { AppError } from '../utils/appErrors';
 
 interface PaginationResult<T> {
   data: T[];
@@ -18,11 +20,13 @@ interface PaginationResult<T> {
   };
 }
 
-async function findProducts(): Promise<IFullProduct[]> {
+export async function findProducts(): Promise<IFullProduct[]> {
   return Products.find({}).exec();
 }
 
-async function findProductById(userId: string, productId: string) {
+export async function findProductById(userId: string, productId: string) {
+  if (!isValidIdFormat(productId)) throw new AppError('productId is not a valid id', 400);
+
   const pipeline = createProductPipeline(userId, {
     $match: {
       _id: new Types.ObjectId(productId),
@@ -32,7 +36,20 @@ async function findProductById(userId: string, productId: string) {
   return products[0] ?? null;
 }
 
-async function findProductsByVendor(userId: string, vendorId: string, page: number, limit: number) {
+export async function findProductBySeName(userId: string, seName: string) {
+  const pipeline = createProductPipeline(userId, { $match: { seName } });
+  const products = await Products.aggregate(pipeline).exec();
+  return products[0] ?? null;
+}
+
+export async function findProductsByVendor(
+  userId: string,
+  vendorId: string,
+  page: number,
+  limit: number
+) {
+  if (!isValidIdFormat(vendorId)) throw new AppError('vendorId is not a valid id', 400);
+
   const pipeline = createProductsAggregationPipeline(userId, page, limit, [
     {
       $match: {
@@ -51,7 +68,14 @@ async function findProductsByVendor(userId: string, vendorId: string, page: numb
   };
 }
 
-async function findProductsByTag(userId: string, tagId: string, page: number, limit: number) {
+export async function findProductsByTag(
+  userId: string,
+  tagId: string,
+  page: number,
+  limit: number
+): Promise<PaginationResult<IFullProduct[]>> {
+  if (!isValidIdFormat(tagId)) throw new AppError('tagId is not a valid id', 400);
+
   const pipeline = createProductsAggregationPipeline(userId, page, limit, [
     {
       $match: {
@@ -70,12 +94,14 @@ async function findProductsByTag(userId: string, tagId: string, page: number, li
   };
 }
 
-async function findProductsByCategory(
+export async function findProductsByCategory(
   userId: string,
   categoryId: string,
   page: number,
   limit: number
 ) {
+  if (!isValidIdFormat(categoryId)) throw new AppError('categoryId is not a valid id', 400);
+
   const pipeline = createProductsAggregationPipeline(userId, page, limit, [
     {
       $match: {
@@ -94,7 +120,7 @@ async function findProductsByCategory(
   };
 }
 
-async function getHomeFeedProducts(
+export async function getHomeFeedProducts(
   page: number,
   limit: number,
   userId: string | undefined
@@ -111,13 +137,13 @@ async function getHomeFeedProducts(
   };
 }
 
-async function findVendorBySeName(userId: string, seName: string): Promise<IVendor | null> {
+export async function findVendorBySeName(userId: string, seName: string): Promise<IVendor | null> {
   const pipeline = createVendorPipeline(userId, [{ $match: { seName } }]);
   const vendors = await Vendors.aggregate(pipeline).exec();
   return vendors[0] ?? null;
 }
 
-async function findVendors(
+export async function findVendors(
   userId: string,
   page: number,
   limit: number
@@ -134,15 +160,15 @@ async function findVendors(
   };
 }
 
-async function findAllVendorSeNames(): Promise<Pick<IVendor, 'seName'>[]> {
+export async function findAllVendorSeNames(): Promise<Pick<IVendor, 'seName'>[]> {
   return Vendors.find({}).select('seName').lean();
 }
 
-async function findTagBySeName(seName: string): Promise<ITag | null> {
+export async function findTagBySeName(seName: string): Promise<ITag | null> {
   return Tags.findOne({ seName }).lean();
 }
 
-async function findTags(page: number, limit: number): Promise<PaginationResult<ITag>> {
+export async function findTags(page: number, limit: number): Promise<PaginationResult<ITag>> {
   const tags = await Tags.find({})
     .limit(limit + 1)
     .skip((page - 1) * limit)
@@ -157,15 +183,18 @@ async function findTags(page: number, limit: number): Promise<PaginationResult<I
   };
 }
 
-async function findAllTagSeNames(): Promise<Pick<ITag, 'seName'>[]> {
+export async function findAllTagSeNames(): Promise<Pick<ITag, 'seName'>[]> {
   return Tags.find({}).select('seName').lean();
 }
 
-async function findCategoryBySeName(seName: string): Promise<ICategory | null> {
+export async function findCategoryBySeName(seName: string): Promise<ICategory | null> {
   return Categories.findOne({ seName }).lean();
 }
 
-async function findCategories(page: number, limit: number): Promise<PaginationResult<ICategory>> {
+export async function findCategories(
+  page: number,
+  limit: number
+): Promise<PaginationResult<ICategory>> {
   const categories = await Categories.find({})
     .limit(limit + 1)
     .skip((page - 1) * limit)
@@ -180,24 +209,6 @@ async function findCategories(page: number, limit: number): Promise<PaginationRe
   };
 }
 
-async function findAllCategorySeNames(): Promise<Pick<ICategory, 'seName'>[]> {
+export async function findAllCategorySeNames(): Promise<Pick<ICategory, 'seName'>[]> {
   return Categories.find({}).select('seName').lean();
 }
-
-export default {
-  findAllCategorySeNames,
-  findAllTagSeNames,
-  findAllVendorSeNames,
-  findCategories,
-  findCategoryBySeName,
-  findProductById,
-  findProducts,
-  findProductsByCategory,
-  findProductsByVendor,
-  findVendors,
-  getHomeFeedProducts,
-  findTagBySeName,
-  findTags,
-  findVendorBySeName,
-  findProductsByTag,
-};

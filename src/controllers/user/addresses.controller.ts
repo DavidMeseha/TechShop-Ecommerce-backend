@@ -1,77 +1,59 @@
 import { Request, Response } from 'express';
-import mongoose from 'mongoose';
-import Users from '../../models/Users';
 import { IAddress } from '../../models/supDocumentsSchema';
+import {
+  addAddress,
+  addresses,
+  deleteAdress,
+  updateAddress,
+} from '../../repositories/address.repository';
+import { AppError } from '../../utils/appErrors';
 
-export async function deleteAdress(req: Request, res: Response) {
+export async function removeAddress(req: Request, res: Response) {
   const userId = res.locals.userId;
   const addressId = req.params.id;
 
-  try {
-    await Users.findByIdAndUpdate(userId, {
-      $pull: { addresses: { _id: addressId } },
-    });
-    res.status(200).json({ message: 'deleted' });
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
+  await deleteAdress(addressId, userId);
+  res.status(200).json({ message: 'deleted' });
 }
 
 export async function newAdress(req: Request, res: Response) {
   const userId = res.locals.userId;
-  const address: IAddress = req.body;
+  const address: Partial<IAddress> = req.body;
 
-  try {
-    if (!address.address || !address.city || !address.country)
-      throw new Error('should recive address, country and city');
+  if (!(address.address && address.city && address.country))
+    throw new AppError('should recive address, country and city', 400);
 
-    const updated = await Users.findByIdAndUpdate(userId, {
-      $push: { addresses: { ...address } },
-    });
-    res.status(200).json(updated);
-  } catch (err: any) {
-    res.status(400).json(err.message);
-  }
+  const addressToAdd: IAddress = {
+    address: address.address,
+    city: address.city,
+    country: address.country,
+  };
+
+  const updated = await addAddress(userId, addressToAdd);
+  res.status(200).json(updated);
 }
 
 export async function editAdress(req: Request, res: Response) {
   const userId = res.locals.userId;
-  const address: IAddress = req.body;
+  const address: Partial<IAddress> = req.body;
   const addressId = req.params.id;
 
-  try {
-    const updated = await Users.updateOne(
-      {
-        _id: userId,
-        addresses: {
-          $elemMatch: { _id: new mongoose.Types.ObjectId(addressId) },
-        },
-      },
-      {
-        $set: {
-          'addresses.$.city': address.city,
-          'addresses.$.country': address.country,
-          'addresses.$.address': address.address,
-        },
-      }
-    );
-    res.status(200).json(updated);
-  } catch (err: any) {
-    res.status(200).json(err.message);
+  if (!address.address || !address.city || !address.country) {
+    throw new Error('should recive address, country and city');
   }
+
+  const updatedAddress: IAddress = {
+    address: address.address,
+    city: address.city,
+    country: address.country,
+  };
+
+  const updated = updateAddress(userId, addressId, updatedAddress);
+  res.status(200).json(updated);
 }
 
 export async function getAdresses(req: Request, res: Response) {
   const userId = res.locals.userId;
-
-  try {
-    const foundUser = await Users.findById(userId)
-      .select('addresses')
-      .populate('addresses.city addresses.country')
-      .exec();
-
-    res.status(200).json(foundUser?.addresses);
-  } catch (err: any) {
-    res.status(200).json(err.message);
-  }
+  const userAddresses = await addresses(userId);
+  res.status(200).json(userAddresses);
 }

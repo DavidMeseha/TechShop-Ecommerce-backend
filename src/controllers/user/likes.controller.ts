@@ -1,61 +1,34 @@
 import { Request, Response } from 'express';
-import Products from '../../models/Products';
 import { responseDto } from '../../utils/misc';
-import createProductPipeline from '../../pipelines/product.aggregation';
+import { like, likedProducts, unLike } from '../../repositories/like.repository';
+import { AppError } from '../../utils/appErrors';
 
 export async function likeProduct(req: Request, res: Response) {
   const userId = res.locals.userId;
   const { id: productId } = req.params;
+  if (!productId) throw new AppError('productId is Required', 400);
 
-  try {
-    const productUpdate = await Products.updateOne(
-      { _id: productId, usersLiked: { $ne: userId } },
-      { $inc: { likes: 1 }, $push: { usersLiked: userId } }
-    );
+  const productUpdate = await like(userId, productId);
+  if (!productUpdate.matchedCount)
+    throw new AppError('Could not like Product it might be already liked', 409);
 
-    if (!productUpdate.matchedCount) {
-      return res.status(409).json(responseDto('Could not like Product it might be already liked'));
-    }
-
-    return res.status(200).json(responseDto('Product liked successfully', true));
-  } catch (error) {
-    console.error('Error liking product:', error);
-    return res.status(500).json(responseDto('Failed to like product'));
-  }
+  return res.status(200).json(responseDto('Product liked successfully', true));
 }
 
 export async function unlikeProduct(req: Request, res: Response) {
   const userId = res.locals.userId;
   const { id: productId } = req.params;
+  if (!productId) throw new AppError('productId is Required', 400);
 
-  try {
-    const productUpdate = await Products.updateOne(
-      { _id: productId, usersLiked: { $eq: userId } },
-      { $inc: { likes: -1 }, $pull: { usersLiked: userId } }
-    );
+  const productUpdate = await unLike(userId, productId);
+  if (!productUpdate.matchedCount)
+    throw new AppError('Could not unlike Product it might be not liked', 409);
 
-    if (!productUpdate.matchedCount) {
-      return res.status(409).json(responseDto('Could not unlike Product it might be not liked'));
-    }
-
-    return res.status(200).json(responseDto('Product unliked successfully', true));
-  } catch (error) {
-    console.error('Error unliking product:', error);
-    return res.status(500).json(responseDto('Failed to unlike product'));
-  }
+  return res.status(200).json('Product unliked successfully');
 }
 
 export async function getLikedProducts(req: Request, res: Response) {
   const userId = res.locals.userId;
-  try {
-    const pipline = createProductPipeline(userId, {
-      $match: {
-        usersLiked: userId,
-      },
-    });
-    const products = await Products.aggregate(pipline).exec();
-    res.status(200).json(products);
-  } catch (err) {
-    res.status(500).json(responseDto('error getting user lieks', false));
-  }
+  const products = await likedProducts(userId);
+  res.status(200).json(products);
 }
