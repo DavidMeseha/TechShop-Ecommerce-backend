@@ -20,7 +20,6 @@ Backend service for TikShop e-commerce platform built with Node.js, Express, and
 ### Frontend Applications
 
 - **Next.js Frontend**: [Repository](https://github.com/DavidMeseha/allInOne-myShop-Front) | [Live Demo](https://techshop-commerce.vercel.app/)
-- **Angular Frontend**: [Repository](https://github.com/DavidMeseha/TechShop-Angular-) | [Live Demo](https://tech-shop-angular.vercel.app/) (In Progress)
 - **Nuxt Frontend**: [Repository](https://github.com/DavidMeseha/myshop-nuxt) | [Live Demo](https://myshop-nuxt.vercel.app/) (Progress 40%)
 
 ## 🛠️ Technology Stack
