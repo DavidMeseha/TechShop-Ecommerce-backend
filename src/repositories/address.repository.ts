@@ -35,7 +35,16 @@ export async function updateAddress(userId: string, addressId: string, address: 
 export async function addresses(userId: string) {
   const user = await Users.findById(userId)
     .select('addresses')
-    .populate('addresses.city addresses.country')
+    .populate([
+      {
+        path: 'addresses.city',
+        select: '-__v',
+      },
+      {
+        path: 'addresses.country',
+        select: '-cities -__v',
+      },
+    ])
     .exec();
 
   if (!user) return [];

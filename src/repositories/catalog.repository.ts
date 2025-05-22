@@ -48,12 +48,17 @@ export async function findProductsByVendor(
   page: number,
   limit: number
 ) {
-  if (!isValidIdFormat(vendorId)) throw new AppError('vendorId is not a valid id', 400);
-
   const pipeline = createProductsAggregationPipeline(userId, page, limit, [
     {
       $match: {
         vendor: new Types.ObjectId(vendorId),
+      },
+    },
+    {
+      $project: {
+        productAttributes: 0,
+        productReviews: 0,
+        fullDescription: 0,
       },
     },
   ]);
@@ -120,13 +125,17 @@ export async function findProductsByCategory(
   };
 }
 
-export async function getHomeFeedProducts(
-  page: number,
-  limit: number,
-  userId: string | undefined
-): Promise<PaginationResult<IFullProduct>> {
-  const pipeline = createProductsAggregationPipeline(userId ?? '', page, limit);
-  const products = await Products.aggregate(pipeline).exec();
+export async function getHomeFeedProducts(page: number, limit: number, userId: string) {
+  const pipeline = createProductsAggregationPipeline(userId, page, limit, [
+    {
+      $project: {
+        productAttributes: 0,
+        productReviews: 0,
+        fullDescription: 0,
+      },
+    },
+  ]);
+  const products = await Products.aggregate<IFullProduct>(pipeline).exec();
 
   const hasNext = products.length > limit;
   if (hasNext) products.pop();

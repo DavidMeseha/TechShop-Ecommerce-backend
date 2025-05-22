@@ -13,7 +13,7 @@ export async function changeLanguage(req: Request, res: Response) {
   if (!isSupported) throw new AppError('language is not supported or missing', 400);
 
   await Users.updateOne({ _id: new Types.ObjectId(userId) }, { language: language });
-  res.status(200).json('language changed');
+  res.status(200).json({ status: 'success', message: 'language changed' });
 }
 
 export async function getCountries(req: Request, res: Response) {

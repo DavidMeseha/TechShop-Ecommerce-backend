@@ -7,7 +7,7 @@ export default function calculateCartValue(cart: IUserCart<IFullProduct>[]) {
       typeof item.product === 'object' && 'price' in item.product
         ? sum + item.product.price.price * item.quantity
         : 0,
-    25 // Base shipping fee
+    0
   );
 
   return total;

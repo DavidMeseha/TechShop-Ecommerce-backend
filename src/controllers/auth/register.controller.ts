@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
-import { responseDto } from '../../utils/misc';
 import { createUser, findUserByEmail } from '../../repositories/user.repository';
+import { AppError } from '../../utils/appErrors';
 
 type RegisterRequestBody = {
   email: string;
@@ -38,15 +38,14 @@ export async function register(req: Request, res: Response) {
   if (error) {
     let jsonResponse;
     if (error?.details[0].context?.label === 'password')
-      jsonResponse = { message: 'password is not vaild', code: 'INVALID_PASSWORD' };
+      jsonResponse = { code: 400, message: 'INVALID_PASSWORD' };
     else if (error?.details[0].context?.label === 'email')
-      jsonResponse = { message: 'email is not vaild', code: 'INVALID_EMAIL' };
-    return res.status(400).json(jsonResponse);
+      jsonResponse = { code: 409, message: 'INVALID_EMAIL' };
+    throw new AppError(error.message, jsonResponse?.code ?? 400);
   }
 
   const emailDublicate = !!(await findUserByEmail(value.email));
-  if (emailDublicate)
-    return res.status(400).json({ code: 'EMAIL_IN_USE', message: 'Email already in use' });
+  if (emailDublicate) throw new AppError('EMAIL_IN_USE', 409);
 
   const newUser = await createUser({
     ...value,
@@ -57,8 +56,8 @@ export async function register(req: Request, res: Response) {
       month: value.monthOfBirth,
       year: value.yearOfBirth,
     },
-  }).catch(() => res.status(500).json({ message: res.locals.t('serverError') }));
+  });
 
-  if (newUser) res.status(200).json(responseDto('Registerd Successfully', true));
-  else res.status(500).json(responseDto('Failed to create user in databse'));
+  if (newUser) res.status(201).json({ success: true, message: 'user registered successfully' });
+  else throw new AppError('Failed to create user in databse', 500);
 }

@@ -21,7 +21,7 @@ export interface IPrice {
 export interface IProductAttribute {
   name: string;
   attributeControlType: string;
-  values: IProductAttributeValue[];
+  values: (IProductAttributeValue & { _id: string })[];
 }
 
 export interface IProductAttributeValue {

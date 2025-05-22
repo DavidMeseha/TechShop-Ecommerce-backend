@@ -13,7 +13,7 @@ export async function removeAddress(req: Request, res: Response) {
   const addressId = req.params.id;
 
   await deleteAdress(addressId, userId);
-  res.status(200).json({ message: 'deleted' });
+  res.status(200).json({ success: true, message: 'address deleted' });
 }
 
 export async function newAdress(req: Request, res: Response) {
@@ -29,8 +29,8 @@ export async function newAdress(req: Request, res: Response) {
     country: address.country,
   };
 
-  const updated = await addAddress(userId, addressToAdd);
-  res.status(200).json(updated);
+  await addAddress(userId, addressToAdd);
+  res.status(201).json({ success: true, message: 'address added' });
 }
 
 export async function editAdress(req: Request, res: Response) {
@@ -38,9 +38,8 @@ export async function editAdress(req: Request, res: Response) {
   const address: Partial<IAddress> = req.body;
   const addressId = req.params.id;
 
-  if (!address.address || !address.city || !address.country) {
-    throw new Error('should recive address, country and city');
-  }
+  if (!address.address || !address.city || !address.country)
+    throw new AppError('should recive address, country and city', 400);
 
   const updatedAddress: IAddress = {
     address: address.address,
@@ -48,8 +47,8 @@ export async function editAdress(req: Request, res: Response) {
     country: address.country,
   };
 
-  const updated = updateAddress(userId, addressId, updatedAddress);
-  res.status(200).json(updated);
+  await updateAddress(userId, addressId, updatedAddress);
+  res.status(200).json({ success: true, message: 'address updated successfuly' });
 }
 
 export async function getAdresses(req: Request, res: Response) {

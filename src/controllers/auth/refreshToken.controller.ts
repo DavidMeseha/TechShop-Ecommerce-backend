@@ -10,6 +10,7 @@ export async function refreshToken(req: Request, res: Response) {
 
   if (!ACCESS_TOKEN_SECRET) throw new AppError('ENV server Error', 500);
   if (!user) throw new AppError('Token not valid', 401);
+
   const newToken = jwt.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: '30m' });
   return res.status(200).json({ token: newToken });
 }

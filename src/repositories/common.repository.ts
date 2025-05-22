@@ -5,7 +5,7 @@ import Categories from '../models/Categories';
 import Tags from '../models/Tags';
 import createUserCartAggregationPipeline from '../pipelines/cart.aggregation';
 import { IUserCart } from '../interfaces/user.interface';
-import { IFullProduct } from '../interfaces/product.interface';
+import { IFullProduct, IPicture } from '../interfaces/product.interface';
 import { IAddress } from '../models/supDocumentsSchema';
 import { AppError } from '../utils/appErrors';
 
@@ -23,28 +23,37 @@ export async function getUserCart(userId: string) {
 
 export async function findProductsByName(regex: RegExp, limit: number) {
   return Products.find({ name: regex })
+    .select('name _id seName pictures')
     .limit(limit)
-    .lean()
-    .then((products) => products.map((item) => ({ item, type: 'product' })));
+    .lean<{ name: string; _id: string; pictures: IPicture[]; sename: string }[]>()
+    .then((products) =>
+      products.map((item) => ({
+        item: { ...item, imageUrl: item.pictures[0].imageUrl },
+        type: 'product',
+      }))
+    );
 }
 
 export async function findVendorsByName(regex: RegExp, limit: number) {
   return Vendors.find({ name: regex })
+    .select('name seName _id imageUrl')
     .limit(limit)
-    .lean()
+    .lean<{ name: string; seName: string; imageUrl: string }[]>()
     .then((vendors) => vendors.map((item) => ({ item, type: 'vendor' })));
 }
 
 export async function findCategoriesByName(regex: RegExp, limit: number) {
   return Categories.find({ name: regex })
+    .select('_id name seName')
     .limit(limit)
-    .lean()
+    .lean<{ name: string; seName: string; imageUrl: string }[]>()
     .then((category) => category.map((item) => ({ item, type: 'category' })));
 }
 
 export async function findTagsByName(regex: RegExp, limit: number) {
   return Tags.find({ name: regex })
+    .select('_id name seName')
     .limit(limit)
-    .lean()
+    .lean<{ name: string; seName: string; imageUrl: string }[]>()
     .then((tag) => tag.map((item) => ({ item, type: 'tag' })));
 }

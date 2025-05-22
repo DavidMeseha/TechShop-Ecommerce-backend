@@ -16,6 +16,7 @@ import {
 } from '../controllers/catalog';
 import express from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
+import { findInAll } from '../controllers/common';
 
 const router = express.Router();
 
@@ -33,5 +34,7 @@ router.get('/categoryProducts/:id', asyncHandler(getCategoryProducts));
 router.get('/allVendors', asyncHandler(getAllVendorsSeName));
 router.get('/allCategories', asyncHandler(getAllCategoriesSeName));
 router.get('/allTags', asyncHandler(getAllTagsSeName));
+
+router.post('/find', asyncHandler(findInAll));
 
 export default router;

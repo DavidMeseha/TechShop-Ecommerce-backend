@@ -1,31 +1,27 @@
 import { Types } from 'mongoose';
 import Products from '../models/Products';
 import Users from '../models/Users';
-import { validateAttributes } from '../utils/misc';
-import { IProductAttributeDocument } from '../models/supDocumentsSchema';
-import { IProductAttribute } from '../interfaces/product.interface';
-import { IFullProduct } from '../interfaces/product.interface';
+import { IFullProduct, IProductAttribute } from '../interfaces/product.interface';
 import { IUserCart } from '../interfaces/user.interface';
 import createProductsPipeline from '../pipelines/products.aggregation';
 import { AppError } from '../utils/appErrors';
+import { isValidIdFormat } from '../utils/misc';
 
-export async function validateProductAndAttributes(
-  id: string,
-  attributes: IProductAttributeDocument[]
-) {
+export async function productAttributes(id: string) {
+  if (!isValidIdFormat(id)) throw new AppError('productId is not a valid id', 400);
+
   const product = await Products.findById(id)
     .select('productAttributes')
-    .lean<{ productAttributes: IProductAttributeDocument[] }>()
+    .lean<{ productAttributes: (IProductAttribute & { _id: string })[] }>()
     .exec();
 
-  if (!product) return false;
-  return validateAttributes(attributes, product.productAttributes);
+  return product?.productAttributes || undefined;
 }
 
 export async function addToCart(
   userId: string,
   productId: string,
-  attributes: IProductAttribute[],
+  attributes: (IProductAttribute & { _id: string })[],
   quantity: number
 ) {
   const productUpdate = await Products.updateOne(
@@ -88,6 +84,13 @@ export async function cartProducts(userId: string) {
     {
       $match: {
         usersCarted: userId,
+      },
+    },
+    {
+      $project: {
+        productAttributes: 0,
+        productReviews: 0,
+        fullDescription: 0,
       },
     },
   ]);

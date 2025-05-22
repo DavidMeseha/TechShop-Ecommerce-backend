@@ -1,15 +1,15 @@
 import { Types } from 'mongoose';
-import { IUser, UserInfoBody } from '../interfaces/user.interface';
+import { IOrder, IUser, UserInfoBody } from '../interfaces/user.interface';
 import Orders from '../models/Orders';
 import Reviews from '../models/Reviews';
-import Users from '../models/Users';
+import Users, { IUserDocument } from '../models/Users';
 import bcrypt from 'bcrypt-nodejs';
 import Products from '../models/Products';
 import createProductsPipeline from '../pipelines/products.aggregation';
 import { IFullProduct } from '../interfaces/product.interface';
 import { AppError } from '../utils/appErrors';
 
-export async function findUserById(id: string): Promise<IUser | null> {
+export async function findUserById(id: string) {
   return Users.findById(id)
     .select('firstName lastName imageUrl email isRegistered isLogin isVendor language')
     .then((user) => user?.toJSON() || null);
@@ -18,8 +18,19 @@ export async function findUserById(id: string): Promise<IUser | null> {
 export async function userInformation(userId: string) {
   const user = await Users.findById(userId)
     .select('firstName lastName imageUrl dateOfBirth email gender phone orders')
-    .lean()
-    .exec();
+    .lean<
+      Pick<
+        IUser,
+        | 'firstName'
+        | 'lastName'
+        | 'dateOfBirth'
+        | 'email'
+        | 'gender'
+        | 'imageUrl'
+        | 'phone'
+        | 'orders'
+      > & { _id: string }
+    >();
 
   if (!user) return null;
 
@@ -37,7 +48,7 @@ export async function userInformation(userId: string) {
   };
 }
 
-export async function createGuestUser(): Promise<IUser | null> {
+export async function createGuestUser(): Promise<IUserDocument> {
   return Users.create({
     isRegistered: false,
     isVendor: false,
@@ -46,17 +57,15 @@ export async function createGuestUser(): Promise<IUser | null> {
 
 export async function updatePassword(userId: string, password: string, newPassword: string) {
   const foundUser = await Users.findById(userId).select('password isLogin').lean().exec();
-
   const passwordMatching = bcrypt.compareSync(password, foundUser?.password ?? '');
-
-  if (!passwordMatching) throw new Error('old Password');
+  if (!passwordMatching) throw new AppError('Wrong credintials', 401);
 
   const updated = await Users.updateOne(
     { _id: userId },
     { password: bcrypt.hashSync(newPassword, bcrypt.genSaltSync(8)) }
   );
 
-  if (!updated.modifiedCount) throw new Error('Password could not be changed');
+  if (!updated.modifiedCount) throw new AppError('Password could not be changed', 500);
 }
 
 export async function createUser(user: Partial<IUser>): Promise<IUser | null> {
@@ -69,7 +78,7 @@ export async function logoutUser(id: string): Promise<void> {
 
 export async function findUserByEmail(email: string) {
   return Users.findOne({ email })
-    .select('_id firstName lastName email imageUrl isRegistered isVendor language password')
+    .select('_id firstName lastName imageUrl isRegistered isVendor language password')
     .then((result) => result?.toJSON());
 }
 
@@ -105,30 +114,61 @@ export async function updateUserInformation(userId: string, form: UserInfoBody) 
   };
 }
 
-export async function userOrders(userId: string) {
+export async function userOrders(userId: string, { page, limit }: { page: number; limit: number }) {
   const user = await Users.findById(userId)
     .select('orders')
-    .populate(
-      // "orders orders.items.product orders.shippingAddress.country orders.shippingAddress.city"
-      {
-        path: 'orders',
-        populate: 'items.product shippingAddress.country shippingAddress.city',
-      }
-    )
-    .lean()
-    .exec();
+    .populate({
+      path: 'orders',
+      select: '-items.attributes',
+      populate: [
+        {
+          path: 'items.product',
+          select: 'name seName', // Only select name and seName fields
+        },
+        {
+          path: 'shippingAddress.country',
+          select: '-cities', // Exclude cities array
+        },
+        {
+          path: 'shippingAddress.city',
+        },
+      ],
+    })
+    .limit(limit)
+    .skip((page - 1) * limit)
+    .lean<{ orders: IOrder[] }>();
 
-  if (!user) throw new Error('Could not find User Orders');
+  if (!user) throw new AppError('Could not find User Orders', 500);
 
   return user.orders;
 }
 
 export async function orderDetails(userId: string, orderId: string) {
-  const order = await Orders.findOne({ customer: userId, _id: orderId })
-    .populate('customer items.product shippingAddress.country shippingAddress.city')
-    .exec();
+  if (!Types.ObjectId.isValid(orderId)) throw new AppError('valid orderId is Required', 400);
 
-  if (!order) throw new Error('Could not find Order');
+  const order = await Orders.findOne({ customer: userId, _id: orderId })
+    .populate([
+      {
+        path: 'customer',
+        select: '_id email lastName firstName imageUrl',
+      },
+      {
+        path: 'items.product',
+        select: 'seName name inStock vendor category pictures price',
+        populate: [
+          { path: 'vendor', select: '-usersFollowed -followersCount' },
+          { path: 'category' },
+        ],
+      },
+      {
+        path: 'shippingAddress.country',
+        select: '-cities',
+      },
+      {
+        path: 'shippingAddress.city',
+      },
+    ])
+    .exec();
 
   return order;
 }
@@ -142,23 +182,37 @@ export async function userReviews(userId: string, { limit, page }: UserReviewsPr
   const reviews = await Reviews.find({
     customer: new Types.ObjectId(userId),
   })
-    .populate('customer')
+    .select('-customer -updatedAt -__v')
     .populate({
       path: 'product',
-      select: 'name',
+      select: 'name seName',
     })
     .limit(limit + 1)
     .skip((page - 1) * limit)
-    .exec();
+    .lean<
+      {
+        _id: string;
+        product: { _id: string; name: string; seName: string };
+        reviewText: string;
+        rating: number;
+        createdAt: string;
+      }[]
+    >();
 
   return reviews;
 }
 
 export async function savedProducts(userId: string) {
-  const pipline = createProductsPipeline(userId, 1, 100, [
+  const pipline = createProductsPipeline(userId, 1, 25, [
     {
       $match: {
         usersSaved: userId,
+      },
+    },
+    {
+      $project: {
+        productctAttributes: 0,
+        productReviews: 0,
       },
     },
   ]);

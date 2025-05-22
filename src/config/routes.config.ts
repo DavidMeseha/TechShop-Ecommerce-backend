@@ -8,16 +8,19 @@ import productRouter from '../routes/product.router';
 import { apiAuth, fetchUser, userAuth } from '../middlewares/auth.middleware';
 import { DEFAULT_ORIGIN } from './env.config';
 import { asyncHandler } from '../utils/asyncHandler';
+import swaggerUi from 'swagger-ui-express';
+import { specs } from './swagger.config';
 
 export default function configureRoutes(app: Application) {
   app.use('/api/common/countries', asyncHandler(getCountries));
   app.use('/api/common/cities/:id', asyncHandler(getCities));
-  app.use('/api/user', asyncHandler(userAuth), asyncHandler(userRouter));
   app.use('/api/auth', asyncHandler(authRouter));
+  app.use('/api/user', asyncHandler(userAuth), asyncHandler(userRouter));
   app.use('/api/common', asyncHandler(apiAuth), asyncHandler(commonRouter));
   app.use('/api/catalog', asyncHandler(fetchUser), asyncHandler(catalogRouter));
   app.use('/api/product', asyncHandler(fetchUser), asyncHandler(productRouter));
 
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
   app.use('/api/status', (_req, res) => res.status(200).json('Connected'));
   app.use('/', (_req, res) => res.redirect(DEFAULT_ORIGIN));
 }

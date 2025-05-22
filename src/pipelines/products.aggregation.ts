@@ -37,6 +37,14 @@ function createProductsPipeline(
       },
     },
     {
+      $lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        as: 'category',
+      },
+    },
+    {
       $addFields: {
         vendor: { $arrayElemAt: ['$vendor', 0] },
         isLiked: { $in: [id, { $ifNull: ['$usersLiked', []] }] },

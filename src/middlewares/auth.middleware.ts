@@ -4,6 +4,8 @@ import { AppError } from '../utils/appErrors';
 
 export async function userAuth(req: Request, res: Response, next: NextFunction) {
   const token = extractToken(req);
+  if (!token) throw new AppError('No token provided', 403);
+
   const user = await verifyToken(token);
   if (!user.isRegistered) throw new AppError('You Need to Signup', 401);
 
@@ -14,6 +16,8 @@ export async function userAuth(req: Request, res: Response, next: NextFunction) 
 
 export async function apiAuth(req: Request, res: Response, next: NextFunction) {
   const token = extractToken(req);
+  if (!token) throw new AppError('No token provided', 403);
+
   const user = await verifyToken(token);
 
   res.locals.user = user;
@@ -24,7 +28,7 @@ export async function apiAuth(req: Request, res: Response, next: NextFunction) {
 export async function fetchUser(req: Request, res: Response, next: NextFunction) {
   try {
     const token = extractToken(req);
-    const user = await verifyToken(token);
+    const user = await verifyToken(token ?? '');
     res.locals.userId = user._id;
   } catch {
     res.locals.userId = '';

@@ -10,7 +10,7 @@ import {
   getLikedProducts,
   getOrder,
   getOrders,
-  getReviews,
+  getUserReviews,
   getSavedProducts,
   getUserInfo,
   likeProduct,
@@ -24,29 +24,34 @@ import {
   updateInfo,
 } from '../controllers/user';
 import { asyncHandler } from '../utils/asyncHandler';
+import { uploadImage } from '../controllers/uploadImage.controller';
+import uploadMiddleware from '../middlewares/upload.middleware';
 
 const router = express.Router();
 
 router.get('/likedProducts', asyncHandler(getLikedProducts));
 router.get('/savedProducts', asyncHandler(getSavedProducts));
 router.get('/followingVendors', asyncHandler(getFollowingVendors));
-router.get('/reviews', asyncHandler(getReviews));
+router.get('/reviews', asyncHandler(getUserReviews));
 router.get('/info', asyncHandler(getUserInfo));
 router.get('/addresses', asyncHandler(getAdresses));
+
 router.get('/orders', asyncHandler(getOrders));
 router.get('/order/:id', asyncHandler(getOrder));
 router.get('/preperPayment', asyncHandler(paymentIntent));
 
 router.post('/likeProduct/:id', asyncHandler(likeProduct));
-router.post('/saveProduct/:id', asyncHandler(saveProduct));
 router.post('/unlikeProduct/:id', asyncHandler(unlikeProduct));
+router.post('/saveProduct/:id', asyncHandler(saveProduct));
 router.post('/unsaveProduct/:id', asyncHandler(unsaveProduct));
 router.post('/followVendor/:id', asyncHandler(followVendor));
 router.post('/unfollowVendor/:id', asyncHandler(unfollowVendor));
+
 router.post('/addReview/:id', asyncHandler(addReview));
 router.post('/addresses/add', asyncHandler(newAdress));
 router.post('/changePassword', asyncHandler(changePassword));
 router.post('/order/submit', asyncHandler(placeOrder));
+router.post('/upload', uploadMiddleware.single('image'), asyncHandler(uploadImage));
 
 router.delete('/address/delete/:id', asyncHandler(removeAddress));
 

@@ -37,5 +37,5 @@ export async function login(req: Request, res: Response) {
 export async function logout(req: Request, res: Response) {
   const user = res.locals.user;
   await logoutUser(user._id);
-  res.status(200).json('success');
+  res.status(200).json({ status: 'success' });
 }

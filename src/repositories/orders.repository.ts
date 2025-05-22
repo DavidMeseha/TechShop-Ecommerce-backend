@@ -54,8 +54,9 @@ export async function createOrder(userId: string, order: NewOrderProps) {
     shippingAddress: order.shippingAddress,
     items: order.cart,
     subTotal: total,
-    totalValue: total + 25,
+    totalValue: total + 25 + (order.billingMethod === 'cod' ? 10 : 0),
     shippingFees: 25,
+    codFees: order.billingMethod === 'cod' ? 10 : 0,
   });
 
   await Users.findByIdAndUpdate(userId, {

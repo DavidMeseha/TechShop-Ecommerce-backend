@@ -17,8 +17,6 @@ export interface UserInfoBody {
 export interface IUserTokenPayload {
   firstName: string;
   lastName: string;
-  email: string;
-  isLogin: boolean;
   isVendor: boolean;
   isRegistered: boolean;
   _id: string;
@@ -52,6 +50,7 @@ export interface IOrder {
   subTotal: number;
   totalValue: number;
   shippingFees: number;
+  codFees: number;
 }
 
 interface OrderItem {

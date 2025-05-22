@@ -46,6 +46,11 @@ const shippingFields = {
     required: true,
     min: 0,
   },
+  codFees: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
 };
 
 const billingFields = {
@@ -80,6 +85,10 @@ const orderFields = {
     ref: 'Users',
     required: true,
     index: true,
+  },
+  paymentId: {
+    type: String,
+    required: false,
   },
   items: [orderItemFields],
   ...shippingFields,
