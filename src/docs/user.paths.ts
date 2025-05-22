@@ -3,6 +3,7 @@ export const userPaths = {
     get: {
       tags: ['User'],
       summary: 'Get products liked by user',
+      security: [{ bearerAuth: [] }],
       responses: {
         200: {
           description: 'List of liked products',
@@ -26,6 +27,7 @@ export const userPaths = {
     get: {
       tags: ['User'],
       summary: 'Get products saved by user',
+      security: [{ bearerAuth: [] }],
       responses: {
         200: {
           description: 'List of saved products',
@@ -49,6 +51,7 @@ export const userPaths = {
     get: {
       tags: ['User'],
       summary: 'Get vendors followed by user',
+      security: [{ bearerAuth: [] }],
       responses: {
         200: {
           description: 'List of followed vendors',
@@ -81,6 +84,7 @@ export const userPaths = {
     get: {
       tags: ['User'],
       summary: 'Get reviews written by user',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'page',
@@ -138,6 +142,7 @@ export const userPaths = {
     get: {
       tags: ['User'],
       summary: 'Get user profile information',
+      security: [{ bearerAuth: [] }],
       responses: {
         200: {
           description: 'User profile data',
@@ -198,6 +203,7 @@ export const userPaths = {
     get: {
       tags: ['User'],
       summary: 'Get user shipping addresses',
+      security: [{ bearerAuth: [] }],
       responses: {
         200: {
           description: 'List of user addresses',
@@ -219,6 +225,7 @@ export const userPaths = {
     post: {
       tags: ['User'],
       summary: 'Add new shipping address',
+      security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {
@@ -329,6 +336,7 @@ export const userPaths = {
     delete: {
       tags: ['User'],
       summary: 'Delete user shipping address',
+      security: [{ bearerAuth: [] }],
       description: "Remove a shipping address from user's saved addresses",
       parameters: [
         {
@@ -369,6 +377,7 @@ export const userPaths = {
     get: {
       tags: ['Orders'],
       summary: 'Get user orders history',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'page',
@@ -412,6 +421,7 @@ export const userPaths = {
     get: {
       tags: ['Orders'],
       summary: 'Get order details by ID',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
@@ -440,6 +450,7 @@ export const userPaths = {
     get: {
       tags: ['Orders'],
       summary: 'Prepare payment intent for checkout',
+      security: [{ bearerAuth: [] }],
       responses: {
         200: {
           description: 'Payment intent created',
@@ -467,6 +478,7 @@ export const userPaths = {
     post: {
       tags: ['Orders'],
       summary: 'Submit new order',
+      security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {
@@ -510,6 +522,7 @@ export const userPaths = {
     post: {
       tags: ['User'],
       summary: 'Change user password',
+      security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {
@@ -558,6 +571,7 @@ export const userPaths = {
     post: {
       tags: ['Upload'],
       summary: 'Upload an image file',
+      security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {

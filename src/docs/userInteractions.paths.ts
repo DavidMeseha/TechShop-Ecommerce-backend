@@ -3,6 +3,7 @@ export const userInteractionPaths = {
     post: {
       tags: ['User Interactions'],
       summary: 'Like a product',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
@@ -38,6 +39,7 @@ export const userInteractionPaths = {
     post: {
       tags: ['User Interactions'],
       summary: 'Unlike a previously liked product',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
@@ -73,6 +75,7 @@ export const userInteractionPaths = {
     post: {
       tags: ['User Interactions'],
       summary: 'Save product',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
@@ -108,6 +111,7 @@ export const userInteractionPaths = {
     post: {
       tags: ['User Interactions'],
       summary: 'Remove product from saved items',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
@@ -143,6 +147,7 @@ export const userInteractionPaths = {
     post: {
       tags: ['User Interactions'],
       summary: 'Follow a vendor',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
@@ -178,6 +183,7 @@ export const userInteractionPaths = {
     post: {
       tags: ['User Interactions'],
       summary: 'Unfollow a vendor',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
@@ -213,6 +219,7 @@ export const userInteractionPaths = {
     post: {
       tags: ['User Interactions'],
       summary: 'Add product review',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',

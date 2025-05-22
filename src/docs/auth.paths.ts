@@ -3,6 +3,7 @@ export const authPaths = {
     get: {
       tags: ['Auth'],
       summary: 'Check JWT token validity',
+      security: [{ bearerAuth: [] }],
       responses: {
         200: {
           description: 'Token is valid',
@@ -41,6 +42,7 @@ export const authPaths = {
     post: {
       tags: ['Auth'],
       summary: 'User login',
+      security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {
@@ -72,6 +74,7 @@ export const authPaths = {
     post: {
       tags: ['Auth'],
       summary: 'Register new user',
+      security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {

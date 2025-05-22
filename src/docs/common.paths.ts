@@ -3,6 +3,7 @@ export const commonPaths = {
     get: {
       tags: ['Cart'],
       summary: 'Get user/guest cart products',
+      security: [{ bearerAuth: [] }],
       responses: {
         200: {
           description: 'Cart products retrieved successfully',
@@ -24,6 +25,7 @@ export const commonPaths = {
     get: {
       tags: ['Cart'],
       summary: 'Get IDs of products in user/guest cart',
+      security: [{ bearerAuth: [] }],
       responses: {
         200: {
           description: 'Cart product IDs retrieved successfully',
@@ -45,6 +47,7 @@ export const commonPaths = {
     post: {
       tags: ['Cart'],
       summary: 'Add product to user/guest cart',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
@@ -122,6 +125,7 @@ export const commonPaths = {
     delete: {
       tags: ['Cart'],
       summary: 'Remove product from cart',
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           name: 'id',
