@@ -51,17 +51,16 @@ Backend service for TikShop e-commerce platform built with Node.js, Express, and
 ### 📦 Product Management
 
 - Product catalog with categories
-- Advanced search & filtering
+- Advanced search
 - Reviews & ratings system
 - Image management
-- Inventory tracking
 
 ### 👥 User Management
 
 - Secure authentication
 - Role-based authorization
 - Profile customization
-- Shopping cart & wishlist
+- Shopping cart & saves $ likes (Sicial media like)
 - Order history tracking
 
 ### 🛒 Order Processing
@@ -69,8 +68,6 @@ Backend service for TikShop e-commerce platform built with Node.js, Express, and
 - Cart management system
 - Secure payment processing
 - Order status tracking
-- Shipping integration
-- Automated notifications
 
 ### 🌐 Internationalization
 
@@ -78,7 +75,6 @@ Backend service for TikShop e-commerce platform built with Node.js, Express, and
   - 🇺🇸 English (en)
   - 🇸🇦 Arabic (ar)
   - 🇫🇷 French (fr)
-- RTL layout support
 
 ## 🚀 Getting Started
 
@@ -111,7 +107,7 @@ npm install
 PORT=3000
 DB_URI=mongodb://localhost:27017/techshop
 ACCESS_TOKEN_SECRET=your_secret
-ORIGIN=http://localhost:3000
+ORIGINS=http://localhost:3000
 DOMAIN=your_domain
 FILES_READ_WRITE_TOKEN=vercel_blob_token
 STRIPE_SECRET=stripe_key
@@ -129,7 +125,6 @@ npm run dev
 
 - CORS protection
 - JWT authentication
-- Request rate limiting
 - Input validation
 - Error handling middleware
 
@@ -138,17 +133,7 @@ npm run dev
 - RESTful API design
 - Secure password hashing
 - Environment variable protection
-- XSS/CSRF prevention
 
 ## 📖 API Documentation
 
-API documentation is available at `/api-docs` when running the server.
-
-### Sample Endpoints
-
-```typescript
-POST / api / auth / login;
-GET / api / products;
-POST / api / orders;
-PUT / api / users / profile;
-```
+[API documentation is available at `/api-docs` when running the server.](https://techshop-ecommerce-backend-production.up.railway.app/api-docs)
