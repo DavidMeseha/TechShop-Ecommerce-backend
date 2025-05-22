@@ -60,7 +60,7 @@ Backend service for TikShop e-commerce platform built with Node.js, Express, and
 - Secure authentication
 - Role-based authorization
 - Profile customization
-- Shopping cart & saves $ likes (Sicial media like)
+- Shopping cart & saves & likes (Social media like)
 - Order history tracking
 
 ### 🛒 Order Processing
