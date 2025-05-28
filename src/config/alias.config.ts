@@ -1,7 +1,5 @@
 import 'module-alias/register';
 import path from 'path';
-import moduleAlias from 'module-alias';
+import { addAliases } from 'module-alias';
 
-moduleAlias.addAliases({
-  '@': path.join(__dirname, '..'),
-});
+addAliases({ '@': path.join(__dirname, '..') });
