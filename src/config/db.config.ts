@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import { VendorSchema } from '../models/Vendors';
-import { CategorySchema } from '../models/Categories';
-import { UserSchema } from '../models/Users';
-import { ProductReviewSchema } from '../models/Reviews';
-import { TagSchema } from '../models/Tags';
-import { CountrySchema } from '../models/Countries';
-import { CitySchema } from '../models/Cities';
-import { OrderSchema } from '../models/Orders';
+import { VendorSchema } from '@/models/Vendors';
+import { CategorySchema } from '@/models/Categories';
+import { UserSchema } from '@/models/Users';
+import { ProductReviewSchema } from '@/models/Reviews';
+import { TagSchema } from '@/models/Tags';
+import { CountrySchema } from '@/models/Countries';
+import { CitySchema } from '@/models/Cities';
+import { OrderSchema } from '@/models/Orders';
 import { DB_URI } from './env.config';
 
 export default async function initializeDatabase() {

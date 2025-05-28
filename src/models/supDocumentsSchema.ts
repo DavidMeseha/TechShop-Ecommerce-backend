@@ -1,24 +1,16 @@
 import mongoose from 'mongoose';
-import { ICity } from './Cities';
-import { ICountry } from './Countries';
-import {
-  IPicture,
-  IProductAttribute,
-  IProductAttributeValue,
-} from '../interfaces/product.interface';
-import { DEFAULT_IMAGE } from '../config/env.config';
+import { DEFAULT_IMAGE } from '@/config/env.config';
+import { IPicture, IProductAttribute, IProductAttributeValue } from '@/types/product.interface';
+import { IAddress } from '@/types/user.interface';
 
 // Document interfaces
-export interface IPictureDocument extends IPicture, mongoose.Document {}
-export interface IProductAttributeValueDocument extends IProductAttributeValue, mongoose.Document {}
-export interface IProductAttributeDocument extends IProductAttribute, mongoose.Document {}
-export interface IAddress {
-  address: string;
-  city: ICity;
-  country: ICountry;
-}
+interface IPictureDocument extends Omit<IPicture, '_id'>, mongoose.Document {}
+interface IProductAttributeValueDocument
+  extends Omit<IProductAttributeValue, '_id'>,
+    mongoose.Document {}
 
-export interface IAddressDocument extends IAddress, mongoose.Document {}
+interface IProductAttributeDocument extends Omit<IProductAttribute, '_id'>, mongoose.Document {}
+interface IAddressDocument extends Omit<IAddress, '_id'>, mongoose.Document {}
 
 const imageFields = {
   imageUrl: {
@@ -71,4 +63,4 @@ const addressFields = {
 // Schemas
 export const ImageSchema = new mongoose.Schema<IPictureDocument>(imageFields);
 export const AttributeSchema = new mongoose.Schema<IProductAttributeDocument>(attributeFields);
-export const AddressSchema = new mongoose.Schema<IAddress>(addressFields);
+export const AddressSchema = new mongoose.Schema<IAddressDocument>(addressFields);

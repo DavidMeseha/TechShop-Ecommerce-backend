@@ -1,11 +1,11 @@
 import { Types } from 'mongoose';
-import Products from '../models/Products';
-import Users from '../models/Users';
-import { IFullProduct, IProductAttribute } from '../interfaces/product.interface';
-import { IUserCart } from '../interfaces/user.interface';
-import createProductsPipeline from '../pipelines/products.aggregation';
-import { AppError } from '../utils/appErrors';
-import { isValidIdFormat } from '../utils/misc';
+import Products from '@/models/Products';
+import Users from '@/models/Users';
+import { IFullProduct, IProductAttribute, ProductListItem } from '@/types/product.interface';
+import { IUserCart } from '@/types/user.interface';
+import createProductsPipeline from '@/pipelines/products.aggregation';
+import { AppError } from '@/utils/appErrors';
+import { isValidIdFormat } from '@/utils/misc';
 
 export async function productAttributes(id: string) {
   if (!isValidIdFormat(id)) throw new AppError('productId is not a valid id', 400);
@@ -52,8 +52,7 @@ export async function userCart(userId: string) {
   const user = await Users.findById(userId)
     .select('cart')
     .populate('cart.product')
-    .lean<{ cart: IUserCart<IFullProduct>[] }>()
-    .exec();
+    .lean<{ cart: IUserCart<ProductListItem>[] }>();
   return user?.cart;
 }
 

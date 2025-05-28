@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt-nodejs';
 import { AddressSchema, AttributeSchema } from './supDocumentsSchema';
-import { IUser } from '../interfaces/user.interface';
-import { DEFAULT_PROFILE_IMAGE } from '../config/env.config';
+import { IUser } from '@/types/user.interface';
+import { DEFAULT_PROFILE_IMAGE } from '@/config/env.config';
 
-export interface IUserDocument extends IUser, mongoose.Document {
+export interface IUserDocument extends Omit<IUser, '_id'>, mongoose.Document {
   comparePassword(candidatePassword: string): boolean;
 }
 

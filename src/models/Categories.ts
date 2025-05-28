@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { ICategory } from '../interfaces/product.interface';
+import { ICategory } from '@/types/product.interface';
 
-export interface ICategoryDocument extends ICategory, mongoose.Document {}
+export interface ICategoryDocument extends Omit<ICategory, '_id'>, mongoose.Document {}
 
 const categoryFields = {
   name: {

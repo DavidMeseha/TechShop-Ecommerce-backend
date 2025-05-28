@@ -1,6 +1,8 @@
 import { Types } from 'mongoose';
-import { IAddress } from '../models/supDocumentsSchema';
-import Users from '../models/Users';
+import Users from '@/models/Users';
+import { IAddress, IUser } from '@/types/user.interface';
+
+type AddressProps = Omit<IAddress<string, string>, '_id'>;
 
 export async function deleteAdress(addressId: string, userId: string) {
   return Users.findByIdAndUpdate(userId, {
@@ -8,13 +10,16 @@ export async function deleteAdress(addressId: string, userId: string) {
   });
 }
 
-export async function addAddress(userId: string, address: IAddress) {
-  return Users.findByIdAndUpdate(userId, {
-    $push: { addresses: { ...address } },
-  });
+export async function addAddress(userId: string, address: AddressProps) {
+  return Users.updateOne(
+    { _id: userId },
+    {
+      $push: { addresses: { ...address } },
+    }
+  );
 }
 
-export async function updateAddress(userId: string, addressId: string, address: IAddress) {
+export async function updateAddress(userId: string, addressId: string, address: AddressProps) {
   return Users.updateOne(
     {
       _id: userId,
@@ -33,20 +38,61 @@ export async function updateAddress(userId: string, addressId: string, address: 
 }
 
 export async function addresses(userId: string) {
-  const user = await Users.findById(userId)
-    .select('addresses')
-    .populate([
-      {
-        path: 'addresses.city',
-        select: '-__v',
+  const addresses = await Users.aggregate<Pick<IUser, '_id' | 'addresses'>>([
+    {
+      $match: {
+        _id: new Types.ObjectId(userId),
       },
-      {
-        path: 'addresses.country',
-        select: '-cities -__v',
+    },
+    {
+      $unwind: {
+        path: '$addresses',
+        preserveNullAndEmptyArrays: true,
       },
-    ])
-    .exec();
+    },
+    {
+      $lookup: {
+        from: 'cities',
+        localField: 'addresses.city',
+        foreignField: '_id',
+        as: 'addresses.city',
+      },
+    },
+    {
+      $lookup: {
+        from: 'countries',
+        localField: 'addresses.country',
+        foreignField: '_id',
+        as: 'addresses.country',
+      },
+    },
+    {
+      $unwind: {
+        path: '$addresses.city',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: '$addresses.country',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        'addresses.city.__v': 0,
+        'addresses.country.__v': 0,
+        'addresses.country.cities': 0,
+      },
+    },
+    {
+      $group: {
+        _id: '$_id',
+        addresses: { $push: '$addresses' },
+      },
+    },
+  ]).exec();
 
-  if (!user) return [];
-  return user.addresses;
+  if (!addresses.length) return [];
+  return addresses[0].addresses;
 }

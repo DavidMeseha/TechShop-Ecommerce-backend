@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import { extractToken, verifyToken } from '../utils/token';
-import { AppError } from '../utils/appErrors';
+import { extractToken, verifyToken } from '@/utils/token';
+import { AppError } from '@/utils/appErrors';
+import { asyncHandler } from '@/utils/asyncHandler';
 
-export async function userAuth(req: Request, res: Response, next: NextFunction) {
+export const userAuth = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const token = extractToken(req);
   if (!token) throw new AppError('No token provided', 403);
 
@@ -12,9 +13,9 @@ export async function userAuth(req: Request, res: Response, next: NextFunction) 
   res.locals.user = user;
   res.locals.userId = user._id;
   next();
-}
+});
 
-export async function apiAuth(req: Request, res: Response, next: NextFunction) {
+export const apiAuth = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const token = extractToken(req);
   if (!token) throw new AppError('No token provided', 403);
 
@@ -23,7 +24,7 @@ export async function apiAuth(req: Request, res: Response, next: NextFunction) {
   res.locals.user = user;
   res.locals.userId = user._id;
   next();
-}
+});
 
 export async function fetchUser(req: Request, res: Response, next: NextFunction) {
   try {

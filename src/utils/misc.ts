@@ -1,6 +1,7 @@
 import { Types } from 'mongoose';
-import { IUserDocument } from '../models/Users';
-import { IProductAttribute } from '../interfaces/product.interface';
+import { IUserDocument } from '@/models/Users';
+import { IProductAttribute, ProductListItem } from '@/types/product.interface';
+import { IUserCart } from '@/types/user.interface';
 
 export function responseDto<T>(
   response: T,
@@ -107,7 +108,7 @@ export function generateVariants(query: string, n: number) {
   return queryRegex;
 }
 
-export function cleanUser(user: IUserDocument) {
+export function cleanUser(user: Partial<IUserDocument>) {
   delete user.password;
   delete user.likes;
   delete user.recentProducts;
@@ -121,4 +122,26 @@ export function cleanUser(user: IUserDocument) {
 
 export function isValidIdFormat(id: string) {
   return Types.ObjectId.isValid(id);
+}
+
+export function cartAvilabilityCheck(cart: IUserCart<ProductListItem>[]) {
+  return cart.reduce<Array<{ productId: string; message: string }>>((acc, item) => {
+    if (!(item.product.stock > 0)) {
+      acc.push({
+        productId: item.product._id.toString(),
+        message: 'Product is not available',
+      });
+      return acc;
+    }
+
+    if (item.quantity > item.product.stock) {
+      acc.push({
+        productId: item.product._id.toString(),
+        message: `Only ${item.product.stock} items available in stock`,
+      });
+      return acc;
+    }
+
+    return acc;
+  }, []);
 }

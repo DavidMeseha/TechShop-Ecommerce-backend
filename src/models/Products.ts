@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 import { AttributeSchema, ImageSchema } from './supDocumentsSchema';
-import { IFullProduct } from '../interfaces/product.interface';
+import { IFullProduct } from '@/types/product.interface';
 
-export interface IFullProductDocument extends IFullProduct, mongoose.Document {}
+export interface IFullProductDocument extends Omit<IFullProduct, '_id'>, mongoose.Document {}
 
 const DEFAULT_PRODUCT_IMAGE = {
   imageUrl: '',
@@ -81,6 +81,11 @@ const statusFields = {
 };
 
 const statsFields = {
+  stock: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   likes: {
     type: Number,
     default: 0,

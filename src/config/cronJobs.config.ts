@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import Users from '../models/Users';
+import Users from '@/models/Users';
 
 export default function configureCronJobs() {
   // Remove users without passwords daily

@@ -1,27 +1,26 @@
 import Stripe from 'stripe';
-import { STRIPE_SECRET } from '../config/env.config';
-import Users, { IUserDocument } from '../models/Users';
-import { IUserCart } from '../interfaces/user.interface';
-import { IFullProduct } from '../interfaces/product.interface';
-import Orders from '../models/Orders';
-import { IAddressDocument } from '../models/supDocumentsSchema';
-import calculateCartValue from '../utils/calculate-cart-value';
-import { AppError } from '../utils/appErrors';
+import { STRIPE_SECRET } from '@/config/env.config';
+import Users from '@/models/Users';
+import { IAddress, IUser, IUserCart } from '@/types/user.interface';
+import { ProductListItem } from '@/types/product.interface';
+import Orders from '@/models/Orders';
+import calculateCartValue from '@/utils/calculate-cart-value';
+import { AppError } from '@/utils/appErrors';
 
 interface NewOrderProps {
   billingMethod: string;
-  shippingAddress: IAddressDocument;
-  cart: IUserCart<IFullProduct>[];
+  shippingAddress: IAddress;
+  cart: IUserCart<ProductListItem>[];
 }
 
-export async function createSripePayment(cart: IUserCart<IFullProduct>[]) {
+export async function createSripePayment(cart: IUserCart<ProductListItem>[]) {
   if (!STRIPE_SECRET) throw new AppError('Stripe secret key not configured', 500);
 
   const stripe = new Stripe(STRIPE_SECRET);
   const total = calculateCartValue(cart);
 
   return stripe.paymentIntents.create({
-    amount: total * 100, // Convert to cents
+    amount: total * 100,
     currency: 'usd',
     payment_method_types: ['card'],
   });
@@ -30,7 +29,7 @@ export async function createSripePayment(cart: IUserCart<IFullProduct>[]) {
 export async function userOrderPalcementData(userId: string, shippingAddressId: string) {
   const user = await Users.findById(userId)
     .populate('cart.product')
-    .lean<Pick<IUserDocument, 'addresses' | '_id'> & { cart: IUserCart<IFullProduct>[] }>()
+    .lean<Pick<IUser, 'addresses' | '_id'> & { cart: IUserCart<ProductListItem>[] }>()
     .exec();
 
   if (!user) throw new AppError('error Getting user', 500);

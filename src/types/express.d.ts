@@ -1,5 +1,5 @@
-import { IUserTokenPayload } from '../interfaces/user.interface';
-import { Dictionary } from '../locales/useT';
+import { IUserTokenPayload } from './user.interface';
+import { Dictionary } from '@/locales/useT';
 
 declare global {
   namespace Express {

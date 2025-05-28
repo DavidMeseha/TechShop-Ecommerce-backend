@@ -1,7 +1,7 @@
-import Vendors from '../models/Vendors';
-import createVendorsPipeline from '../pipelines/vendors.aggregation';
-import { AppError } from '../utils/appErrors';
-import { isValidIdFormat } from '../utils/misc';
+import Vendors from '@/models/Vendors';
+import createVendorsPipeline from '@/pipelines/vendors.aggregation';
+import { AppError } from '@/utils/appErrors';
+import { isValidIdFormat } from '@/utils/misc';
 
 export async function addFollow(userId: string, vendorId: string) {
   if (!isValidIdFormat(vendorId)) throw new AppError('vendorId is not a valid id', 400);

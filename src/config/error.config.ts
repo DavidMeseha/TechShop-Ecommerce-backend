@@ -1,6 +1,6 @@
 import { Application, Request, Response } from 'express';
 import { DEFAULT_ORIGIN } from './env.config';
-import { errorHandler } from '../middlewares/error.middleware';
+import { errorHandler } from '@/middlewares/error.middleware';
 
 export default function configureErrorHandling(app: Application) {
   app.use(errorHandler);

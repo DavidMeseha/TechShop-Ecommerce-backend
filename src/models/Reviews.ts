@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { IProductReview } from '../interfaces/product.interface';
+import { IProductReview } from '@/types/product.interface';
 
-export interface IProductReviewDocument extends IProductReview, mongoose.Document {}
+export interface IProductReviewDocument extends Omit<IProductReview, '_id'>, mongoose.Document {}
 
 const reviewFields = {
   product: {

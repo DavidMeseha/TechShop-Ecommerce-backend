@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { ITag } from '../interfaces/product.interface';
+import { ITag } from '@/types/product.interface';
 
-export interface ITagDocument extends ITag, mongoose.Document {}
+export interface ITagDocument extends Omit<ITag, '_id'>, mongoose.Document {}
 
 const tagFields = {
   name: {

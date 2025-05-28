@@ -1,6 +1,6 @@
-import Products from '../models/Products';
-import { AppError } from '../utils/appErrors';
-import { isValidIdFormat } from '../utils/misc';
+import Products from '@/models/Products';
+import { AppError } from '@/utils/appErrors';
+import { isValidIdFormat } from '@/utils/misc';
 
 export async function save(userId: string, productId: string) {
   if (!isValidIdFormat(productId)) throw new AppError('productId is not a valid id', 400);

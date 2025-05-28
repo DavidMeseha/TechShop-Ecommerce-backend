@@ -1,8 +1,8 @@
-import { IFullProduct } from '../interfaces/product.interface';
-import Products from '../models/Products';
-import createProductsPipeline from '../pipelines/products.aggregation';
-import { AppError } from '../utils/appErrors';
-import { isValidIdFormat } from '../utils/misc';
+import { IFullProduct } from '@/types/product.interface';
+import Products from '@/models/Products';
+import createProductsPipeline from '@/pipelines/products.aggregation';
+import { AppError } from '@/utils/appErrors';
+import { isValidIdFormat } from '@/utils/misc';
 
 export function like(userId: string, productId: string) {
   if (!isValidIdFormat(productId)) throw new AppError('productId is not a valid id', 400);

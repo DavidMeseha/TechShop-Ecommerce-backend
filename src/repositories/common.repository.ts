@@ -1,15 +1,18 @@
-import Users from '../models/Users';
-import Products from '../models/Products';
-import Vendors from '../models/Vendors';
-import Categories from '../models/Categories';
-import Tags from '../models/Tags';
-import createUserCartAggregationPipeline from '../pipelines/cart.aggregation';
-import { IUserCart } from '../interfaces/user.interface';
-import { IFullProduct, IPicture } from '../interfaces/product.interface';
-import { IAddress } from '../models/supDocumentsSchema';
-import { AppError } from '../utils/appErrors';
+import Users from '@/models/Users';
+import Products from '@/models/Products';
+import Vendors from '@/models/Vendors';
+import Categories from '@/models/Categories';
+import Tags from '@/models/Tags';
+import createUserCartAggregationPipeline from '@/pipelines/cart.aggregation';
+import { IAddress, IUserCart } from '@/types/user.interface';
+import { IPicture, ProductListItem } from '@/types/product.interface';
+import { AppError } from '@/utils/appErrors';
 
-type IGetUserCartReturn = { _id: string; cart: IUserCart<IFullProduct>[]; addresses: IAddress[] };
+type IGetUserCartReturn = {
+  _id: string;
+  cart: IUserCart<ProductListItem>[];
+  addresses: IAddress[];
+};
 
 export async function getUserCart(userId: string) {
   const users = await Users.aggregate<IGetUserCartReturn>(

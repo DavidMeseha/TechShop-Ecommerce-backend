@@ -1,5 +1,5 @@
 import { Application } from 'express';
-import useT, { Language } from '../locales/useT';
+import useT, { Language } from '@/locales/useT';
 
 export default function configureLocalization(app: Application) {
   app.use((req, res, next) => {

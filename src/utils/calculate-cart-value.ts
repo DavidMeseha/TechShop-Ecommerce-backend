@@ -1,7 +1,7 @@
-import { IFullProduct } from '../interfaces/product.interface';
-import { IUserCart } from '../interfaces/user.interface';
+import { ProductListItem } from '@/types/product.interface';
+import { IUserCart } from '@/types/user.interface';
 
-export default function calculateCartValue(cart: IUserCart<IFullProduct>[]) {
+export default function calculateCartValue(cart: IUserCart<ProductListItem>[]) {
   const total = cart.reduce(
     (sum, item) =>
       typeof item.product === 'object' && 'price' in item.product

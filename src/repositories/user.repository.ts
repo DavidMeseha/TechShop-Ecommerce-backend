@@ -1,13 +1,13 @@
 import { Types } from 'mongoose';
-import { IOrder, IUser, UserInfoBody } from '../interfaces/user.interface';
-import Orders from '../models/Orders';
-import Reviews from '../models/Reviews';
-import Users, { IUserDocument } from '../models/Users';
+import { IOrder, IUser, UserInfoBody } from '@/types/user.interface';
+import Orders from '@/models/Orders';
+import Reviews from '@/models/Reviews';
+import Users, { IUserDocument } from '@/models/Users';
 import bcrypt from 'bcrypt-nodejs';
-import Products from '../models/Products';
-import createProductsPipeline from '../pipelines/products.aggregation';
-import { IFullProduct } from '../interfaces/product.interface';
-import { AppError } from '../utils/appErrors';
+import Products from '@/models/Products';
+import createProductsPipeline from '@/pipelines/products.aggregation';
+import { IFullProduct } from '@/types/product.interface';
+import { AppError } from '@/utils/appErrors';
 
 export async function findUserById(id: string) {
   return Users.findById(id)
@@ -79,7 +79,12 @@ export async function logoutUser(id: string): Promise<void> {
 export async function findUserByEmail(email: string) {
   return Users.findOne({ email })
     .select('_id firstName lastName imageUrl isRegistered isVendor language password')
-    .then((result) => result?.toJSON());
+    .lean<
+      Pick<
+        IUser,
+        'firstName' | 'lastName' | 'imageUrl' | 'isRegistered' | 'isVendor' | 'language'
+      > & { password?: string; _id: string }
+    >();
 }
 
 export async function updateUserInformation(userId: string, form: UserInfoBody) {

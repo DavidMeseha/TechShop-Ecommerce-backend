@@ -1,11 +1,7 @@
 import mongoose from 'mongoose';
+import { ICity } from '@/types/general';
 
-export interface ICity {
-  name: string;
-  code: string;
-}
-
-export interface ICityDocument extends ICity, mongoose.Document {}
+export interface ICityDocument extends Omit<ICity, '_id'>, mongoose.Document {}
 
 const cityFields = {
   name: {

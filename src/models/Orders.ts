@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 import { AttributeSchema } from './supDocumentsSchema';
-import { IOrder } from '../interfaces/user.interface';
+import { IOrder } from '@/types/user.interface';
 
-export interface IOrderDocument extends IOrder, mongoose.Document {}
+export interface IOrderDocument extends Omit<IOrder, '_id'>, mongoose.Document {}
 
 const orderItemFields = {
   product: {

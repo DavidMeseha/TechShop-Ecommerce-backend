@@ -1,9 +1,9 @@
 import { Types } from 'mongoose';
-import { IProductReview } from '../interfaces/product.interface';
-import Reviews from '../models/Reviews';
-import Products from '../models/Products';
-import { isValidIdFormat } from '../utils/misc';
-import { AppError } from '../utils/appErrors';
+import { IProductReview } from '@/types/product.interface';
+import Reviews from '@/models/Reviews';
+import Products from '@/models/Products';
+import { isValidIdFormat } from '@/utils/misc';
+import { AppError } from '@/utils/appErrors';
 
 export async function createReview(userId: string, productId: string, review: IProductReview) {
   if (!isValidIdFormat(productId)) throw new AppError('productId is not a valid id', 400);

@@ -4,7 +4,7 @@ import cors, { CorsOptions } from 'cors';
 import express, { Application } from 'express';
 import path from 'path';
 import { DOMAIN, ORIGINS } from './env.config';
-// import { setupCsrf } from '../middlewares/csrf.middleware';
+// import { setupCsrf } from '@/middlewares/csrf.middleware';
 
 function configureCors(): CorsOptions {
   return {

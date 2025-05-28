@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import { IVendor } from '../interfaces/product.interface';
-import { DEFAULT_PROFILE_IMAGE } from '../config/env.config';
+import { IVendor } from '@/types/product.interface';
+import { DEFAULT_PROFILE_IMAGE } from '@/config/env.config';
 
-export interface IVendorDocument extends IVendor, mongoose.Document {}
+export interface IVendorDocument extends Omit<IVendor, '_id'>, mongoose.Document {}
 
 const vendorFields = {
   name: {

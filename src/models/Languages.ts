@@ -12,7 +12,7 @@ const languageFields = {
     required: true,
     unique: true,
     trim: true,
-    enum: ['en', 'ar', 'fr'], // Match supported languages from useT.ts
+    enum: ['en', 'ar', 'fr'],
     lowercase: true,
   },
 };
