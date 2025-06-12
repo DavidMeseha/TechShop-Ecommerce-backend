@@ -4,7 +4,15 @@ import cors, { CorsOptions } from 'cors';
 import express, { Application } from 'express';
 import path from 'path';
 import { DOMAIN, ORIGINS } from './env.config';
-// import { setupCsrf } from '@/middlewares/csrf.middleware';
+import rateLimit from 'express-rate-limit';
+
+const limiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 200,
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 function configureCors(): CorsOptions {
   return {
@@ -27,10 +35,10 @@ function configureCors(): CorsOptions {
 }
 
 export default function configureMiddlewares(app: Application) {
+  app.use(limiter);
   app.use(cors(configureCors()));
 
   app.use(cookieParser());
-  // app.use(setupCsrf);
   app.use(logger('dev'));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));

@@ -5,15 +5,9 @@ const createCartPipeline = (userId: string) => {
     { $match: { _id: new Types.ObjectId(userId) } },
     {
       $project: {
-        cartSize: { $size: { $ifNull: ['$cart', []] } },
         cart: 1,
         addresses: 1,
         _id: 1,
-      },
-    },
-    {
-      $match: {
-        $expr: { $gt: ['$cartSize', 0] },
       },
     },
     {
@@ -60,7 +54,21 @@ const createCartPipeline = (userId: string) => {
     {
       $group: {
         _id: '$_id',
-        cart: { $push: '$cart' },
+        cart: {
+          $push: {
+            $cond: {
+              if: {
+                $and: [
+                  { $ne: ['$cart', null] },
+                  { $ne: ['$cart.product', null] },
+                  { $ne: ['$cart', {}] },
+                ],
+              },
+              then: '$cart',
+              else: '$$REMOVE',
+            },
+          },
+        },
         addresses: { $first: '$addresses' },
       },
     },
@@ -69,7 +77,7 @@ const createCartPipeline = (userId: string) => {
         _id: 1,
         cart: {
           $cond: {
-            if: { $eq: [{ $arrayElemAt: ['$cart.product', 0] }, null] },
+            if: { $eq: [{ $size: '$cart' }, 0] },
             then: [],
             else: '$cart',
           },

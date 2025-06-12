@@ -6,7 +6,6 @@ import Tags from '@/models/Tags';
 import createUserCartAggregationPipeline from '@/pipelines/cart.aggregation';
 import { IAddress, IUserCart } from '@/types/user.interface';
 import { IPicture, ProductListItem } from '@/types/product.interface';
-import { AppError } from '@/utils/appErrors';
 
 type IGetUserCartReturn = {
   _id: string;
@@ -20,7 +19,6 @@ export async function getUserCart(userId: string) {
   ).exec();
 
   const user = users[0];
-  if (!user) throw new AppError('error finding user', 400);
   return user;
 }
 
