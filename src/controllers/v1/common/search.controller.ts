@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { generateVariants } from '@/utils/misc';
+import { generateSearchTextVariants } from '@/utils/misc';
 import {
   findCategoriesByName,
   findProductsByName,
@@ -23,7 +23,7 @@ export async function findInAll(req: Request, res: Response) {
   const query = options.searchText;
   const toleranceCount = Math.ceil(query.length * 0.2);
   const queryRegex = `${
-    query.length >= 4 ? generateVariants(query, toleranceCount) : query
+    query.length >= 4 ? generateSearchTextVariants(query, toleranceCount) : query
   }|${query}..`;
   const regex = new RegExp(queryRegex, 'i');
 

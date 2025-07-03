@@ -8,11 +8,16 @@ import Products from '@/models/Products';
 import createProductsPipeline from '@/pipelines/products.aggregation';
 import { IFullProduct } from '@/types/product.interface';
 import { AppError } from '@/utils/appErrors';
+import Vendors from '@/models/Vendors';
 
 export async function findUserById(id: string) {
   return Users.findById(id)
-    .select('firstName lastName imageUrl email isRegistered isLogin isVendor language')
-    .then((user) => user?.toJSON() || null);
+    .select('firstName lastName imageUrl isRegistered isLogin isVendor language')
+    .exec();
+}
+
+export async function findUserVendor(id: string) {
+  return Vendors.findOne({ user: new Types.ObjectId(id) }).exec();
 }
 
 export async function userInformation(userId: string) {

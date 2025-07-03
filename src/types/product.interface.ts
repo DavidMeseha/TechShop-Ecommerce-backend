@@ -24,7 +24,7 @@ export interface IProductAttribute {
   _id: ObjectId;
   name: string;
   attributeControlType: string;
-  values: (IProductAttributeValue & { _id: string })[];
+  values: IProductAttributeValue[];
 }
 
 export interface IProductAttributeValue {
@@ -64,12 +64,7 @@ export interface ITag {
   productCount: number;
 }
 
-export interface IFullProduct<
-  Category = ICategory,
-  Tag = ITag,
-  Review = IProductReview,
-  Vendor = IVendor,
-> {
+export interface IFullProduct<Category = ICategory, Review = IProductReview, Vendor = IVendor> {
   _id: ObjectId;
   usersSaved: string[];
   usersCarted: string[];
@@ -89,7 +84,7 @@ export interface IFullProduct<
   sku: string;
   vendor: Vendor;
   price: IPrice;
-  productTags: Tag[];
+  productTags: string[];
   productAttributes: IProductAttribute[];
   hasAttributes: boolean;
   productReviewOverview: {
@@ -101,6 +96,7 @@ export interface IFullProduct<
   saves: number;
   productReviews: Review[];
   inStock: boolean;
+  deleted: boolean;
   stock: number;
 }
 

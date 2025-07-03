@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { findUserById } from '@/repositories/user.repository';
+import { findUserById, findUserVendor } from '@/repositories/user.repository';
 import { AppError } from '@/utils/appErrors';
 import { extractToken, verifyToken } from '@/utils/token';
 import { cleanUser } from '@/utils/misc';
@@ -20,6 +20,19 @@ export async function checkToken(req: Request, res: Response) {
     });
 
     return res.status(200).json(cleanUser(foundUser));
+  }
+
+  throw new AppError('Token not valid', 403);
+}
+
+export async function checkVendor(req: Request, res: Response) {
+  const userId = res.locals.userId;
+  const foundUser = await findUserById(userId);
+
+  if (foundUser && foundUser.isVendor) {
+    const vendor = await findUserVendor(String(foundUser.toJSON()._id));
+    console.log(vendor);
+    return res.status(200).json(vendor);
   }
 
   throw new AppError('Token not valid', 403);

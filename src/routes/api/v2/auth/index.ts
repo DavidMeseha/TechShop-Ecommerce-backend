@@ -3,6 +3,7 @@ import { apiAuth, userAuth } from '@/middlewares/auth.middleware';
 import { asyncHandler } from '@/utils/asyncHandler';
 import {
   checkToken,
+  checkVendor,
   guestToken,
   login,
   logout,
@@ -17,6 +18,7 @@ router.get('/guest', asyncHandler(guestToken));
 router.get('/check', asyncHandler(checkToken));
 
 // api Protected
+router.get('/vendor', apiAuth, asyncHandler(checkVendor));
 router.post('/login', apiAuth, asyncHandler(login));
 router.post('/register', apiAuth, asyncHandler(register));
 

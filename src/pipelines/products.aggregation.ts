@@ -30,14 +30,6 @@ function createProductsPipeline(
     },
     {
       $lookup: {
-        from: 'tags',
-        localField: 'productTags',
-        foreignField: '_id',
-        as: 'productTags',
-      },
-    },
-    {
-      $lookup: {
         from: 'categories',
         localField: 'category',
         foreignField: '_id',

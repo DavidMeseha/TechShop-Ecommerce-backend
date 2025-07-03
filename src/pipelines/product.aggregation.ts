@@ -25,14 +25,6 @@ function createProductPipeline(userId: string, pipelineStage: PipelineStage): Pi
     },
     {
       $lookup: {
-        from: 'tags',
-        localField: 'productTags',
-        foreignField: '_id',
-        as: 'productTags',
-      },
-    },
-    {
-      $lookup: {
         from: 'reviews',
         localField: '_id',
         foreignField: 'product',

@@ -79,7 +79,7 @@ export function mapAttributes(
   return mappedAttributes as (IProductAttribute & { _id: string })[];
 }
 
-export function generateVariants(query: string, n: number) {
+export function generateSearchTextVariants(query: string, n: number) {
   let queryRegex = '';
 
   function replaceChars(currentIndex: number, indicesToReplace: (string | number | any)[]) {
@@ -126,18 +126,10 @@ export function isValidIdFormat(id: string) {
 
 export function cartAvilabilityCheck(cart: IUserCart<ProductListItem>[]) {
   return cart.reduce<Array<{ productId: string; message: string }>>((acc, item) => {
-    if (!(item.product.stock > 0)) {
+    if (item.product.stock < item.quantity || item.product.deleted) {
       acc.push({
         productId: item.product._id.toString(),
         message: 'Product is not available',
-      });
-      return acc;
-    }
-
-    if (item.quantity > item.product.stock) {
-      acc.push({
-        productId: item.product._id.toString(),
-        message: `Only ${item.product.stock} items available in stock`,
       });
       return acc;
     }

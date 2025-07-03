@@ -5,7 +5,7 @@ import { getAllTagsSeName, getTagInfo, getTagProducts } from '@/controllers/v1/c
 const router = express.Router();
 
 router.get('/all', asyncHandler(getAllTagsSeName));
-router.get('/products/:id', asyncHandler(getTagProducts));
+router.get('/products/:seName', asyncHandler(getTagProducts));
 router.get('/:seName', asyncHandler(getTagInfo));
 
 export default router;

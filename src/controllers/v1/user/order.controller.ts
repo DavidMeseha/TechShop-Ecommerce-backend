@@ -28,7 +28,7 @@ export async function placeOrder(req: Request, res: Response) {
   const { shippingAddress, cart } = await userOrderPalcementData(userId, order.shippingAddressId);
 
   const errors = cartAvilabilityCheck(cart);
-  if (errors.length > 0) throw new AppError('some products not in stock', 422);
+  if (errors.length > 0) throw new AppError('some products not in stock/not-avilable', 422);
 
   const createdOrder = await createOrder(userId, {
     billingMethod: order.billingMethod,

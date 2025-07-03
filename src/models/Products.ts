@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { CallbackError } from 'mongoose';
 
 import { AttributeSchema, ImageSchema } from './supDocumentsSchema';
 import { IFullProduct } from '@/types/product.interface';
@@ -77,6 +77,11 @@ const statusFields = {
     type: Boolean,
     default: true,
     index: true,
+  },
+  deleted: {
+    type: Boolean,
+    default: false,
+    required: true,
   },
 };
 
@@ -157,7 +162,7 @@ const relationFields = {
   },
   productTags: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'Tags',
     },
   ],
@@ -175,10 +180,32 @@ const productFields = {
 };
 
 export const ProductSchema = new mongoose.Schema<IFullProductDocument>(productFields, {
-  timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true },
 });
+
+function softDeletePlugin(schema: mongoose.Schema) {
+  function addNotDeleted(this: mongoose.Query<any, any>, next: (err?: CallbackError) => void) {
+    if (!Object.prototype.hasOwnProperty.call(this.getFilter(), 'deleted')) {
+      this.where({ deleted: { $ne: true } });
+    }
+    next();
+  }
+
+  schema.pre('find', addNotDeleted);
+  schema.pre('findOne', addNotDeleted);
+  schema.pre('findOneAndUpdate', addNotDeleted);
+  schema.pre('countDocuments', addNotDeleted);
+  schema.pre(
+    'aggregate',
+    function (this: mongoose.Aggregate<any[]>, next: (err?: CallbackError) => void) {
+      this.pipeline().unshift({ $match: { deleted: { $ne: true } } });
+      next();
+    }
+  );
+}
+
+ProductSchema.plugin(softDeletePlugin);
 
 ProductSchema.index({ name: 'text' });
 ProductSchema.index({ seName: 1 });

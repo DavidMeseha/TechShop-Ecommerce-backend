@@ -69,16 +69,14 @@ export async function findProductsByVendor(
 
 export async function findProductsByTag(
   userId: string,
-  tagId: string,
+  tagSeName: string,
   page: number,
   limit: number
 ) {
-  if (!isValidIdFormat(tagId)) throw new AppError('tagId is not a valid id', 400);
-
   const pipeline = createProductsAggregationPipeline(userId, page, limit, [
     {
       $match: {
-        productTags: { $in: [new Types.ObjectId(tagId)] },
+        productTags: { $in: [tagSeName] },
       },
     },
   ]);
