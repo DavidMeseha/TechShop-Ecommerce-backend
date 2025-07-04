@@ -30,8 +30,8 @@ export async function getTagProducts(req: Request, res: Response) {
   const userId = res.locals.userId;
   const page = parseInt(req.query.page?.toString() ?? '1');
   const limit = parseInt(req.query.limit?.toString() ?? '5');
-  const seName = req.params.id;
-  if (!seName) throw new AppError('tagId is not a valid id', 400);
+  const seName = req.params.seName;
+  if (!seName) throw new AppError('missing tag SeName', 400);
 
   const result = await findProductsByTag(userId, seName, page, limit);
   res.status(200).json(responseDto(result.data, true, result.pagination));
