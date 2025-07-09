@@ -31,7 +31,6 @@ export async function checkVendor(req: Request, res: Response) {
 
   if (foundUser && foundUser.isVendor) {
     const vendor = await findUserVendor(String(foundUser.toJSON()._id));
-    console.log(vendor);
     return res.status(200).json(vendor);
   }
 
