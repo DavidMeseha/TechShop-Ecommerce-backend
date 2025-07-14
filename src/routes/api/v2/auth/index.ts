@@ -25,7 +25,7 @@ router.get('/guest', asyncHandler(guestToken));
 router.get('/check', asyncHandler(checkToken));
 
 // api Protected
-router.get('/vendor', authLimiter, apiAuth, asyncHandler(checkVendor));
+router.get('/vendor', apiAuth, asyncHandler(checkVendor));
 router.post('/login', authLimiter, apiAuth, asyncHandler(login));
 router.post('/register', authLimiter, apiAuth, asyncHandler(register));
 
