@@ -73,8 +73,9 @@ export async function updatePassword(userId: string, password: string, newPasswo
   if (!updated.modifiedCount) throw new AppError('Password could not be changed', 500);
 }
 
-export async function createUser(user: Partial<IUser>): Promise<IUser | null> {
-  return Users.create(user).then((user) => user.toJSON());
+export async function createUser(user: Partial<IUser>): Promise<any | null> {
+  const created = await Users.create(user);
+  return created;
 }
 
 export async function logoutUser(id: string): Promise<void> {

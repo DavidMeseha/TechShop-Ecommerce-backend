@@ -26,8 +26,8 @@ router.get('/check', asyncHandler(checkToken));
 
 // api Protected
 router.get('/vendor', apiAuth, asyncHandler(checkVendor));
-router.post('/login', authLimiter, apiAuth, asyncHandler(login));
-router.post('/register', authLimiter, apiAuth, asyncHandler(register));
+router.post('/login', authLimiter, asyncHandler(login));
+router.post('/register', authLimiter, asyncHandler(register));
 
 // User Protected
 router.get('/refreshToken', userAuth, asyncHandler(refreshToken));

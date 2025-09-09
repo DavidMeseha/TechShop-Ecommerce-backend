@@ -25,9 +25,7 @@ const countryFields = {
   ],
 };
 
-export const CountrySchema = new mongoose.Schema<ICountryDocument>(countryFields, {
-  timestamps: true,
-});
+export const CountrySchema = new mongoose.Schema<ICountryDocument>(countryFields);
 
 CountrySchema.index({ code: 1 });
 CountrySchema.index({ name: 'text' });

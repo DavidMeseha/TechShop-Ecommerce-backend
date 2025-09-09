@@ -18,9 +18,7 @@ const cityFields = {
   },
 };
 
-export const CitySchema = new mongoose.Schema<ICityDocument>(cityFields, {
-  timestamps: true,
-});
+export const CitySchema = new mongoose.Schema<ICityDocument>(cityFields);
 
 CitySchema.index({ code: 1 });
 CitySchema.index({ name: 'text' });
