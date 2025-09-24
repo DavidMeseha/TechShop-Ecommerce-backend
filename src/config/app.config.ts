@@ -1,4 +1,4 @@
-import express, { Application } from 'express';
+import { Application } from 'express';
 import path from 'path';
 
 import configureMiddlewares from './middlewares.config';
@@ -9,9 +9,7 @@ import initializeDatabase from './db.config';
 import configureErrorHandling from './error.config';
 import { PORT } from './env.config';
 
-export default async function initializeApp() {
-  const app: Application = express();
-
+export default async function initializeApp(app: Application) {
   // View engine setup
   app.set('views', path.join(__dirname, 'views'));
   app.set('view engine', 'ejs');
@@ -27,6 +25,4 @@ export default async function initializeApp() {
     configureCronJobs();
     console.log(`Server listening on port ${PORT}`);
   });
-
-  return app;
 }
