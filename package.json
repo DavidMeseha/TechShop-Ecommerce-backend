@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node dist/app.js",
-    "dev": "nodemon -r tsconfig-paths/register src/app.ts",
+    "start": "node dist/index.js",
+    "dev": "nodemon -r tsconfig-paths/register src/index.ts",
     "build": "tsc",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
@@ -13,7 +13,7 @@
     "check": "npm run lint && npm run format:check",
     "swagger-autogen": "node ./docs/swagger.js"
   },
-  "main": "dist/app.js",
+  "main": "dist/index.js",
   "dependencies": {
     "@types/bcrypt-nodejs": "^0.0.31",
     "@types/csurf": "^1.11.5",
